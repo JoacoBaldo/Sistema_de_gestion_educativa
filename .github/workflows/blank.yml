@@ -1,47 +1,84 @@
 name: Validaciones de Python en PR
 
-# Define qué eventos activan las validaciones
 on:
   pull_request:
     branches: [ main, master, develop ]
     paths:
-      - '**/*.py' # Solo se ejecuta si cambian archivos de Python
+      - '**/*.py'
+
+permissions:
+  contents: write
 
 jobs:
-  validate-python:
+  # 1. TRABAJO DE LINTER
+  ruff-linter:
     runs-on: ubuntu-latest
-
     steps:
-    # 1. Descarga el código del PR en la máquina virtual
     - name: Descargar código
       uses: actions/checkout@v4
-
-    # 2. Configura el entorno de Python
     - name: Configurar Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # Cambia a la versión que uses
-        cache: 'pip'          # Acelera futuras ejecuciones guardando dependencias
-
-    # 3. Instala las herramientas y dependencias del proyecto
-    - name: Instalar dependencias
-      run: |
-        python -m pip install --upgrade pip
-        pip install ruff mypy pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    # 4. Validación de Estilo y Errores (Linter y Formateador)
+        python-version: '3.11'
+    - name: Instalar Ruff
+      run: pip install ruff
     - name: Validar estilo con Ruff (Linter)
       run: ruff check .
 
-    - name: Validar formato con Ruff (Format)
-      run: ruff format --check .
+  # 2. TRABAJO DE FORMATO CON AUTO-FIX
+  ruff-formatter:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Descargar código
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Instalar Ruff
+      run: pip install ruff
+    - name: Corregir formato automáticamente con Ruff
+      run: ruff format .
+    - name: Confirmar y subir cambios de formato
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "style: formateo automático de Python con Ruff"
+        file_pattern: '**/*.py'
 
-    # 5. Validación de Tipos Estáticos
+  # 3. TRABAJO DE TIPADO ESTÁTICO
+  mypy-types:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Descargar código
+      uses: actions/checkout@v4
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install mypy
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Validar tipos con MyPy
       run: mypy .
 
-    # 6. Ejecución de Pruebas Unitarias
+  # 4. TRABAJO DE PRUEBAS UNITARIAS
+  pytest-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Descargar código
+      uses: actions/checkout@v4
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Ejecutar pruebas con Pytest
       run: pytest
-
