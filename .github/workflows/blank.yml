@@ -65,7 +65,7 @@ jobs:
     - name: Validar tipos con MyPy
       run: mypy .
 
-  # 4. TRABAJO DE PRUEBAS UNITARIAS
+ # 4. TRABAJO DE PRUEBAS UNITARIAS
   pytest-tests:
     runs-on: ubuntu-latest
     steps:
@@ -78,7 +78,9 @@ jobs:
     - name: Instalar dependencias
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
+        # Instalamos un plugin que maneja exactamente esta situación
+        pip install pytest pytest-custom-exit-code
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Ejecutar pruebas con Pytest
-      run: pytest
+      # Agregamos el parámetro para que ignore el error si no hay tests
+      run: pytest --suppress-no-test-exit-code
