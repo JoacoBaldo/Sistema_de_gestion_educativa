@@ -2,13 +2,13 @@ import os
 import time
 import uuid
 from typing import Any, Optional
-from jose import jwt, JWTError
+from jose import jwt, JWTError  # type: ignore
 from src.core.contracts.auth.request.token_request import TokenRequest
 from src.core.contracts.auth.response.token_response import TokenResponse
 
 
 class JWTTokenService(TokenRequest, TokenResponse):
-    def __init__(self, secret_key: str = None, algorithm: str = "HS256"):
+    def __init__(self, secret_key: Optional[str] = None, algorithm: str = "HS256"):
         # Read from environment variable JWT_SECRET, or use a default fallback for local development
         self._secret_key = secret_key or os.getenv(
             "JWT_SECRET", "default-system-gestion-educativa-jwt-secret-key-987654321"
