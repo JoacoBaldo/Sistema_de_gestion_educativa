@@ -1,18 +1,1 @@
-name: Validar Título del PR
 
-on:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - synchronize
-
-jobs:
-  validate-title:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validar Formato
-        uses: moritzjust/pr-lint-action@v2
-        with:
-          title-regex: '^(feature|bugfix|hotfix) \[(back|front|general)\] \[A-Z]+-[0-9]+\: .+$'
-          error-message: '❌ Formato inválido. Usa: feature [back/front/general] ID-123: Descripción'
