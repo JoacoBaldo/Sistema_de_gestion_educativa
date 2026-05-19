@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
+
 class TokenRequest(ABC):
     @abstractmethod
     def decode(self, token: str) -> Optional[dict]:

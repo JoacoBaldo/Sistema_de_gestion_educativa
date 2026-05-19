@@ -1,5 +1,6 @@
 import bcrypt
 
+
 class PasswordService:
     def hash_password(self, password: str) -> str:
         password_bytes = password.encode("utf-8")

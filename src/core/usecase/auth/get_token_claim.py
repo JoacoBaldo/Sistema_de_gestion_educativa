@@ -1,6 +1,7 @@
 from typing import Any
 from src.core.contracts.auth.request.token_request import TokenRequest
 
+
 class GetTokenClaimUseCase:
     def __init__(self, token_request: TokenRequest):
         self._token_request = token_request

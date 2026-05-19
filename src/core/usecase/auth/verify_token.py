@@ -3,6 +3,7 @@ from src.core.contracts.auth.request.token_request import TokenRequest
 from src.core.contracts.auth.request.cache_request import CacheRequest
 from src.core.usecase.auth.errors import UnauthorizedError
 
+
 class VerifyTokenUseCase:
     def __init__(self, token_request: TokenRequest, cache_request: CacheRequest):
         self._token_request = token_request

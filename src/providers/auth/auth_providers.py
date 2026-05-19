@@ -10,20 +10,30 @@ _cache_instance = InMemoryCache()
 _token_service_instance = JWTTokenService()
 _password_service_instance = PasswordService()
 
+
 def get_cache_repository() -> InMemoryCache:
     return _cache_instance
+
 
 def get_token_service() -> JWTTokenService:
     return _token_service_instance
 
+
 def get_password_service() -> PasswordService:
     return _password_service_instance
 
+
 def get_create_token_usecase() -> CreateTokenUseCase:
-    return CreateTokenUseCase(token_response=_token_service_instance, cache_response=_cache_instance)
+    return CreateTokenUseCase(
+        token_response=_token_service_instance, cache_response=_cache_instance
+    )
+
 
 def get_verify_token_usecase() -> VerifyTokenUseCase:
-    return VerifyTokenUseCase(token_request=_token_service_instance, cache_request=_cache_instance)
+    return VerifyTokenUseCase(
+        token_request=_token_service_instance, cache_request=_cache_instance
+    )
+
 
 def get_token_claim_usecase() -> GetTokenClaimUseCase:
     return GetTokenClaimUseCase(token_request=_token_service_instance)

@@ -3,4 +3,4 @@ def suma(a: int, b: int) -> int:
 
 
 def test_suma():
-    assert True 
+    assert True

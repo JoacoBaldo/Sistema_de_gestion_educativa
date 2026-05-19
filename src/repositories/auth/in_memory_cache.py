@@ -4,6 +4,7 @@ from typing import Dict, Optional, Tuple
 from src.core.contracts.auth.request.cache_request import CacheRequest
 from src.core.contracts.auth.response.cache_response import CacheResponse
 
+
 class InMemoryCache(CacheRequest, CacheResponse):
     def __init__(self):
         self._lock = threading.Lock()
