@@ -1,4 +1,3 @@
-from typing import Optional
 from src.core.entities.auth.session import UserSession
 from src.core.contracts.auth.request.token_request import TokenRequest
 from src.core.contracts.auth.request.cache_request import CacheRequest
