@@ -18,7 +18,7 @@ def validate_user_data(user: dict) -> dict:
     return None
 
 def execute(user_requests: User) -> dict:
-    if validate_user_data(user_requests) != None:
+    if validate_user_data(user_requests) is not None:
         return validate_user_data(user_requests)
     
     hashed_password = hash_pasword(user_requests["password"])

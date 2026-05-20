@@ -1,4 +1,3 @@
-from src.core.entities.users.users import User
 from src.providers.db.connection import get_connection
 import pymysql
 
