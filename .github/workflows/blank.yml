@@ -20,28 +20,35 @@ jobs:
     - name: Configurar Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # Cambia a la versión que uses
+        python-version: '3.11' 
         cache: 'pip'          # Acelera futuras ejecuciones guardando dependencias
 
     # 3. Instala las herramientas y dependencias del proyecto
     - name: Instalar dependencias
       run: |
-        python -m pip upgrade pip
-        pip install ruff mypy pytest
+        # Arreglado: Comando correcto para actualizar pip
+        python -m pip install --upgrade pip
+        
+        # Arreglado: Añadido 'types-python-jose' para que MyPy no tire error de stub
+        pip install ruff mypy pytest types-python-jose
+        
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     # 4. Validación de Estilo y Errores (Linter y Formateador)
     - name: Validar estilo con Ruff (Linter)
       run: ruff check .
 
+    # 5. Validación de Formato
+    # Nota: Recuerda correr `ruff format .` localmente y subir los cambios para que este paso pase en verde
+    # si se queda colgado aquí.
     - name: Validar formato con Ruff (Format)
       run: ruff format --check .
 
-    # 5. Validación de Tipos Estáticos
+    # 6. Validación de Tipos Estáticos
     - name: Validar tipos con MyPy
       run: mypy .
 
-    # 6. Ejecución de Pruebas Unitarias
+    # 7. Ejecución de Pruebas Unitarias
+    # Arreglado: Se añade 'PYTHONPATH=.' para que Pytest reconozca la carpeta 'src' desde la raíz
     - name: Ejecutar pruebas con Pytest
-      run: pytest
-
+      run: PYTHONPATH=. pytest
