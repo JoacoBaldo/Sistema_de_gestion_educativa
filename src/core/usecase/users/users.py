@@ -18,14 +18,16 @@ def validate_user_data(user: dict) -> dict:
     return None
 
 def execute(user_requests: User) -> dict:
-    if validate_user_data(user_requests) != None:
-        return validate_user_data(user_requests)
+    validation_result = validate_user_data(user_requests)
+    if validation_result is not None:
+        return validation_result
     
     hashed_password = hash_pasword(user_requests["password"])
     user_requests["password"] = hashed_password
 
-    if create_UserRepository(user_requests):
-        return create_UserRepository(user_requests)
+    repository_result = create_UserRepository(user_requests)
+    if repository_result:
+        return repository_result
     
     user_reponse = user_requests.copy()
     del user_reponse["password"]
