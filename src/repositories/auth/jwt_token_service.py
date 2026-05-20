@@ -13,6 +13,7 @@ class JWTTokenService(TokenRequest, TokenResponse):
         self._secret_key: str = secret_key or os.getenv(
             "JWT_SECRET", "default-system-gestion-educativa-jwt-secret-key-987654321"
         )
+        assert self._secret_key is not None, "Secret key must not be None"
         self._algorithm = algorithm
 
     def encode(self, payload: dict) -> str:
