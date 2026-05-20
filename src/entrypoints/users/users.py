@@ -1,10 +1,10 @@
+from flask import Flask, jsonify, request
 
-from flask import request, jsonify
 from src.core.contracts.request.users.user_request import create_user_request
 from src.core.usecase.users.users import execute as create_user_execute
-from flask import Flask
 
 app = Flask(__name__)
+
 
 @app.route("/users", methods=["POST"])
 def create_user():
