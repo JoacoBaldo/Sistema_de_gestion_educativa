@@ -7,9 +7,9 @@ The project follows a Hexagonal Architecture (Ports and Adapters) structured by 
 - `src/app/`: Application services, orchestrating use cases.
 - `src/core/entities/`: Domain models and business logic. Pure objects.
 - `src/core/usecase/`: Application logic. One file per use case (SRP).
-- `src/core/contracts/`: Interfaces and DTOs (Ports).
-    - `request/`: Input DTOs per module.
-    - `response/`: Output DTOs per module.
+- `src/core/contracts/`: Interfaces and DTOs (Ports/Contracts) strictly for REST/HTTP.
+    - `request/`: Input DTOs and Adapter Port Interfaces per module.
+    - `response/`: Output DTOs and serialization formats per module.
 - `src/entrypoints/`: Adapters for input (REST Controllers, CLI).
 - `src/repositories/`: Adapters for output (Persistence implementations).
 - `src/dependencies/`: Dependency injection and wire-up logic.
