@@ -1,7 +1,7 @@
 import os
 import time
 import uuid
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from jose import jwt, JWTError  # type: ignore
 from src.core.contracts.auth.request.token_request import TokenRequest
 from src.core.contracts.auth.response.token_response import TokenResponse
@@ -10,10 +10,15 @@ from src.core.contracts.auth.response.token_response import TokenResponse
 class JWTTokenService(TokenRequest, TokenResponse):
     def __init__(self, secret_key: Optional[str] = None, algorithm: str = "HS256"):
         # Read from environment variable JWT_SECRET, or use a default fallback for local development
-        self._secret_key: str = secret_key or os.getenv(
-            "JWT_SECRET", "default-system-gestion-educativa-jwt-secret-key-987654321"
-        )
-        assert self._secret_key is not None, "Secret key must not be None"
+        if secret_key:
+            self._secret_key = secret_key
+        else:
+            self._secret_key = cast(
+                str,
+                os.getenv(
+                    "JWT_SECRET", "default-system-gestion-educativa-jwt-secret-key-987654321"
+                ),
+            )
         self._algorithm = algorithm
 
     def encode(self, payload: dict) -> str:

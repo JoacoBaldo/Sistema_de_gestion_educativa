@@ -1,6 +1,8 @@
 bcrypt>=4.0.0
+types-python-jose
 python-jose[cryptography]>=3.3.0
 pytest>=8.0.0
+ruff
 
 # Web Framework & API
 Flask==3.0.2
