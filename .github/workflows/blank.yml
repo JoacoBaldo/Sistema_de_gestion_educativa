@@ -26,12 +26,8 @@ jobs:
     # 3. Instala las herramientas y dependencias del proyecto
     - name: Instalar dependencias
       run: |
-        # Arreglado: Comando correcto para actualizar pip
         python -m pip install --upgrade pip
-        
-        # Arreglado: Añadido 'types-python-jose' para que MyPy no tire error de stub
-        pip install ruff mypy pytest types-python-jose
-        
+        pip install ruff mypy pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     # 4. Validación de Estilo y Errores (Linter y Formateador)
