@@ -16,7 +16,8 @@ class JWTTokenService(TokenRequest, TokenResponse):
             self._secret_key = cast(
                 str,
                 os.getenv(
-                    "JWT_SECRET", "default-system-gestion-educativa-jwt-secret-key-987654321"
+                    "JWT_SECRET",
+                    "default-system-gestion-educativa-jwt-secret-key-987654321",
                 ),
             )
         self._algorithm = algorithm
