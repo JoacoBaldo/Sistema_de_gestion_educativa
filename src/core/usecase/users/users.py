@@ -1,5 +1,5 @@
-from src.core.entities.users.users import User
 import bcrypt
+from src.core.entities.users.users import User
 from src.repositories.users.create_user import create_UserRepository
 from src.core.contracts.response.users.users import create_user_reponse
 

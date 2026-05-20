@@ -1,6 +1,6 @@
-import pymysql
 from src.core.entities.users.users import User
 from src.providers.db.connection import get_connection
+import pymysql
 
 
 def create_UserRepository(user: dict) -> dict:
