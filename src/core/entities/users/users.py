@@ -1,9 +1,10 @@
 from datetime import datetime
+from typing import NotRequired, TypedDict
 
-User = {
-    "id": int,
-    "username": str,
-    "email": str,
-    "password": str,
-    "created_at": datetime,
-}
+
+class User(TypedDict):
+    username: str
+    email: str
+    password: str
+    id: NotRequired[int]
+    created_at: NotRequired[datetime]

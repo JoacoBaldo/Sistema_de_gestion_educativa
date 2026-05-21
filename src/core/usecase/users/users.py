@@ -1,8 +1,9 @@
 import bcrypt
+from typing import Optional
 
 from src.core.contracts.response.users.users import create_user_reponse
 from src.core.entities.users.users import User
-from src.repositories.users.create_user import create_UserRepository
+from src.repositories.users.create_user import create_UserRepository, email_exists
 
 
 def hash_pasword(password: str) -> str:
@@ -11,7 +12,7 @@ def hash_pasword(password: str) -> str:
     return hashed_password.decode("utf-8")
 
 
-def validate_user_data(user: dict) -> dict:
+def validate_user_data(user: User) -> Optional[dict]:
     if not user.get("username") or not user.get("email") or not user.get("password"):
         return {
             "error": "Username, email, and password are required",
@@ -24,19 +25,21 @@ def validate_user_data(user: dict) -> dict:
         }
     if "@" not in user["email"]:
         return {"error": "Invalid email format", "status_code": 400}
+    if not user["email"].endswith("@fi.uba.ar"):
+        return {"error": "Email must end with @fi.uba.ar", "status_code": 400}
     return None
 
 
 def execute(user_requests: User) -> dict:
-    if validate_user_data(user_requests) is not None:
-        return validate_user_data(user_requests)
+    validation_result = validate_user_data(user_requests)
+    if validation_result is not None:
+        return validation_result
+
+    # Check uniqueness of email in the database
+    if email_exists(user_requests["email"]):
+        return {"error": "User with this email already exists", "status_code": 409}
 
     hashed_password = hash_pasword(user_requests["password"])
     user_requests["password"] = hashed_password
 
-    if create_UserRepository(user_requests):
-        return create_UserRepository(user_requests)
-
-    user_reponse = user_requests.copy()
-    del user_reponse["password"]
-    return create_user_reponse(user_reponse)
+    return create_UserRepository(user_requests)
