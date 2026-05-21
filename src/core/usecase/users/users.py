@@ -1,7 +1,6 @@
 import bcrypt
 from typing import Optional
 
-from src.core.contracts.response.users.users import create_user_reponse
 from src.core.entities.users.users import User
 from src.repositories.users.create_user import create_UserRepository, email_exists
 
