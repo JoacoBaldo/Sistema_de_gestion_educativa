@@ -34,7 +34,11 @@ class DeleteClassroomUserRepository:
         with self._engine.connect() as conn:
             result = conn.execute(
                 REQUESTER_IS_ADMIN_QUERY,
-                {"classroom_id": classroom_id, "user_id": requester_id, "role_id": ADMIN_ROLE_ID},
+                {
+                    "classroom_id": classroom_id,
+                    "user_id": requester_id,
+                    "role_id": ADMIN_ROLE_ID,
+                },
             ).fetchone()
         return result is not None
 
