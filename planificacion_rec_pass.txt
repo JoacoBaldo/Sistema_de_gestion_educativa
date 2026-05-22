@@ -1,0 +1,12 @@
+request:
+{
+    "email": "jdoe@university.edu",
+    "new_password": "marcelo1234"
+}
+
+Cuando se hace un post al endpoint, 
+se envia un mail con un link para ingresar nueva contraseña, 
+osea un link con un path que use el mail como identificador, 
+y lo que se cambia es la contraseña
+luego se encripta y se guarda
+se imprimen mensajes de error, o exito. 

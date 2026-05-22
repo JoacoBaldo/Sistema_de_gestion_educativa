@@ -8,7 +8,7 @@ from src.core.contracts.auth.response.cache_response import CacheResponse
 class InMemoryCache(CacheRequest, CacheResponse):
     def __init__(self):
         self._lock = threading.Lock()
-        # Maps user_id -> (token_str, expiration_timestamp)
+
         self._cache: Dict[int, Tuple[str, float]] = {}
 
     def save_session(self, user_id: int, token: str, ttl_seconds: int) -> None:
@@ -22,7 +22,6 @@ class InMemoryCache(CacheRequest, CacheResponse):
                 return None
             token, expiration_timestamp = self._cache[user_id]
             if time.time() > expiration_timestamp:
-                # Session has expired, clean up cache and return None
                 del self._cache[user_id]
                 return None
             return token

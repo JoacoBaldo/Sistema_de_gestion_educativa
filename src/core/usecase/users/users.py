@@ -2,6 +2,14 @@ import bcrypt
 from typing import Optional
 
 from src.core.entities.users.users import User
+from src.error import (
+    format_error_response,
+    INVALID_EMAIL_DOMAIN,
+    INVALID_EMAIL_FORMAT,
+    MISSING_REQUIRED_FIELDS,
+    PASSWORD_TOO_SHORT,
+    USER_EMAIL_ALREADY_EXISTS,
+)
 from src.repositories.users.create_user import create_UserRepository, email_exists
 
 
@@ -13,19 +21,13 @@ def hash_pasword(password: str) -> str:
 
 def validate_user_data(user: User) -> Optional[dict]:
     if not user.get("username") or not user.get("email") or not user.get("password"):
-        return {
-            "error": "Username, email, and password are required",
-            "status_code": 400,
-        }
+        return format_error_response(MISSING_REQUIRED_FIELDS)
     if len(user["password"]) < 6:
-        return {
-            "error": "Password must be at least 6 characters long",
-            "status_code": 400,
-        }
+        return format_error_response(PASSWORD_TOO_SHORT)
     if "@" not in user["email"]:
-        return {"error": "Invalid email format", "status_code": 400}
+        return format_error_response(INVALID_EMAIL_FORMAT)
     if not user["email"].endswith("@fi.uba.ar"):
-        return {"error": "Email must end with @fi.uba.ar", "status_code": 400}
+        return format_error_response(INVALID_EMAIL_DOMAIN)
     return None
 
 
@@ -36,7 +38,7 @@ def execute(user_requests: User) -> dict:
 
     # Check uniqueness of email in the database
     if email_exists(user_requests["email"]):
-        return {"error": "User with this email already exists", "status_code": 409}
+        return format_error_response(USER_EMAIL_ALREADY_EXISTS)
 
     hashed_password = hash_pasword(user_requests["password"])
     user_requests["password"] = hashed_password

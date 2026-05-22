@@ -1,6 +1,12 @@
 import pymysql
 
 from src.core.entities.users.users import User
+from src.error import (
+    format_error_response,
+    DATABASE_INTEGRITY_ERROR,
+    UNABLE_TO_CREATE_USER,
+    USER_EMAIL_ALREADY_EXISTS,
+)
 from src.providers.db.connection import get_connection
 
 
@@ -14,10 +20,10 @@ def create_UserRepository(user: User) -> dict:
             return {"message": "User created successfully", "status_code": 201}
     except pymysql.err.IntegrityError as e:
         if e.args[0] == 1062:
-            return {"error": "User with this email already exists", "status_code": 409}
-        return {"error": "Database integrity error", "status_code": 500}
+            return format_error_response(USER_EMAIL_ALREADY_EXISTS)
+        return format_error_response(DATABASE_INTEGRITY_ERROR)
     except pymysql.MySQLError:
-        return {"error": "Unable to create user", "status_code": 500}
+        return format_error_response(UNABLE_TO_CREATE_USER)
     finally:
         conn.close()
 
