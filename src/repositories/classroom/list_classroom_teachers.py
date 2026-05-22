@@ -42,7 +42,8 @@ class ClassroomTeachersRepository:
                 id=row.id,
                 username=row.username,
                 email=row.email,
-                joined_at=row.created_at if isinstance(row.created_at, datetime)
+                joined_at=row.created_at
+                if isinstance(row.created_at, datetime)
                 else datetime.fromisoformat(str(row.created_at)),
             )
             for row in rows

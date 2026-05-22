@@ -29,6 +29,7 @@ CREATE_CLASSROOM_USERS = text("""INSERT INTO `classroom_users` (`classroom_id`, 
 (3, 6, 0, 1),
 (3, 7, 3, 1);""")
 
+
 def run() -> None:
     url = os.getenv("DATABASE_URL", "").replace("mysql://", "mysql+pymysql://", 1)
     engine = create_engine(url)
