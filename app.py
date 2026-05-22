@@ -5,7 +5,6 @@ from src.entrypoints.classroom.classroom import list_classroom_professors
 load_dotenv()
 
 
-
 app = Flask(__name__)
 
 app.add_url_rule(
