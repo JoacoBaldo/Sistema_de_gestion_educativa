@@ -6,7 +6,7 @@ from src.entrypoints.classroom.delete_classroom_user import delete_classroom_use
 classroom_bp = Blueprint("classroom", __name__)
 
 classroom_bp.add_url_rule(
-    "/classrooms/<int:classroom_id>/professors",
+    "/api/v1/classrooms/<int:classroom_id>/professors",
     view_func=list_classroom_professors,
     methods=["GET"],
 )
