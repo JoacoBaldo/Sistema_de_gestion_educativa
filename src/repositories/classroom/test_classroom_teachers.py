@@ -16,7 +16,9 @@ TEACHER_A = Teacher(id=1, username="profA", email="profA@uni.edu", joined_at=FIX
 TEACHER_B = Teacher(id=2, username="profB", email="profB@uni.edu", joined_at=FIXED_DT)
 
 
-def _make_usecase(teachers: list[Teacher], has_access: bool) -> ListClassroomTeachersUseCase:
+def _make_usecase(
+    teachers: list[Teacher], has_access: bool
+) -> ListClassroomTeachersUseCase:
     repo = MagicMock()
     repo.list_teachers.return_value = teachers
     repo.user_has_access.return_value = has_access

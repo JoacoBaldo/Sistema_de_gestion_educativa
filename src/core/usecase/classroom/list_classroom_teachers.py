@@ -8,7 +8,9 @@ class ListClassroomTeachersUseCase:
     def __init__(self, repository) -> None:
         self._repository = repository
 
-    def execute(self, classroom_id: int, requester_id: int) -> tuple[list[dict], None] | tuple[None, dict]:
+    def execute(
+        self, classroom_id: int, requester_id: int
+    ) -> tuple[list[dict], None] | tuple[None, dict]:
         if not self._repository.user_has_access(classroom_id, requester_id):
             return None, UNAUTHORIZED_CLASSROOM_ACCESS_ERROR
 

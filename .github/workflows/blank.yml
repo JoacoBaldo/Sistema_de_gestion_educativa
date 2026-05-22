@@ -1,50 +1,52 @@
 name: Validaciones de Python en PR
 
-# Define qué eventos activan las validaciones
 on:
   pull_request:
     branches: [ main, master, develop ]
     paths:
-      - '**/*.py' # Solo se ejecuta si cambian archivos de Python
+      - '**/*.py'
 
 jobs:
   validate-python:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Descarga el código del PR en la máquina virtual
     - name: Descargar código
       uses: actions/checkout@v4
+      with:
+        # Necesario para que el bot pueda hacer push
+        ref: ${{ github.head_ref }}
 
-    # 2. Configura el entorno de Python
     - name: Configurar Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11' 
-        cache: 'pip'          # Acelera futuras ejecuciones guardando dependencias
+        cache: 'pip'
 
-    # 3. Instala las herramientas y dependencias del proyecto
     - name: Instalar dependencias
       run: |
         python -m pip install --upgrade pip
-        pip install ruff mypy pytest
+        pip install ruff mypy pytest types-python-jose
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    # 4. Validación de Estilo y Errores (Linter y Formateador)
-    - name: Validar estilo con Ruff (Linter)
-      run: ruff check .
+    # 4. Linter: Encuentra errores y arregla los que son automáticos (--fix)
+    - name: Aplicar Ruff Linter (Auto-fix)
+      run: ruff check --fix .
 
-    # 5. Validación de Formato
-    # Nota: Recuerda correr `ruff format .` localmente y subir los cambios para que este paso pase en verde
-    # si se queda colgado aquí.
-    - name: Validar formato con Ruff (Format)
-      run: ruff format --check .
+    # 5. Formateador: Aplica el formato (sin el flag --check)
+    - name: Aplicar formato con Ruff
+      run: ruff format .
 
-    # 6. Validación de Tipos Estáticos
+    # 6. Bot que hace commit y push si Ruff cambió algún archivo
+    - name: Hacer commit de los cambios de Ruff
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "style: auto-Ruff"
+
+    # 7. Tipos (MyPy)
     - name: Validar tipos con MyPy
-      run: mypy .
+      run: mypy src/
 
-    # 7. Ejecución de Pruebas Unitarias
-    # Arreglado: Se añade 'PYTHONPATH=.' para que Pytest reconozca la carpeta 'src' desde la raíz
+    # 8. Pruebas (Pytest)
     - name: Ejecutar pruebas con Pytest
       run: PYTHONPATH=. pytest
