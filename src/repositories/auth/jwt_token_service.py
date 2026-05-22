@@ -2,14 +2,14 @@ import os
 import time
 import uuid
 from typing import Any, Optional, cast
-from jose import jwt, JWTError  # type: ignore
+from jose import jwt, JWTError  
 from src.core.contracts.auth.request.token_request import TokenRequest
 from src.core.contracts.auth.response.token_response import TokenResponse
 
 
 class JWTTokenService(TokenRequest, TokenResponse):
     def __init__(self, secret_key: Optional[str] = None, algorithm: str = "HS256"):
-        # Read from environment variable JWT_SECRET, or use a default fallback for local development
+        
         if secret_key:
             self._secret_key = secret_key
         else:
@@ -25,10 +25,10 @@ class JWTTokenService(TokenRequest, TokenResponse):
     def encode(self, payload: dict) -> str:
         data = payload.copy()
         if "exp" not in data:
-            # Token lasts for 24 hours (86400 seconds)
+            
             data["exp"] = int(time.time() + 86400)
         if "jti" not in data:
-            # Add unique token identifier to prevent identical signatures
+           
             data["jti"] = str(uuid.uuid4())
         return jwt.encode(data, self._secret_key, algorithm=self._algorithm)
 
@@ -40,8 +40,7 @@ class JWTTokenService(TokenRequest, TokenResponse):
 
     def get_claim(self, token: str, claim: str) -> Any:
         try:
-            # Retrieve claims directly from the token payload (unverified/direct extraction)
-            # This allows inspecting token details easily
+            
             claims = jwt.get_unverified_claims(token)
             return claims.get(claim)
         except JWTError:
