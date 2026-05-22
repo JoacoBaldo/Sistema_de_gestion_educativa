@@ -1,10 +1,10 @@
 from dotenv import load_dotenv
+from flask import Flask
+from src.entrypoints.classroom.classroom import list_classroom_professors
 
 load_dotenv()
 
-from flask import Flask
 
-from src.entrypoints.classroom.classroom import list_classroom_professors
 
 app = Flask(__name__)
 
