@@ -45,7 +45,7 @@ jobs:
 
     # 7. Tipos (MyPy)
     - name: Validar tipos con MyPy
-      run: mypy mypy src/
+      run: mypy src/
 
     # 8. Pruebas (Pytest)
     - name: Ejecutar pruebas con Pytest
