@@ -6,8 +6,6 @@ from sqlalchemy import create_engine, text
 from src.core.entities.classroom.teacher import Teacher
 
 PROFESSOR_ROLE_ID = 0
-DATABASE_URL = os.getenv("DATABASE_URL", "").replace("mysql://", "mysql+pymysql://", 1)
-
 LIST_TEACHERS_QUERY = text("""
     SELECT u.id, u.username, u.email, cu.created_at
     FROM classroom_users cu
@@ -28,7 +26,8 @@ USER_ACCESS_QUERY = text("""
 
 class ClassroomTeachersRepository:
     def __init__(self) -> None:
-        self._engine = create_engine(DATABASE_URL)
+        url = os.getenv("DATABASE_URL", "").replace("mysql://", "mysql+pymysql://", 1)
+        self._engine = create_engine(url)
 
     def list_teachers(self, classroom_id: int) -> list[Teacher]:
         with self._engine.connect() as conn:

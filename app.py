@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask
 
 from src.entrypoints.classroom.classroom import list_classroom_professors
