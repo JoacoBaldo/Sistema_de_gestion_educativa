@@ -48,7 +48,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Validar tipos con MyPy
-      run: mypy /src
+      run: mypy src/
 
     # Te dejo Pytest comentado temporalmente por si era el culpable de la base de datos
     # - name: Ejecutar pruebas con Pytest
