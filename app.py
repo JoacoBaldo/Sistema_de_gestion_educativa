@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from flask import Flask
 
-from src.app.router import classroom_bp
+from src.root.classroom import classroom_bp
 
 load_dotenv()
 
