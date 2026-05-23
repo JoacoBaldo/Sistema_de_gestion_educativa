@@ -28,7 +28,7 @@ def obtener_profesores(classroom_id: int) -> list:
     return profesores
 
 
-def tiene_acceso_classroom(classroom_id: int, usuario_id: int) -> bool:
+def profesor_existe_classroom(classroom_id: int, usuario_id: int) -> bool:
     engine = obtener_conexion()
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
@@ -56,22 +56,6 @@ def es_admin_classroom(classroom_id: int, usuario_id: int) -> bool:
         ).fetchone()
 
     return resultado is not None
-
-
-def usuario_en_classroom(classroom_id: int, usuario_id: int) -> bool:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultado = conn.exec_driver_sql(
-            """
-            SELECT 1 FROM classroom_users
-            WHERE classroom_id = %s AND user_id = %s
-            LIMIT 1
-            """,
-            (classroom_id, usuario_id),
-        ).fetchone()
-
-    return resultado is not None
-
 
 def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
     engine = obtener_conexion()
