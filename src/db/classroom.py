@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .roles import ROOT, PROFESOR, ADMINISTRADOR
+from .roles import PROFESOR, ADMINISTRADOR
 
 
 def obtener_profesores(classroom_id: int) -> list:
@@ -49,10 +49,10 @@ def es_admin_classroom(classroom_id: int, usuario_id: int) -> bool:
         resultado = conn.exec_driver_sql(
             """
             SELECT 1 FROM classroom_users
-            WHERE classroom_id = %s AND user_id = %s AND role_id = %s
+            WHERE classroom_id = %s AND user_id = %s AND role_id IN (%s, %s)
             LIMIT 1
             """,
-            (classroom_id, usuario_id, ADMINISTRADOR),
+            (classroom_id, usuario_id, ADMINISTRADOR, PROFESOR),
         ).fetchone()
 
     return resultado is not None
@@ -68,21 +68,6 @@ def usuario_en_classroom(classroom_id: int, usuario_id: int) -> bool:
             LIMIT 1
             """,
             (classroom_id, usuario_id),
-        ).fetchone()
-
-    return resultado is not None
-
-
-def puede_compartir_link(classroom_id: int, usuario_id: int) -> bool:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultado = conn.exec_driver_sql(
-            """
-            SELECT 1 FROM classroom_users
-            WHERE classroom_id = %s AND user_id = %s AND role_id IN (%s, %s)
-            LIMIT 1
-            """,
-            (classroom_id, usuario_id, PROFESOR, ADMINISTRADOR),
         ).fetchone()
 
     return resultado is not None

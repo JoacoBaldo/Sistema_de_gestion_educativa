@@ -64,3 +64,15 @@ def eliminar_sesion(token: str):
             (token,),
         )
         conn.commit()
+
+
+def eliminar_sesiones_usuario(usuario_id: int):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            DELETE FROM sesiones_activas WHERE usuario_id = %s
+            """,
+            (usuario_id,),
+        )
+        conn.commit()

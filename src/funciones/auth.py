@@ -11,6 +11,7 @@ def verificar_token(token: str) -> tuple:
 
 
 def crear_token(usuario_id: int, username: str, email: str) -> str:
+    db_auth.eliminar_sesiones_usuario(usuario_id)
     token = db_auth.generar_token()
     expira_en = datetime.now() + timedelta(hours=24)
     db_auth.guardar_sesion(usuario_id, token, expira_en)
