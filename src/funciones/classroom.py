@@ -34,6 +34,4 @@ def obtener_link_classroom(classroom_id: int, usuario_id: int, role_id: int) -> 
     expira_en = datetime.now() + timedelta(hours=TIEMPO_EXPIRACION)
     token = db_auth.generar_link_classroom(classroom_id, role_id, expira_en)
 
-    return {
-        "join_link": f"/api/v1/login/join?={token}"
-    }, None
+    return {"join_link": f"/api/v1/login/join?={token}"}, None

@@ -57,6 +57,7 @@ def es_admin_classroom(classroom_id: int, usuario_id: int) -> bool:
 
     return resultado is not None
 
+
 def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
     engine = obtener_conexion()
     with engine.connect() as conn:
