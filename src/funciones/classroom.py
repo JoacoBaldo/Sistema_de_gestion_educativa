@@ -5,6 +5,7 @@ from src.db import classroom as db_classroom
 from .errores import SIN_ACCESO, NO_ES_ADMIN, USUARIO_NO_EXISTE
 from .auth import TIEMPO_EXPIRACION
 
+
 def obtener_profesores_classroom(classroom_id: int, usuario_id: int) -> tuple:
     if not db_classroom.profesor_existe_classroom(classroom_id, usuario_id):
         return None, SIN_ACCESO

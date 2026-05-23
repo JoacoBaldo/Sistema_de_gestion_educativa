@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from src.db import auth as db_auth
 from .errores import TOKEN_INVALIDO
 
-TIEMPO_EXPIRACION=24 #horas
+TIEMPO_EXPIRACION = 24  # horas
+
 
 def verificar_token(token: str) -> tuple:
     usuario = db_auth.sesion_existe(token)
