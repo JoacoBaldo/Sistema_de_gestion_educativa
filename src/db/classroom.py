@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .roles import ROOT, PROFESOR, ADMINISTRADOR
+from .roles import PROFESOR, ADMINISTRADOR
 
 
 def obtener_profesores(classroom_id: int) -> list:
