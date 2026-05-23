@@ -4,10 +4,8 @@ app = Flask(__name__)
 
 
 @app.route("/")
-def index():
-    return render_template(
-        "dashboard/index.html", titulo="Sistema de Gestión Educativa"
-    )
+def login():
+    return render_template("auth/login.html")
 
 
 if __name__ == "__main__":
