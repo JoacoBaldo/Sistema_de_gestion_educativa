@@ -39,6 +39,21 @@ def sesion_existe(token: str) -> dict | None:
     return {"id": resultado[0], "username": resultado[1], "email": resultado[2]}
 
 
+def generar_link_classroom(classroom_id: int, role_id: int, expira_en: datetime) -> str:
+    token = generar_token()
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            INSERT INTO sesiones_activas (classroom_id, role_id, token, expira_en)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (classroom_id, role_id, token, expira_en),
+        )
+        conn.commit()
+    return token
+
+
 def eliminar_sesion(token: str):
     engine = obtener_conexion()
     with engine.connect() as conn:

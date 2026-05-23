@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta
+
+from src.db import auth as db_auth
 from src.db import classroom as db_classroom
-from .errores import SIN_ACCESO, NO_ES_ADMIN, USUARIO_NO_EXISTE
+from .errores import SIN_ACCESO, NO_ES_ADMIN, USUARIO_NO_EXISTE, SIN_PERMISO_LINK
 
 
 def obtener_profesores_classroom(classroom_id: int, usuario_id: int) -> tuple:
@@ -21,3 +24,17 @@ def eliminar_usuario_classroom(
 
     db_classroom.eliminar_usuario_classroom(classroom_id, usuario_id)
     return {"message": "User removed from classroom"}, None
+
+
+def obtener_link_classroom(classroom_id: int, usuario_id: int, role_id: int) -> tuple:
+    if not db_classroom.puede_compartir_link(classroom_id, usuario_id):
+        return None, SIN_PERMISO_LINK
+
+    expira_en = datetime.now() + timedelta(hours=24)
+    token = db_auth.generar_link_classroom(classroom_id, role_id, expira_en)
+
+    return {
+        "link": f"/join?token={token}",
+        "token": token,
+        "expira_en": expira_en.isoformat(),
+    }, None
