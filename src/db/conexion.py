@@ -1,10 +1,10 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+load_dotenv()
+
 def obtener_conexion():
-    database_url = os.getenv(
-        "DATABASE_URL",
-        "mysql+pymysql://usuario:contraseña@localhost/gestion_educativa"
-    )
-    engine = create_engine(database_url)
+    url = os.getenv("DATABASE_URL", "")
+    engine = create_engine(url)
     return engine

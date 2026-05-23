@@ -13,12 +13,12 @@ def listar_profesores(classroom_id):
     usuario, error = verificar_token(token)
 
     if error:
-        return jsonify(error), 401
+        return jsonify({"error": error["error"]}), error["status"]
 
     resultado, error = obtener_profesores_classroom(classroom_id, usuario["id"])
 
     if error:
-        return jsonify(error), 403
+        return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
 
@@ -28,11 +28,11 @@ def eliminar_usuario(classroom_id, user_id):
     usuario, error = verificar_token(token)
 
     if error:
-        return jsonify(error), 401
+        return jsonify({"error": error["error"]}), error["status"]
 
     resultado, error = eliminar_usuario_classroom(classroom_id, user_id, usuario["id"])
 
     if error:
-        return jsonify(error), 403
+        return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
