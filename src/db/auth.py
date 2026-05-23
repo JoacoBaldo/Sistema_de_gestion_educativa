@@ -20,7 +20,7 @@ def guardar_sesion(usuario_id: int, token: str, expira_en: datetime):
         conn.commit()
 
 
-def sesion_existe(token: str) -> dict:
+def sesion_existe(token: str) -> dict | None:
     engine = obtener_conexion()
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
