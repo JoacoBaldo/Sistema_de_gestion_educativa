@@ -53,19 +53,6 @@ def generar_link_classroom(classroom_id: int, role_id: int, expira_en: datetime)
         conn.commit()
     return token
 
-
-def eliminar_sesion(token: str):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
-            """
-            DELETE FROM sesiones_activas WHERE token = %s
-            """,
-            (token,),
-        )
-        conn.commit()
-
-
 def eliminar_sesiones_usuario(usuario_id: int):
     engine = obtener_conexion()
     with engine.connect() as conn:
