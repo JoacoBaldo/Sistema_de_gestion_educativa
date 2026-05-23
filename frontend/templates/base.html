@@ -1,35 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Sistema de Gestión{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+
     {% block styles %}{% endblock %}
 </head>
-<body>
 
-    <header>
-        <nav>
-            <a href="/"><strong>Gestión Universitaria</strong></a>
-            <div class="enlaces-nav">
-                <a href="/alumnos">Alumnos</a>
-                <a href="/cursos">Cursos</a>
-                <a href="/equipos">Equipos</a>
-            </div>
-        </nav>
-    </header>
+<body>
 
     <main>
         {% block content %}
         {% endblock %}
     </main>
 
-    <footer>
-        <p>&copy; 2026 - Facultad de Ingeniería (UBA)</p>
-    </footer>
-
     {% block scripts %}{% endblock %}
 
 </body>
+
 </html>
