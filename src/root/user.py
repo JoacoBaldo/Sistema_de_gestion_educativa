@@ -4,7 +4,7 @@ from src.funciones.user import change_password_mail, change_password_db, create_
 
 user_bp = Blueprint("user", __name__)
 
-@user_bp.route("/change_password_mail", methods=["GET"])
+@user_bp.route("/api/v1/change_password_mail", methods=["GET"])
 def change_password_mail_route():
     data = request.get_json()
     email = data.get("email")
@@ -13,8 +13,7 @@ def change_password_mail_route():
     result = change_password_mail(email)
     return jsonify(result), result["status_code"]
 
-
-@user_bp.route("/change_password_db", methods=["PATCH"])
+@user_bp.route("/api/v1/change_password_db", methods=["PATCH"])
 def change_password_db_route():
     data = request.get_json()
     email = data.get("email")
@@ -27,7 +26,7 @@ def change_password_db_route():
     return jsonify(result), result["status_code"]
 
 
-@user_bp.route("/create_user", methods=["POST"])
+@user_bp.route("/api/v1/create_user", methods=["POST"])
 def create_user_route():
     data = request.get_json()
     username = data.get("username")
