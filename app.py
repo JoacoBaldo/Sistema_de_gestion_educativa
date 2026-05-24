@@ -1,4 +1,12 @@
-from src.entrypoints.users.users import app
+from dotenv import load_dotenv
+from flask import Flask
+
+from src.root.classroom import classroom_bp
+
+load_dotenv()
+
+app = Flask(__name__)
+app.register_blueprint(classroom_bp)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True, port=5000)
