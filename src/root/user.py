@@ -7,6 +7,7 @@ from src.funciones.user import (
 
 user_bp = Blueprint("user", __name__)
 
+
 @user_bp.route("/api/v1/change_password_mail", methods=["GET"])
 def change_password_mail_route():
     data = request.get_json()
@@ -15,6 +16,7 @@ def change_password_mail_route():
         return jsonify({"error": "Email is required", "status_code": 400}), 400
     result = change_password_mail(email)
     return jsonify(result), result["status_code"]
+
 
 @user_bp.route("/api/v1/change_password_db", methods=["PATCH"])
 def change_password_db_route():
