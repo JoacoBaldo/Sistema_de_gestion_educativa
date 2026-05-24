@@ -42,3 +42,15 @@ def change_password_db(new_password_data: dict) -> dict:
         conn.commit()
 
     return {"message": "Password changed successfully", "status_code": 200}
+
+
+def get_change_password_email(email: str) -> dict:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        with conn.cursor() as cursor:
+            sql = "SELECT id FROM users WHERE email = %s"
+            cursor.execute(sql, (email,))
+            result = cursor.fetchone()
+    if not result:
+        return {"error": "Email not found", "status_code": 404}
+    return {"user_id": result[0], "status_code": 200}
