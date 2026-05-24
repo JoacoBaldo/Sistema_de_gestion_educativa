@@ -5,8 +5,7 @@ on:
     branches: [ main, master, develop ]
     paths:
       - '**/*.py'
-
-# 🚀 NUEVO: Le damos permiso explícito al bot para escribir en tu repositorio
+      
 permissions:
   contents: write
   pull-requests: write
@@ -43,13 +42,9 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: "style: auto-formateo de código con Ruff 🎨"
-      # 🚀 NUEVO: Le pasamos la "llave" para que no se quede esperando contraseña
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Validar tipos con MyPy
       run: mypy src/
 
-    # Te dejo Pytest comentado temporalmente por si era el culpable de la base de datos
-    # - name: Ejecutar pruebas con Pytest
-    #   run: PYTHONPATH=. pytest

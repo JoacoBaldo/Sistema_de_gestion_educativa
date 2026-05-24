@@ -8,3 +8,7 @@ EMAIL_NO_VALIDO = {"error": "Email must end with @fi.uba.ar", "status_code": 400
 EMAIL_YA_EXISTE = {"error": "User with this email already exists", "status_code": 409}
 CONTRASENA_DEBIL = {"error": "La contraseña debe tener al menos 6 caracteres", "status_code": 400}
 
+SIN_PERMISO_LINK = {
+    "error": "Solo PROFESOR o ADMINISTRADOR pueden compartir el link",
+    "status": 403,
+}
