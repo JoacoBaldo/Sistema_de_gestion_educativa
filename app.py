@@ -1,12 +1,33 @@
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, g, request
 
+from src.funciones.auth import verificar_token
+from src.funciones.logs import registrar_peticion
+from src.root.auth import auth_bp
 from src.root.classroom import classroom_bp
 
 load_dotenv()
 
 app = Flask(__name__)
+app.register_blueprint(auth_bp)
 app.register_blueprint(classroom_bp)
+
+
+@app.before_request
+def _adjuntar_usuario_actual():
+    token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    if not token:
+        g.current_user = None
+        return
+
+    usuario, error = verificar_token(token)
+    g.current_user = usuario if not error else None
+
+
+@app.after_request
+def _registrar_log(response):
+    return registrar_peticion(response)
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
