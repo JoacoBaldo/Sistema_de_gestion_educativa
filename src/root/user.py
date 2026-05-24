@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from flask import Blueprint, request, jsonify
+=======
+from flask import app, request, jsonify
+>>>>>>> 4e48c6fa4ddc41d75ee32854a03132bd5ccbf566
 
 from src.funciones.user import change_password_mail, change_password_db, create_user
 
