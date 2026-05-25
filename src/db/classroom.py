@@ -69,3 +69,43 @@ def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
             (classroom_id, usuario_id),
         )
         conn.commit()
+
+
+def obtener_todos_los_periodos() -> list:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT id, name, start_date, end_date 
+            FROM academic_periods
+            """
+        ).fetchall()
+
+    periodos = []
+    for fila in resultados:
+        periodos.append(
+            {
+                "id": fila[0],
+                "name": fila[1],
+                "start_date": str(fila[2]),
+                "end_date": str(fila[3]),
+            }
+        )
+    return periodos
+
+
+def guardar_classroom(name: str, department: str, university: str) -> int:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        cursor = conn.exec_driver_sql(
+            """
+            INSERT INTO classrooms (name, department, university) 
+            VALUES (%s, %s, %s)
+            """,
+            (name, department, university),
+        )
+        conn.commit()
+
+        inserted_id = cursor.lastrowid
+
+    return inserted_id

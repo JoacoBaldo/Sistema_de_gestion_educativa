@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request
 from src.funciones.auth import verificar_token
 from src.funciones.classroom import (
-    obtener_profesores_classroom,
     eliminar_usuario_classroom,
     obtener_link_classroom,
+    obtener_profesores_classroom,
+    obtener_periodos_academicos,
+    crear_nueva_classroom,
 )
 
 classroom_bp = Blueprint("classroom", __name__)
@@ -67,3 +69,43 @@ def obtener_link(classroom_id):
         return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
+
+
+@classroom_bp.route("/api/v1/academic-periods", methods=["GET"])
+def listar_periodos_academicos():
+    token = _extraer_token()
+    _, error = verificar_token(token)
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    resultado, error = obtener_periodos_academicos()
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    return jsonify(resultado), 200
+
+
+@classroom_bp.route("/api/v1/classrooms", methods=["POST"])
+def crear_aula():
+    token = _extraer_token()
+    _, error = verificar_token(token)
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    body = request.get_json(silent=True) or {}
+    name = body.get("name")
+    department = body.get("department")
+    university = body.get("university")
+
+    if not name or not department or not university:
+        return jsonify({"error": "name, department y university son requeridos"}), 400
+
+    resultado, error = crear_nueva_classroom(name, department, university)
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    return jsonify(resultado), 201
