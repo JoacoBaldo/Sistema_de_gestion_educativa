@@ -7,6 +7,7 @@ from src.funciones.classroom import (
     obtener_periodos_academicos,
     crear_nueva_classroom,
 )
+from src.funciones.errores import DATOS_INVALIDOS
 
 classroom_bp = Blueprint("classroom", __name__)
 
@@ -101,7 +102,7 @@ def crear_aula():
     university = body.get("university")
 
     if not name or not department or not university:
-        return jsonify({"error": "name, department y university son requeridos"}), 400
+        return jsonify({"error": DATOS_INVALIDOS["error"]}), DATOS_INVALIDOS["status"]
 
     resultado, error = crear_nueva_classroom(name, department, university)
 
