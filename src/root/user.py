@@ -7,6 +7,7 @@ from src.funciones.user import (
 
 user_bp = Blueprint("user", __name__)
 
+
 @user_bp.route("/api/v1/change_password_mail", methods=["GET"])
 def change_password_mail_route():
     data = request.get_json()
@@ -15,6 +16,7 @@ def change_password_mail_route():
         return jsonify({"error": "Email is required", "status_code": 400}), 400
     result = change_password_mail(email)
     return jsonify(result), result["status_code"]
+
 
 @user_bp.route("/api/v1/change_password_db", methods=["PATCH"])
 def change_password_db_route():
@@ -45,3 +47,28 @@ def create_user_route():
 
     result = create_user(user_data)
     return jsonify(result), result["status_code"]
+
+
+@user_bp.route("/recuperar-password", methods=["POST"])
+def solicitar_recuperacion():
+    data = request.get_json()
+    email_usuario = data.get("email")
+
+    if not email_usuario:
+        return jsonify({"error": "El email es obligatorio"}), 400
+
+    token_generado = "12345abcde-token-de-prueba"
+    link_falso = f"http://tusitioweb.com/reset-password?token={token_generado}"
+
+    exito = change_password_mail(email_usuario, link_falso)
+
+    if exito:
+        return jsonify(
+            {
+                "mensaje": "Se envió un mail con las instrucciones para recuperar la contraseña."
+            }
+        ), 200
+    else:
+        return jsonify(
+            {"error": "Hubo un problema interno al intentar enviar el correo."}
+        ), 500
