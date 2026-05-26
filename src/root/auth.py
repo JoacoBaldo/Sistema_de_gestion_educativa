@@ -27,4 +27,5 @@ def actualizar_contrasenia():
 
     resultado = actualizar_contrasenia(id_usuario, hash_generado)
 
-    return jsonify{resultado}, 200
+    return jsonify({resultado}), 200
+
