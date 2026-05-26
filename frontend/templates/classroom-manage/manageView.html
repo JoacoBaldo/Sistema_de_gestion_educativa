@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión del aula - UniManage{% endblock %}
+
+{% block styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManage.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageStudents.css') }}">
+{% endblock %}
+
+{% block content %}
+{% set vista = request.args.get('vista', 'students') %}
+{% set vistas = {
+  'dashboard': 'classroom-manage/dashboard/dashboardView.html',
+  'students': 'classroom-manage/students/studentsView.html',
+  'teams': 'classroom-manage/teams/teamsView.html',
+  'asistance': 'classroom-manage/asistance/asistanceView.html',
+  'library': 'classroom-manage/library/libraryView.html',
+  'evaluations': 'classroom-manage/evaluations/evaluationsView.html'
+} %}
+{% set template_actual = vistas.get(vista, vistas.get('students')) %}
+
+<div class="cm-layout" data-vista-actual="{{ vista }}">
+    <aside class="cm-sidebar" aria-label="Menú de navegación">
+        <header class="cm-brand">
+            <div class="cm-logo" aria-hidden="true">
+                <svg class="cm-logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true">
+                    <path d="M3.5 13.5L16 7.5L28.5 13.5L16 19.5L3.5 13.5Z" fill="#1e293b" />
+                    <path d="M9 15.5V20.5C9 20.5 12 23 16 23C20 23 23 20.5 23 20.5V15.5" stroke="#334155"
+                        stroke-width="1.4" stroke-linecap="round" />
+                    <circle cx="16" cy="13.5" r="1.1" fill="#fbbf24" />
+                    <path d="M16 14.6V18.2" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round" />
+                    <ellipse cx="20.2" cy="17.8" rx="1.1" ry="1.4" fill="#fbbf24" />
+                </svg>
+            </div>
+            <div class="cm-brand-text">
+                <div class="cm-brand-title">
+                    <span class="cm-brand-uni">Uni</span><span class="cm-brand-manage">Manage</span>
+                </div>
+                <div class="cm-brand-subtitle">Portal académico</div>
+            </div>
+        </header>
+
+        <nav class="cm-nav">
+            <a class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard" data-vista="dashboard">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 13h7V4H4v9Zm9 7h7V11h-7v9ZM4 20h7v-5H4v5Zm9-11h7V4h-7v5Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Tablero</span>
+            </a>
+
+            <a class="cm-nav-item{% if vista == 'students' %} is-active{% endif %}" href="?vista=students" data-vista="students">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a3 3 0 0 0-2.2-2.9M17 3.1a4 4 0 0 1 0 7.8"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Estudiantes</span>
+            </a>
+
+            <a class="cm-nav-item{% if vista == 'teams' %} is-active{% endif %}" href="?vista=teams" data-vista="teams">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M17 21v-2a4 4 0 0 0-3-3.87M7 21v-2a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v2M9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm11 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Equipos</span>
+            </a>
+
+            <a class="cm-nav-item{% if vista == 'asistance' %} is-active{% endif %}" href="?vista=asistance" data-vista="asistance">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Asistencia</span>
+            </a>
+
+            <a class="cm-nav-item{% if vista == 'library' %} is-active{% endif %}" href="?vista=library" data-vista="library">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Biblioteca</span>
+            </a>
+
+            <a class="cm-nav-item{% if vista == 'evaluations' %} is-active{% endif %}" href="?vista=evaluations" data-vista="evaluations">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M9 11h6M9 15h6M7 3h10a2 2 0 0 1 2 2v16l-4-3-4 3-4-3-4 3V5a2 2 0 0 1 2-2Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Evaluaciones</span>
+            </a>
+        </nav>
+
+        <footer class="cm-footer">
+            <a class="cm-footer-item" href="#" data-action="settings">
+                <span class="cm-footer-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M19.4 15a7.9 7.9 0 0 0 .1-6l2-1.6-2-3.4-2.5 1a8 8 0 0 0-5-2l-.4-2.6H9.4L9 3a8 8 0 0 0-5 2L1.5 4l-2 3.4 2 1.6a7.9 7.9 0 0 0 0 6l-2 1.6 2 3.4 2.5-1a8 8 0 0 0 5 2l.4 2.6h4.2L12 21a8 8 0 0 0 5-2l2.5 1 2-3.4-2-1.6Z"
+                            stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                    </svg>
+                </span>
+                <span>Configuración</span>
+            </a>
+            <a class="cm-footer-item" href="#" data-action="logout">
+                <span class="cm-footer-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M15 12H3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M21 21V3a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                    </svg>
+                </span>
+                <span>Cerrar sesión</span>
+            </a>
+            <a class="cm-footer-item" href="#" data-action="back-to-classes">
+                <span class="cm-footer-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M21 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M7 21V3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
+                            opacity="0.45" />
+                    </svg>
+                </span>
+                <span>Volver a clases</span>
+            </a>
+        </footer>
+    </aside>
+
+    <section class="cm-main" aria-label="Contenido principal">
+        <div class="cm-content">
+            {% include template_actual %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='JS/classroomManage.js') }}"></script>
+{% if vista == 'students' %}
+<script src="{{ url_for('static', filename='JS/classroomManageStudents.js') }}"></script>
+{% endif %}
+{% endblock %}
