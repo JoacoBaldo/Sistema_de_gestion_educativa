@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import crear_token, validar_credenciales
@@ -6,6 +7,15 @@ from src.funciones.errores import (
     EMAIL_REQUERIDO,
     PASSWORD_REQUERIDO,
     USER_ID_NO_COINCIDE,
+=======
+from flask import Blueprint, jsonify
+from werkzeug.security import generate_password_hash
+from src.funciones.auth import (
+    datos_completos,
+    buscar_token,
+    usuario_existe,
+    actualizar_contrasenia,
+>>>>>>> 0e64132 (Agrega funciones para actualizar la contrasenia de un usuario. Ademas añade auth.bp al main)
 )
 from .utils import responder_error
 =======
@@ -77,6 +87,10 @@ def actualizar_contrasenia():
 
     hash_generado = generate_password_hash(nueva_contrasenia)
 
-    resultado = actualizar_contrasenia_db(id_usuario, hash_generado)
+    resultado = actualizar_contrasenia(id_usuario, hash_generado)
 
+<<<<<<< HEAD
     return jsonify({resultado}), 200
+=======
+    return jsonify{resultado}, 200
+>>>>>>> 0e64132 (Agrega funciones para actualizar la contrasenia de un usuario. Ademas añade auth.bp al main)
