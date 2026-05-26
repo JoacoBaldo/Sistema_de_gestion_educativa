@@ -1,6 +1,3 @@
-from .conexion import obtener_conexion
-
-
 def guardar_log(
     metodo: str,
     path: str,

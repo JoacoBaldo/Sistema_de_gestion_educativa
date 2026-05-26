@@ -21,6 +21,7 @@ def _validar_password(password: str, password_hash: str | bytes) -> bool:
     except ValueError:
         return password == password_hash.decode("utf-8", errors="ignore")
 
+
 TIEMPO_EXPIRACION = 24  # horas
 
 

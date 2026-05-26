@@ -34,10 +34,12 @@ def obtener_usuario(user_id):
         return jsonify({"error": "Credenciales inválidas"}), 401
 
     token = crear_token(usuario_id, username_db, email_db)
-    return jsonify({
-        "id": usuario_id,
-        "username": username_db,
-        "email": email_db,
-        "role_id": role_id,
-        "token": token,
-    }), 200
+    return jsonify(
+        {
+            "id": usuario_id,
+            "username": username_db,
+            "email": email_db,
+            "role_id": role_id,
+            "token": token,
+        }
+    ), 200
