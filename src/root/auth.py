@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import crear_token, validar_credenciales
@@ -7,11 +8,16 @@ from src.funciones.errores import (
     USER_ID_NO_COINCIDE,
 )
 from .utils import responder_error
+=======
+from flask import Blueprint, jsonify
+>>>>>>> b7459c5 (style: auto-formateo de código con Ruff 🎨)
 from werkzeug.security import generate_password_hash
-from src.funciones.auth import (datos_completos,
+from src.funciones.auth import (
+    datos_completos,
     buscar_token,
     usuario_existe,
-    actualizar_contrasenia_db)
+    actualizar_contrasenia_db,
+)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -53,9 +59,9 @@ def login(user_id: int):
 
 @auth_bp.route('/api/auth/actualizar-contrasenia', methods=['POST'])
 def actualizar_contrasenia():
-    
+
     token, nueva_contrasenia, error = datos_completos()
-    
+
     if error:
         return jsonify({"error": error["error"]}), error["status"]
 
@@ -74,4 +80,3 @@ def actualizar_contrasenia():
     resultado = actualizar_contrasenia_db(id_usuario, hash_generado)
 
     return jsonify({resultado}), 200
-

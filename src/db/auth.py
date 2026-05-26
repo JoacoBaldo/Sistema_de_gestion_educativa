@@ -89,25 +89,30 @@ def eliminar_sesiones_usuario(usuario_id: int):
         )
         conn.commit()
 
-def buscar_token(token:str):
+
+def buscar_token(token: str):
     engine = obtener_conexion()
     with engine.connect() as conn:
         token_buscado = conn.exec_driver_sql(
             """
             SELECT * FROM sesiones_activas WHERE token = %s LIMIT 1;
-            """
-        , (token,))
+            """,
+            (token,),
+        )
         return token_buscado.fetchone()
 
-def usuario_existe(usuario_id:int):
+
+def usuario_existe(usuario_id: int):
     engine = obtener_conexion()
     with engine.connect() as conn:
         usuario = conn.exec_driver_sql(
             """
             SELECT id FROM users WHERE id = %s LIMIT 1;
-            """
-        , (usuario_id,))
+            """,
+            (usuario_id,),
+        )
         return usuario.fetchone()
+
 
 def actualizar_contrasenia(usuario_id: int, nueva_contrasenia: str):
     engine = obtener_conexion()
