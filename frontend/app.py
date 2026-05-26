@@ -8,5 +8,10 @@ def login():
     return render_template("auth/login.html")
 
 
+@app.route("/aula/estudiantes")
+def classroom_students():
+    return render_template("classroom-manage/manageView.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
