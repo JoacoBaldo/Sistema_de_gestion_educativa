@@ -4,14 +4,7 @@ from src.funciones.auth import (
     datos_completos,
     buscar_token,
     usuario_existe,
-    actualizar_contrasenia_db,
-from flask import Blueprint, jsonify, request
-
-from src.funciones.auth import crear_token, validar_credenciales
-from src.funciones.errores import (
-    EMAIL_REQUERIDO,
-    PASSWORD_REQUERIDO,
-    USER_ID_NO_COINCIDE,
+    actualizar_contrasenia,
 )
 
 auth_bp = Blueprint("auth", __name__)
@@ -49,27 +42,6 @@ def login(user_id: int):
 
     hash_generado = generate_password_hash(nueva_contrasenia)
 
-    resultado = actualizar_contrasenia_db(id_usuario, hash_generado)
+    resultado = actualizar_contrasenia(id_usuario, hash_generado)
 
-    return jsonify({resultado}), 200
-    if usuario["id"] != user_id:
-        return jsonify(USER_ID_NO_COINCIDE), USER_ID_NO_COINCIDE["status"]
-
-    token = crear_token(
-        usuario["id"],
-        usuario["username"],
-        usuario["email"],
-    )
-
-    return (
-        jsonify(
-            {
-                "id": usuario["id"],
-                "username": usuario["username"],
-                "email": usuario["email"],
-                "role_id": usuario["role_id"],
-                "token": token,
-            }
-        ),
-        200,
-    )
+    return jsonify{resultado}, 200

@@ -13,6 +13,7 @@ CONTRASENA_DEBIL = {
     "error": "La contraseña debe tener al menos 6 caracteres",
     "status_code": 400,
 }
+USUARIO_NO_EXISTE_GLOBAL = {"error": "Usuario no existe", "status": 404}
 SIN_PERMISO_LINK = {
     "error": "Solo PROFESOR o ADMINISTRADOR pueden compartir el link",
     "status": 403,
@@ -27,8 +28,8 @@ DATOS_INVALIDOS = {
     "error": "name, department y university son requeridos",
     "status": 400,
 }
-
 CREDENCIALES_INVALIDAS = {"error": "Credenciales inválidas", "status": 401}
 EMAIL_REQUERIDO = {"error": "email es requerido", "status": 400}
 PASSWORD_REQUERIDO = {"error": "password es requerido", "status": 400}
 USER_ID_NO_COINCIDE = {"error": "user_id no coincide", "status": 400}
+FALTAN_DATOS = {"error": "Faltan datos obligatorios", "status": 400}
