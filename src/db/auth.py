@@ -89,7 +89,8 @@ def eliminar_sesiones_usuario(usuario_id: int):
         )
         conn.commit()
 
-def buscar_token(token:str):
+
+def buscar_token(token: str):
     engine = obtener_conexion()
     with engine.connect() as conn:
         token_buscado = conn.exec_driver_sql(
