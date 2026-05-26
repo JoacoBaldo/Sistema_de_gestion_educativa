@@ -83,4 +83,3 @@ def obtener_classrooms(user_id: int):
         return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
-
