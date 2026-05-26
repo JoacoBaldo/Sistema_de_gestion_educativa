@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Aula</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            background-image: 
+                radial-gradient(at 20% 30%, rgba(37, 117, 252, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 40%, rgba(106, 17, 203, 0.4) 0px, transparent 50%),
+                radial-gradient(at 50% 80%, rgba(255, 65, 108, 0.4) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .glass-header h3 {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .btn-close-custom {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .text-danger {
+            color: #ff4b4b !important;
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.85);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #333;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            background: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.3);
+        }
+
+        .horarios-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-add-horario {
+            background: #4A4Aea;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-add-horario:hover {
+            background: #3b3be0;
+        }
+
+        .horario-row {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 16px;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .horario-row select, .horario-row input {
+            background: transparent;
+            border: none;
+            color: #333;
+        }
+
+        .horario-row input[type="time"] {
+            border-left: 1px solid #ccc;
+            padding-left: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 2rem;
+        }
+
+        .btn-cancelar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.7);
+            color: #333;
+            border: none;
+            border-radius: 16px;
+            padding: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-cancelar:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-crear {
+            flex: 1;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-crear:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+<div class="glass-card">
+    <div class="glass-header">
+        <h3>Crear Nueva Aula</h3>
+        <button class="btn-close-custom" onclick="window.history.back()">✕</button>
+    </div>
+    <p class="subtitle">Completa la información para crear un aula</p>
+
+    <form id="formAula">
+        <div class="mb-3">
+            <label class="form-label">📖 Nombre del Aula <span class="text-danger">*</span></label>
+            <input type="text" id="nombre" class="glass-input" placeholder="Ejemplo: Sistemas Operativos" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">👥 Cátedra <span class="text-danger">*</span></label>
+            <input type="text" id="catedra" class="glass-input" placeholder="Ejemplo: Cátedra G" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">🏛️ Universidad <span class="text-danger">*</span></label>
+            <input type="text" id="universidad" class="glass-input" placeholder="Ejemplo: Universidad Nacional" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-6">
+                <label class="form-label">📅 Fecha de Inicio <span class="text-danger">*</span></label>
+                <input type="date" id="fecha_inicio" class="glass-input" required>
+            </div>
+            <div class="col-6">
+                <label class="form-label">📅 Fecha de Fin <span class="text-danger">*</span></label>
+                <input type="date" id="fecha_fin" class="glass-input" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <div class="horarios-header">
+                <label class="form-label mb-0">🕒 Horarios <span class="text-danger">*</span></label>
+                <button type="button" class="btn-add-horario">+ Agregar horario</button>
+            </div>
+            <div class="horario-row">
+                <select id="dia" class="form-select shadow-none" required>
+                    <option value="Lunes">Lunes</option>
+                    <option value="Martes">Martes</option>
+                    <option value="Miércoles">Miércoles</option>
+                    <option value="Jueves">Jueves</option>
+                    <option value="Viernes">Viernes</option>
+                    <option value="Sábado">Sábado</option>
+                </select>
+                <input type="time" id="h_inicio" class="form-control shadow-none" value="10:00" required>
+                <input type="time" id="h_fin" class="form-control shadow-none" value="12:00" required>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button type="button" class="btn-cancelar" onclick="window.history.back()">Cancelar</button>
+            <button type="submit" class="btn-crear" id="btnGuardar">Crear Aula</button>
+        </div>
+    </form>
+</div>
+<script>
+    document.getElementById('formAula').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardar');
+        
+        const data = {
+            nombre: document.getElementById('nombre').value,
+            catedra: document.getElementById('catedra').value,
+            universidad: document.getElementById('universidad').value,
+            fecha_inicio: document.getElementById('fecha_inicio').value,
+            fecha_fin: document.getElementById('fecha_fin').value,
+            horario: {
+                dia: document.getElementById('dia').value,
+                hora_inicio: document.getElementById('h_inicio').value,
+                hora_fin: document.getElementById('h_fin').value
+            }
+        };
+
+        if(data.fecha_inicio > data.fecha_fin) {
+            return alert("La fecha de inicio debe ser anterior a la fecha de fin.");
+        }
+        if(data.horario.hora_inicio >= data.horario.hora_fin) {
+            return alert("La hora de inicio debe ser anterior a la de fin.");
+        }
+
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/clases', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', 
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok) {
+                window.location.href = '/aulas'; 
+            } else {
+                const err = await res.json();
+                alert("Error: " + (err.error || "No se pudo guardar"));
+            }
+        } catch (error) {
+            alert("Error de conexión");
+        } finally {
+            btn.innerText = "Crear Aula";
+            btn.disabled = false;
+        }
+    };
+</script>
+</body>
+</html>
