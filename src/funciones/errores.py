@@ -2,19 +2,18 @@ TOKEN_INVALIDO = {"error": "Token inválido o expirado", "status": 401}
 SIN_ACCESO = {"error": "No tiene acceso a este classroom", "status": 403}
 NO_ES_ADMIN = {"error": "Se requiere rol Admin", "status": 403}
 USUARIO_NO_EXISTE = {"error": "Usuario no existe en el classroom", "status": 404}
-
 EMAIL_NO_EXISTE = {
     "error": "El email ingresado no esta en la base de datos",
     "status": 404,
 }
 EMAIL_NO_VALIDO = {"error": "El email debe terminar en @fi.uba.ar", "status": 400}
 EMAIL_YA_EXISTE = {"error": "Ya existe un usuario con ese email", "status": 409}
-
 CONTRASENA_DEBIL = {
     "error": "La contraseña debe tener al menos 6 caracteres",
     "status": 400,
 }
 
+USUARIO_NO_EXISTE_GLOBAL = {"error": "Usuario no existe", "status": 404}
 SIN_PERMISO_LINK = {
     "error": "Solo PROFESOR o ADMINISTRADOR pueden compartir el link",
     "status": 403,
@@ -48,3 +47,4 @@ ERROR_ENVIO_MAIL = {
     "error": "Hubo un problema interno al intentar enviar el correo",
     "status": 500,
 }
+FALTAN_DATOS = {"error": "Faltan datos obligatorios", "status": 400}
