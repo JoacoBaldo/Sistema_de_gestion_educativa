@@ -1,14 +1,10 @@
 import json
-from flask import g, request
+from flask import request
 
 from src.db.logs import guardar_log
 
 
-def registrar_peticion(response):
-    user_id = None
-    if hasattr(g, "current_user") and g.current_user:
-        user_id = g.current_user.get("id")
-
+def registrar_peticion(response, user_id: int | None = None):
     request_body = None
     if request.is_json:
         body = request.get_json(silent=True)

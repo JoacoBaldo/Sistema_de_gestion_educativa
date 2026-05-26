@@ -10,28 +10,7 @@ def guardar_log(
     user_agent: str | None,
     request_body: str | None,
 ):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
-            """
-            INSERT INTO request_logs (
-                usuario_id,
-                metodo,
-                path,
-                status_code,
-                remote_addr,
-                user_agent,
-                request_body
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                user_id,
-                metodo,
-                path,
-                status_code,
-                remote_addr,
-                user_agent,
-                request_body,
-            ),
-        )
-        conn.commit()
+    # El registro de peticiones no está soportado en la base de datos actual.
+    # Las sesiones se guardan en sesiones_activas, por lo que esta función
+    # no debe intentar usar la tabla request_logs.
+    return
