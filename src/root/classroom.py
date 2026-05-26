@@ -102,7 +102,6 @@ def obtener_classrooms(user_id: int):
 
     return jsonify(resultado), 200
 
-
 @classroom_bp.route("/api/v1/classrooms", methods=["POST"])
 def crear_aula():
     token = extraer_token()
