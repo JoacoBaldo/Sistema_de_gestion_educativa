@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from src.db import auth as db_auth
+from flask import request
 from .errores import (TOKEN_INVALIDO
     , FALTAN_DATOS
     , USUARIO_NO_EXISTE_GLOBAL)
