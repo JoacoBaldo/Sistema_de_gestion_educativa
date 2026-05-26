@@ -6,6 +6,8 @@ from src.db import auth as db_auth
 from .errores import (TOKEN_INVALIDO
     , FALTAN_DATOS
     , USUARIO_NO_EXISTE_GLOBAL)
+from flask import request
+
 
 TIEMPO_EXPIRACION = 24  # horas
 
