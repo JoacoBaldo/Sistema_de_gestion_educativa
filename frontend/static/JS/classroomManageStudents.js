@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const addBtn = document.getElementById("st-add-student-btn");
   const searchInput = document.getElementById("st-search-input");
   const statusFilter = document.getElementById("st-status-filter");
+  const teamFilter = document.getElementById("st-team-filter");
   const tbody = document.getElementById("st-tbody");
 
   function openFilePicker() {
@@ -20,13 +21,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tbody) return;
     const q = (searchInput?.value || "").trim().toLowerCase();
     const status = statusFilter?.value || "all";
+    const team = teamFilter?.value || "all";
 
     Array.from(tbody.querySelectorAll("tr")).forEach((tr) => {
-      const rowText = tr.textContent?.toLowerCase() || "";
-      const rowStatus = tr.getAttribute("data-status") || "active";
-      const matchQuery = q === "" || rowText.includes(q);
+      const rowNombre = (tr.dataset.nombre || "").toLowerCase();
+      const rowApellido = (tr.dataset.apellido || "").toLowerCase();
+      const rowPadron = (tr.dataset.padron || "").toLowerCase();
+      const rowStatus = tr.dataset.status || "active";
+      const rowTeam = (tr.dataset.team || "").toLowerCase();
+
+      const fullName = `${rowNombre} ${rowApellido}`.trim();
+
+      const matchQuery =
+        q === "" || fullName.includes(q) || rowPadron.includes(q);
       const matchStatus = status === "all" || rowStatus === status;
-      tr.style.display = matchQuery && matchStatus ? "" : "none";
+      const matchTeam = team === "all" || rowTeam === team.toLowerCase();
+
+      tr.style.display = matchQuery && matchStatus && matchTeam ? "" : "none";
     });
   }
 
@@ -82,5 +93,31 @@ document.addEventListener("DOMContentLoaded", () => {
   if (statusFilter) {
     statusFilter.addEventListener("change", applyFilters);
   }
+  if (teamFilter) {
+    teamFilter.addEventListener("change", applyFilters);
+  }
+
+  // Poblar filtro por equipos a partir de los datos en la tabla.
+  if (teamFilter && tbody) {
+    const teams = Array.from(tbody.querySelectorAll("tr"))
+      .map((tr) => tr.dataset.team)
+      .filter(Boolean);
+
+    const uniqueTeams = Array.from(new Set(teams)).sort((a, b) => a.localeCompare(b, "es"));
+
+    // Conserva la opción inicial (Todos los equipos) y reemplaza el resto.
+    while (teamFilter.options.length > 1) {
+      teamFilter.remove(1);
+    }
+
+    uniqueTeams.forEach((team) => {
+      const opt = document.createElement("option");
+      opt.value = team;
+      opt.textContent = team;
+      teamFilter.appendChild(opt);
+    });
+  }
+
+  applyFilters();
 });
 

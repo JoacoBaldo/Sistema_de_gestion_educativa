@@ -280,6 +280,14 @@
   background: rgba(123, 97, 255, 0.06);
 }
 
+.st-col-email {
+  /* Se mantiene visible en desktop; se oculta en móviles. */
+}
+
+.st-col-actions {
+  /* Columna menos crítica (acciones); se oculta en móvil. */
+}
+
 .st-row-actions {
   display: flex;
   gap: 10px;
@@ -374,10 +382,25 @@
     align-items: stretch;
   }
   .st-table-card {
-    overflow-x: auto;
+    overflow-x: visible;
   }
   .st-table {
-    min-width: 860px;
+    min-width: 0;
+    width: 100%;
+    table-layout: auto;
+  }
+
+  /* Columnas menos críticas en móviles */
+  .st-col-email {
+    display: none;
+  }
+
+  .st-col-actions {
+    display: none;
+  }
+
+  .st-table thead th {
+    white-space: normal;
   }
 }
 
