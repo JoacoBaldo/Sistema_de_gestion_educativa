@@ -3,8 +3,8 @@ from werkzeug.security import generate_password_hash
 from src.funciones.auth import (datos_completos,
     buscar_token,
     usuario_existe,
-    actualizar_contrasenia_db)
-
+    actualizar_contrasenia)
+    
 auth_bp = Blueprint("auth", __name__)
 
 
