@@ -2,59 +2,6 @@
   const gridEl = document.getElementById("classroomsGrid");
   if (!gridEl) return;
 
-  // ===========================
-  // TAREA 1 (FUTURO): lógica dinámica refactorizada (SIN fetch)
-  // - Lista para descomentar cuando exista el endpoint
-  // - Requiere importar Axios o un cliente HTTP custom
-  // ===========================
-  /*
-  // import axios from "axios";
-  // const http = axios.create({ baseURL: "/api", timeout: 15000 });
-  // O bien: import { http } from "./httpClient";
-
-  async function loadClassrooms() {
-    try {
-      // const { data } = await http.get("/classrooms");
-      // renderClassrooms(data);
-    } catch (error) {
-      console.error("Error cargando aulas:", error);
-      renderErrorState("No pudimos cargar tus aulas. Intenta nuevamente.");
-    }
-  }
-
-  function renderClassrooms(classrooms = []) {
-    const safe = Array.isArray(classrooms) ? classrooms : [];
-    const html = safe.map((c) => classroomCardTemplate({
-      name: c?.name ?? "Sin nombre",
-      chair: c?.department ?? c?.university ?? "Sin información",
-      students: Number.isFinite(Number(c?.student_count)) ? Number(c?.student_count) : 0,
-      schedules: buildSchedules(c),
-      theme: "theme-violet",
-    })).join("");
-
-    gridEl.innerHTML = html || renderEmptyState();
-  }
-
-  function buildSchedules(classroom) {
-    // Adaptar a tu modelo real (periodos, múltiples horarios, etc.)
-    if (classroom?.class_day && classroom?.class_start && classroom?.class_end) {
-      return [`${classroom.class_day} ${classroom.class_start}-${classroom.class_end}`];
-    }
-    return ["Horario no disponible"];
-  }
-
-  function renderEmptyState() {
-    return `<div class="um-empty">No hay aulas disponibles.</div>`;
-  }
-
-  function renderErrorState(message) {
-    gridEl.innerHTML = `<div class="um-empty">${escapeHtml(message)}</div>`;
-  }
-  */
-
-  // ===========================
-  // TAREA 2: mock data + render (hardcodeado)
-  // ===========================
   const mockClassrooms = [
     {
       name: "Sistemas Operativos",
