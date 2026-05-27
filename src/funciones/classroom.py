@@ -35,3 +35,8 @@ def obtener_link_classroom(classroom_id: int, usuario_id: int, role_id: int) -> 
     token = db_auth.generar_link_classroom(classroom_id, role_id, expira_en)
 
     return {"join_link": f"/api/v1/login/join?={token}"}, None
+
+
+def obtener_lista_classrooms(usuario_id: int) -> tuple:
+    classrooms = db_classroom.obtener_classrooms_usuario(usuario_id)
+    return classrooms, None

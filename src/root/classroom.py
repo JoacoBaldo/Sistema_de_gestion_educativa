@@ -4,6 +4,7 @@ from src.funciones.classroom import (
     obtener_profesores_classroom,
     eliminar_usuario_classroom,
     obtener_link_classroom,
+    obtener_lista_classrooms,
 )
 
 classroom_bp = Blueprint("classroom", __name__)
@@ -62,6 +63,21 @@ def obtener_link(classroom_id):
         return jsonify({"error": "role_id es requerido"}), 400
 
     resultado, error = obtener_link_classroom(classroom_id, usuario["id"], role_id)
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    return jsonify(resultado), 200
+
+
+@classroom_bp.route("/api/v1/classrooms/<user_id>", methods=["GET"])
+def obtener_classrooms(user_id: int):
+    token = _extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    resultado, error = obtener_lista_classrooms(user_id)
 
     if error:
         return jsonify({"error": error["error"]}), error["status"]
