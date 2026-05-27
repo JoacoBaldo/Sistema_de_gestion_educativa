@@ -16,17 +16,17 @@
         </div>
         <p class="subtitle">Ingresa el correo de la persona a la que quieres dar acceso.</p>
 
-        <form id="shareForm">
+        <form id="shareForm" method="POST" action="/clases/compartir">
             <input type="hidden" id="classId" name="classId">
 
             <div class="mb-3">
                 <label class="form-label">📧 Email del colaborador <span class="text-danger">*</span></label>
-                <input type="email" id="shareEmail" placeholder="ejemplo@universidad.edu" class="glass-input" required>
+                <input type="email" id="shareEmail" name="email" placeholder="ejemplo@universidad.edu" class="glass-input" required>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">🛡️ Rol de acceso <span class="text-danger">*</span></label>
-                <select id="shareRol" class="form-select shadow-none glass-input" required>
+                <select id="shareRol" name="rol" class="form-select shadow-none glass-input" required>
                     <option value="Lector">Lector (solo ver)</option>
                     <option value="Editor">Editor (puede modificar)</option>
                 </select>

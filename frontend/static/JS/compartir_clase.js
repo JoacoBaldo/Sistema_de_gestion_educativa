@@ -19,15 +19,12 @@
   const form = document.getElementById("shareForm");
   if (!form) return;
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
+  form.addEventListener("submit", (e) => {
     const btn = document.getElementById("btnCompartir");
-    const id_clase = document.getElementById("classId")?.value ?? "";
     const email = document.getElementById("shareEmail")?.value ?? "";
-    const rol = document.getElementById("shareRol")?.value ?? "Lector";
 
     if (!email.trim()) {
+      e.preventDefault();
       alert("Ingresa un email válido");
       return;
     }
@@ -37,33 +34,12 @@
       btn.disabled = true;
       btn.textContent = "Enviando...";
     }
-
-    try {
-      const res = await fetch("/clases/compartir", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_clase, email, rol }),
-      });
-
-      if (res.ok) {
-        alert(`Acceso concedido exitosamente a ${email}`);
-        window.history.back();
-        return;
-      }
-
-      let err = {};
-      try {
-        err = await res.json();
-      } catch {
-        err = {};
-      }
-      alert("Error: " + (err.error || "No se pudo compartir"));
-    } finally {
+    window.setTimeout(() => {
       if (btn) {
         btn.disabled = false;
         btn.textContent = originalText || "Conceder Acceso";
       }
-    }
+    }, 5000);
   });
 })();
 
