@@ -7,6 +7,14 @@ app = Flask(__name__)
 def classrooms():
     return render_template("main/classroomsGrid.html")
 
+@app.route("/aulas/crear")
+def crear_aula():
+    return render_template("main/forms/crear_aula.html")
+
+@app.route("/clases/compartir")
+def compartir_clase():
+    return render_template("main/forms/compartir_clase.html")
+
 
 @app.route("/auth")
 def login():
