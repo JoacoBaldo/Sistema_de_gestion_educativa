@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify
-from werkzeug.security import generate_password_hash
 from src.funciones.auth import (
     datos_completos,
     buscar_token,
     usuario_existe,
-    actualizar_contrasenia)
-    
+    actualizar_contrasenia,
+)
+
 auth_bp = Blueprint("auth", __name__)
 
 
