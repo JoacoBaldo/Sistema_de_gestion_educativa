@@ -4,6 +4,11 @@ app = Flask(__name__)
 
 
 @app.route("/")
+def classrooms():
+    return render_template("main/classroomsGrid.html")
+
+
+@app.route("/auth")
 def login():
     return render_template("auth/login.html")
 
