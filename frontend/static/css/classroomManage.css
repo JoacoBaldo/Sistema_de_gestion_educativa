@@ -215,6 +215,11 @@ body > main {
   margin: 0 auto;
 }
 
+.cm-content--students {
+  /* En la vista de estudiantes queremos aprovechar más ancho */
+  max-width: 1450px;
+}
+
 /* Responsivo */
 @media (max-width: 980px) {
   :root {
