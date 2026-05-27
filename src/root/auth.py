@@ -29,10 +29,6 @@ def actualizar_contrasenia_handler():
 
     hash_generado = generate_password_hash(nueva_contrasenia)
 
-<<<<<<< HEAD
     resultado = actualizar_contrasenia_db(id_usuario, hash_generado)
-=======
-    resultado = actualizar_contrasenia(id_usuario, nueva_contrasenia)
->>>>>>> 0ec54a3 (needed changes)
 
     return jsonify({resultado}), 200

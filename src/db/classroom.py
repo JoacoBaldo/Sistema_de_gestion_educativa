@@ -73,7 +73,6 @@ def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
 
 def obtener_todos_los_periodos() -> list:
     engine = obtener_conexion()
-<<<<<<< HEAD
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
@@ -129,10 +128,6 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     engine = obtener_conexion()
 
     with engine.connect() as conn:
-=======
-
-    with engine.connect() as conn:
->>>>>>> f51296c (style: auto-formateo de código con Ruff 🎨)
         resultados = (
             conn.exec_driver_sql(
                 """
