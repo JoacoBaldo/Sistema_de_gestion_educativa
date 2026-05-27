@@ -10,7 +10,7 @@ auth_bp = Blueprint("auth", __name__)
 
 
 @auth_bp.route("/api/auth/actualizar-contrasenia", methods=["POST"])
-def actualizar_contrasenia():
+def actualizar_contrasenia_handler():
 
     token, nueva_contrasenia, error = datos_completos()
 
@@ -29,6 +29,6 @@ def actualizar_contrasenia():
 
     hash_generado = generate_password_hash(nueva_contrasenia)
 
-    resultado = actualizar_contrasenia(id_usuario, hash_generado)
+    resultado = actualizar_contrasenia(id_usuario, nueva_contrasenia)
 
     return jsonify({resultado}), 200
