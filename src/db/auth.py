@@ -64,3 +64,39 @@ def eliminar_sesiones_usuario(usuario_id: int):
             (usuario_id,),
         )
         conn.commit()
+
+
+def buscar_token(token: str):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        token_buscado = conn.exec_driver_sql(
+            """
+            SELECT * FROM sesiones_activas WHERE token = %s LIMIT 1;
+            """,
+            (token,),
+        )
+        return token_buscado.fetchone()
+
+
+def usuario_existe(usuario_id: int):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        usuario = conn.exec_driver_sql(
+            """
+            SELECT id FROM users WHERE id = %s LIMIT 1;
+            """,
+            (usuario_id,),
+        )
+        return usuario.fetchone()
+
+
+def actualizar_contrasenia(usuario_id: int, nueva_contrasenia: str):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            UPDATE users SET password = %s WHERE id = %s
+            """,
+            (nueva_contrasenia, usuario_id),
+        )
+        conn.commit()
