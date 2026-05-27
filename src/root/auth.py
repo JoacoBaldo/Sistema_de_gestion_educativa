@@ -27,8 +27,6 @@ def actualizar_contrasenia_handler():
     if error:
         return jsonify({"error": error["error"]}), error["status"]
 
-    hash_generado = generate_password_hash(nueva_contrasenia)
-
     resultado = actualizar_contrasenia(id_usuario, nueva_contrasenia)
 
     return jsonify({resultado}), 200
