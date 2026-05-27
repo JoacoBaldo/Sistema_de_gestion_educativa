@@ -73,10 +73,11 @@ def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
 
 def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     engine = obtener_conexion()
-    
+
     with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
-            """
+        resultados = (
+            conn.exec_driver_sql(
+                """
             SELECT 
                 c.id,
                 c.name,
@@ -95,14 +96,17 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
             LEFT JOIN academic_periods ap ON c.id = ap.classroom_id
             WHERE cu.user_id = %s
         """,
-            (usuario_id,),
-        ).mappings().fetchall()
+                (usuario_id,),
+            )
+            .mappings()
+            .fetchall()
+        )
 
     classrooms_dict = {}
-    
+
     for fila in resultados:
         class_id = fila["id"]
-        
+
         if class_id not in classrooms_dict:
             classrooms_dict[class_id] = {
                 "id": class_id,
@@ -111,19 +115,24 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                 "university": fila["university"],
                 "schedule_id": fila["schedule_id"],
                 "class_day": fila["class_day"],
-                "class_start": str(fila["class_start"]) if fila["class_start"] else None,
+                "class_start": str(fila["class_start"])
+                if fila["class_start"]
+                else None,
                 "class_end": str(fila["class_end"]) if fila["class_end"] else None,
-                "academic_periods": []
+                "academic_periods": [],
             }
-            
+
         if fila["ap_id"] is not None:
             period_data = {
                 "id": fila["ap_id"],
                 "name": fila["ap_name"],
-                "period_start": str(fila["ap_start"]) if fila["ap_start"] is not None else None,
-                "period_end": str(fila["ap_end"]) if fila["ap_end"] is not None else None,
+                "period_start": str(fila["ap_start"])
+                if fila["ap_start"] is not None
+                else None,
+                "period_end": str(fila["ap_end"])
+                if fila["ap_end"] is not None
+                else None,
             }
             classrooms_dict[class_id]["academic_periods"].append(period_data)
 
     return list(classrooms_dict.values())
-        

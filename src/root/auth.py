@@ -1,18 +1,20 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 from werkzeug.security import generate_password_hash
-from src.funciones.auth import (datos_completos,
+from src.funciones.auth import (
+    datos_completos,
     buscar_token,
     usuario_existe,
-    actualizar_contrasenia_db)
+    actualizar_contrasenia_db,
+)
 
 auth_bp = Blueprint("auth", __name__)
 
 
-@auth_bp.route('/api/auth/actualizar-contrasenia', methods=['POST'])
+@auth_bp.route("/api/auth/actualizar-contrasenia", methods=["POST"])
 def actualizar_contrasenia():
-    
+
     token, nueva_contrasenia, error = datos_completos()
-    
+
     if error:
         return jsonify({"error": error["error"]}), error["status"]
 
@@ -31,4 +33,3 @@ def actualizar_contrasenia():
     resultado = actualizar_contrasenia_db(id_usuario, hash_generado)
 
     return jsonify({resultado}), 200
-
