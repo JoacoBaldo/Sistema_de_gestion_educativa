@@ -10,4 +10,3 @@ DATOS_INVALIDOS = {
     "error": "name, department y university son requeridos",
     "status": 400,
 }
-ERROR_INTERNO = {"error": "Error interno del servidor", "status": 500}

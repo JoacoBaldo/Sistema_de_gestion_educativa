@@ -91,7 +91,7 @@ def listar_periodos_academicos():
 @classroom_bp.route("/api/v1/classrooms", methods=["POST"])
 def crear_aula():
     token = _extraer_token()
-    _, error = verificar_token(token)
+    usuario, error = verificar_token(token)
 
     if error:
         return jsonify({"error": error["error"]}), error["status"]
@@ -104,7 +104,9 @@ def crear_aula():
     if not name or not department or not university:
         return jsonify({"error": DATOS_INVALIDOS["error"]}), DATOS_INVALIDOS["status"]
 
-    resultado, error = crear_nueva_classroom(name, department, university)
+    resultado, error = crear_nueva_classroom(
+        name, department, university, usuario["id"]
+    )
 
     if error:
         return jsonify({"error": error["error"]}), error["status"]

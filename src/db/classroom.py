@@ -109,3 +109,16 @@ def guardar_classroom(name: str, department: str, university: str) -> int:
         inserted_id = cursor.lastrowid
 
     return inserted_id
+
+
+def asignar_admin_classroom(classroom_id: int, usuario_id: int):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            INSERT INTO classroom_users (classroom_id, user_id, role_id)
+            VALUES (%s, %s, %s)
+            """,
+            (classroom_id, usuario_id, ADMINISTRADOR),
+        )
+        conn.commit()
