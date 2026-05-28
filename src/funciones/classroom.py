@@ -55,3 +55,6 @@ def crear_nueva_classroom(
         "university": university,
     }
     return resultado, None
+def obtener_lista_classrooms(usuario_id: int) -> tuple:
+    classrooms = db_classroom.obtener_classrooms_usuario(usuario_id)
+    return classrooms, None

@@ -6,6 +6,7 @@ from src.funciones.classroom import (
     obtener_profesores_classroom,
     obtener_periodos_academicos,
     crear_nueva_classroom,
+    obtener_lista_classrooms,
 )
 from src.funciones.errores import DATOS_INVALIDOS
 
@@ -81,6 +82,14 @@ def listar_periodos_academicos():
         return jsonify({"error": error["error"]}), error["status"]
 
     resultado, error = obtener_periodos_academicos()
+@classroom_bp.route("/api/v1/classrooms/<user_id>", methods=["GET"])
+def obtener_classrooms(user_id: int):
+    token = _extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    resultado, error = obtener_lista_classrooms(user_id)
 
     if error:
         return jsonify({"error": error["error"]}), error["status"]
