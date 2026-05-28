@@ -43,7 +43,8 @@ def obtener_periodos_academicos() -> tuple:
 
 
 def crear_nueva_classroom(
-    name: str, department: str, university: str, usuario_id: int) -> tuple:
+    name: str, department: str, university: str, usuario_id: int
+) -> tuple:
     inserted_id = db_classroom.guardar_classroom(name, department, university)
 
     db_classroom.asignar_admin_classroom(inserted_id, usuario_id)
@@ -55,6 +56,8 @@ def crear_nueva_classroom(
         "university": university,
     }
     return resultado, None
+
+
 def obtener_lista_classrooms(usuario_id: int) -> tuple:
     classrooms = db_classroom.obtener_classrooms_usuario(usuario_id)
     return classrooms, None

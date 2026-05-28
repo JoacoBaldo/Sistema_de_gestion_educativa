@@ -123,7 +123,7 @@ def asignar_admin_classroom(classroom_id: int, usuario_id: int):
         )
         conn.commit()
 
-        
+
 def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     engine = obtener_conexion()
 

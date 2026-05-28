@@ -82,6 +82,8 @@ def listar_periodos_academicos():
         return jsonify({"error": error["error"]}), error["status"]
 
     resultado, error = obtener_periodos_academicos()
+
+
 @classroom_bp.route("/api/v1/classrooms/<user_id>", methods=["GET"])
 def obtener_classrooms(user_id: int):
     token = _extraer_token()
