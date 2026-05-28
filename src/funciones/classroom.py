@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 from src.db import auth as db_auth
 from src.db import classroom as db_classroom
-from .errores import SIN_ACCESO, NO_ES_ADMIN, USUARIO_NO_EXISTE
 from .auth import TIEMPO_EXPIRACION
+from .errores import NO_ES_ADMIN, SIN_ACCESO, USUARIO_NO_EXISTE
 
 
 def obtener_profesores_classroom(classroom_id: int, usuario_id: int) -> tuple:
@@ -35,6 +35,27 @@ def obtener_link_classroom(classroom_id: int, usuario_id: int, role_id: int) -> 
     token = db_auth.generar_link_classroom(classroom_id, role_id, expira_en)
 
     return {"join_link": f"/api/v1/login/join?={token}"}, None
+
+
+def obtener_periodos_academicos() -> tuple:
+    periodos = db_classroom.obtener_todos_los_periodos()
+    return periodos, None
+
+
+def crear_nueva_classroom(
+    name: str, department: str, university: str, usuario_id: int
+) -> tuple:
+    inserted_id = db_classroom.guardar_classroom(name, department, university)
+
+    db_classroom.asignar_admin_classroom(inserted_id, usuario_id)
+
+    resultado = {
+        "id": inserted_id,
+        "name": name,
+        "department": department,
+        "university": university,
+    }
+    return resultado, None
 
 
 def obtener_lista_classrooms(usuario_id: int) -> tuple:
