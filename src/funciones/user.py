@@ -22,7 +22,7 @@ def change_password_mail(destinatario, link_recuperacion):
     mensaje["To"] = destinatario
     mensaje["Subject"] = "Recuperación de contraseña - uniManage"
 
-    cuerpo = f"""
+    cuerpo = """
     Enviar un token para recuperar contraselña.
     """
     mensaje.attach(MIMEText(cuerpo, "plain"))
