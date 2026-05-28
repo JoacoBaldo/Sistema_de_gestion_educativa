@@ -23,17 +23,7 @@ def change_password_mail(destinatario, link_recuperacion):
     mensaje["Subject"] = "Recuperación de contraseña - uniManage"
 
     cuerpo = f"""
-    Hola,
-
-    Recibimos una solicitud para restablecer la contraseña de tu cuenta en uniManage.
-    Hacé clic en el siguiente enlace para crear una nueva:
-
-    {link_recuperacion}
-
-    Si no solicitaste esto, podés ignorar este correo de forma segura.
-
-    Saludos,
-    El equipo de Soporte de uniManage
+    Enviar un token para recuperar contraselña.
     """
     mensaje.attach(MIMEText(cuerpo, "plain"))
     try:
@@ -65,48 +55,3 @@ def create_user(user: dict) -> dict:
         return CONTRASENA_DEBIL
 
     return create_User_db(user)
-
-
-def enviar_correo_recuperacion(destinatario, link_recuperacion):
-    # Traemos las credenciales del archivo .env
-    remitente = os.environ.get("EMAIL_SOPORTE")
-    password = os.environ.get("EMAIL_PASSWORD")
-
-    # Configuramos la cabecera del correo
-    mensaje = MIMEMultipart()
-    mensaje["From"] = remitente
-    mensaje["To"] = destinatario
-    mensaje["Subject"] = "Recuperación de contraseña - uniManage"
-
-    # Cuerpo del mail
-    cuerpo = f"""
-    Hola,
-
-    Recibimos una solicitud para restablecer la contraseña de tu cuenta en uniManage.
-    Hacé clic en el siguiente enlace para crear una nueva:
-
-    {link_recuperacion}
-
-    Si no solicitaste esto, podés ignorar este correo de forma segura.
-
-    Saludos,
-    El equipo de Soporte de uniManage
-    """
-
-    mensaje.attach(MIMEText(cuerpo, "plain"))
-
-    try:
-        # Nos conectamos a los servidores de Google (puerto 587 para TLS)
-        servidor = smtplib.SMTP("smtp.gmail.com", 587)
-        servidor.starttls()  # Esto encripta la conexión
-        servidor.login(remitente, password)  # Iniciamos sesión
-
-        # Enviamos el mail y cerramos la conexión
-        texto = mensaje.as_string()
-        servidor.sendmail(remitente, destinatario, texto)
-        servidor.quit()
-        return True
-
-    except Exception as e:
-        print(f"Error al enviar el correo: {e}")
-        return False
