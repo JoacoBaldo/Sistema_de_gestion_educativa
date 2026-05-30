@@ -34,7 +34,7 @@ def solicitar_recuperacion():
 
     if not email_usuario:
         return jsonify({"error": "El email es obligatorio"}), 400
-    
+
     if not id_usuario:
         return jsonify({"error": "El ID de usuario es obligatorio"}), 400
 
