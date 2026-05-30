@@ -28,23 +28,8 @@ def email_exists(email: str) -> bool:
     conn.close()
 
 
-def change_password_db(new_password_data: dict) -> dict:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
-            """
-            UPDATE users
-            SET password = %s
-            WHERE id = %s
-            """,
-            (new_password_data["new_password"], new_password_data["user_id"]),
-        )
-        conn.commit()
 
-    return {"message": "Password changed successfully", "status_code": 200}
-
-
-def get_change_password_email(email: str) -> dict:
+def get_user_id_by_email(email: str) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
         with conn.cursor() as cursor:

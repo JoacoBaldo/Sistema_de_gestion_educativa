@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 from src.funciones.user import (
     change_password_mail,
-    change_password_db,
-    create_user,
+    create_user, 
 )
+from src.db.user import get_user_id_by_email
 
 user_bp = Blueprint("user", __name__)
 
@@ -30,14 +30,15 @@ def create_user_route():
 def solicitar_recuperacion():
     data = request.get_json()
     email_usuario = data.get("email")
+    id_usuario = get_user_id_by_email(email_usuario).get("user_id")
 
     if not email_usuario:
         return jsonify({"error": "El email es obligatorio"}), 400
+    
+    if not id_usuario:
+        return jsonify({"error": "El ID de usuario es obligatorio"}), 400
 
-    token_generado = "12345abcde-token-de-prueba"
-    link_falso = f"http://tusitioweb.com/reset-password?token={token_generado}"
-
-    exito = change_password_mail(email_usuario, link_falso)
+    exito = change_password_mail(email_usuario, id_usuario)
 
     if exito:
         return jsonify(
