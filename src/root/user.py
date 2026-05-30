@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from src.funciones.user import (
     change_password_mail,
-    create_user, 
+    create_user,
 )
 from src.db.user import get_user_id_by_email
 
