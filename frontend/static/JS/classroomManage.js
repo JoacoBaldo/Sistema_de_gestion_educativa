@@ -16,10 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!action) return;
       e.preventDefault();
 
+      if (action === "back-to-classes") {
+        window.location.href = "/";
+        return;
+      }
+
       const mensajes = {
         settings: "Configuración (pendiente de implementar).",
         logout: "Cerrar sesión (pendiente de implementar).",
-        "back-to-classes": "Volver a clases (pendiente de implementar).",
       };
 
       if (mensajes[action]) {
