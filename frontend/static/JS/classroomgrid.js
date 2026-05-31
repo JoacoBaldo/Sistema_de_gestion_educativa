@@ -95,7 +95,7 @@
           <div class="um-card__chair">${chair}</div>
           <div class="um-pill">
             <span class="um-ico um-ico--users" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 48 48"><path fill="#fffafa" d="M16 24a8 8 0 1 0 0-16a8 8 0 0 0 0 16Zm18 0a6 6 0 1 0 0-12a6 6 0 0 0 0 12ZM6.75 27A3.75 3.75 0 0 0 3 30.75V32s0 9 13 9s13-9 13-9v-1.25A3.75 3.75 0 0 0 25.25 27H6.75Zm21.924 11.089c1.376.558 3.119.911 5.325.911c10.5 0 10.5-8 10.5-8v-.25A3.75 3.75 0 0 0 40.75 27H29.607a5.728 5.728 0 0 1 1.391 3.75v1.295l-.001.057a7.565 7.565 0 0 1-.04.581a9.697 9.697 0 0 1-.241 1.324a10.684 10.684 0 0 1-2.042 4.082Z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true"><path fill="currentColor" d="M16 24a8 8 0 1 0 0-16a8 8 0 0 0 0 16Zm18 0a6 6 0 1 0 0-12a6 6 0 0 0 0 12ZM6.75 27A3.75 3.75 0 0 0 3 30.75V32s0 9 13 9s13-9 13-9v-1.25A3.75 3.75 0 0 0 25.25 27H6.75Zm21.924 11.089c1.376.558 3.119.911 5.325.911c10.5 0 10.5-8 10.5-8v-.25A3.75 3.75 0 0 0 40.75 27H29.607a5.728 5.728 0 0 1 1.391 3.75v1.295l-.001.057a7.565 7.565 0 0 1-.04.581a9.697 9.697 0 0 1-.241 1.324a10.684 10.684 0 0 1-2.042 4.082Z"/></svg>
             </span>
             <span>${students} Alumnos</span>
           </div>
@@ -117,7 +117,7 @@
             <span>Compartir</span>
           </a>
 
-          <a class="um-link um-link--primary" href="#">
+          <a class="um-link um-link--primary" href="/aulas/${id}/gestionar">
             <span>Abrir aula</span>
             <span class="um-arrow" aria-hidden="true">→</span>
           </a>
