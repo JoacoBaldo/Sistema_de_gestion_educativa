@@ -1,0 +1,229 @@
+<section class="st-page" aria-label="Centro de gestión de estudiantes">
+    <header class="st-header">
+        <div>
+            <h1 class="st-title">Centro de gestión de estudiantes</h1>
+            <p class="st-subtitle">Administra registros, estado y matrícula de estudiantes</p>
+        </div>
+        <div class="st-actions">
+            <button class="st-btn st-btn-primary" type="button" id="st-add-student-btn">
+                <span class="st-btn-icon" aria-hidden="true">+</span>
+                Añadir estudiante
+            </button>
+        </div>
+    </header>
+
+    <div class="st-toolbar" role="region" aria-label="Herramientas de búsqueda y filtros">
+        <div class="st-search">
+            <span class="st-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                        stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+            </span>
+            <input id="st-search-input" type="search" placeholder="Buscar por nombre o padrón/ID..."
+                aria-label="Buscar estudiantes">
+        </div>
+
+        <div class="st-toolbar-right">
+            <label class="st-select">
+                <span class="sr-only">Filtro por estado</span>
+                <select id="st-status-filter" aria-label="Filtrar por estado">
+                    <option value="all">Todos los alumnos</option>
+                    <option value="active">Solo alumnos activos</option>
+                    <option value="abandoned">Alumnos que abandonaron la materia</option>
+                </select>
+            </label>
+
+            <label class="st-select">
+                <span class="sr-only">Filtro por equipo</span>
+                <select id="st-team-filter" aria-label="Filtrar por equipo">
+                    <option value="all">Todos los equipos</option>
+                </select>
+            </label>
+
+            <button class="st-btn st-btn-ghost" type="button" id="st-export-btn">
+                <span class="st-ghost-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                    </svg>
+                </span>
+                Exportar
+            </button>
+        </div>
+    </div>
+
+    <section class="st-import" aria-label="Importar estudiantes desde CSV">
+        <div class="st-dropzone" id="st-dropzone" tabindex="0" role="button"
+            aria-label="Arrastra y suelta un archivo CSV o haz clic para seleccionar">
+            <div class="st-dropzone-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 16V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    <path d="M7 8l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path
+                        d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
+                        stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                        stroke-linejoin="round" opacity="0.75" />
+                </svg>
+            </div>
+            <div class="st-dropzone-text">
+                <div class="st-dropzone-title">Importar estudiantes desde CSV</div>
+                <div class="st-dropzone-subtitle">Arrastra tu archivo aquí o haz clic para buscar</div>
+            </div>
+            <button class="st-btn st-btn-secondary" type="button">Seleccionar archivo</button>
+            <input type="file" id="st-file-input" accept=".csv,text/csv" hidden>
+        </div>
+    </section>
+
+    <section class="st-table-card" aria-label="Listado de estudiantes">
+        <table class="st-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Padrón/ID</th>
+                    <th class="st-col-email">Email</th>
+                    <th>Estado</th>
+                    <th class="st-col-actions">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="st-tbody">
+                <tr data-status="active" data-team="Equipo Azul" data-nombre="Emma" data-apellido="Thompson" data-padron="S001"
+                    data-email="emma.t@universidad.edu">
+                    <td>Emma</td>
+                    <td>Thompson</td>
+                    <td>S001</td>
+                    <td class="st-col-email">emma.t@universidad.edu</td>
+                    <td><span class="st-badge st-badge-active">Activo</span></td>
+                    <td class="st-row-actions st-col-actions">
+                        <button class="st-icon-btn" type="button" aria-label="Editar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 20h9" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="st-icon-btn danger" type="button" aria-label="Eliminar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                <tr data-status="active" data-team="Equipo Azul" data-nombre="Michael" data-apellido="Chen" data-padron="S002"
+                    data-email="michael.c@universidad.edu">
+                    <td>Michael</td>
+                    <td>Chen</td>
+                    <td>S002</td>
+                    <td class="st-col-email">michael.c@universidad.edu</td>
+                    <td><span class="st-badge st-badge-active">Activo</span></td>
+                    <td class="st-row-actions st-col-actions">
+                        <button class="st-icon-btn" type="button" aria-label="Editar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 20h9" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="st-icon-btn danger" type="button" aria-label="Eliminar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                <tr data-status="active" data-team="Equipo Rojo" data-nombre="Sophia" data-apellido="Rodríguez" data-padron="S003"
+                    data-email="sophia.r@universidad.edu">
+                    <td>Sophia</td>
+                    <td>Rodríguez</td>
+                    <td>S003</td>
+                    <td class="st-col-email">sophia.r@universidad.edu</td>
+                    <td><span class="st-badge st-badge-active">Activo</span></td>
+                    <td class="st-row-actions st-col-actions">
+                        <button class="st-icon-btn" type="button" aria-label="Editar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 20h9" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="st-icon-btn danger" type="button" aria-label="Eliminar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                <tr data-status="abandoned" data-team="Equipo Rojo" data-nombre="James" data-apellido="Wilson" data-padron="S004"
+                    data-email="james.w@universidad.edu">
+                    <td>James</td>
+                    <td>Wilson</td>
+                    <td>S004</td>
+                    <td class="st-col-email">james.w@universidad.edu</td>
+                    <td><span class="st-badge st-badge-dropped">Abandono</span></td>
+                    <td class="st-row-actions st-col-actions">
+                        <button class="st-icon-btn" type="button" aria-label="Editar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M12 20h9" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="st-icon-btn danger" type="button" aria-label="Eliminar">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                    stroke-linejoin="round" opacity="0.75" />
+                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</section>

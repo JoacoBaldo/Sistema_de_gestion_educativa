@@ -49,5 +49,13 @@ def login():
     return render_template("auth/login.html")
 
 
+@app.route("/aulas/<int:classroom_id>/gestionar")
+def classroom_manage(classroom_id):
+    return render_template(
+        "classroom-manage/manageView.html",
+        classroom_id=classroom_id,
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
