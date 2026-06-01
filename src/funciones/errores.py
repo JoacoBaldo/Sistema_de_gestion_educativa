@@ -9,6 +9,8 @@ SIN_PERMISO_LINK = {
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {
     "error": "Uno o más miembros no pertenecen al aula",
+    "status": 404,
+}
 DATOS_INVALIDOS = {
     "error": "name, department y university son requeridos",
     "status": 400,
