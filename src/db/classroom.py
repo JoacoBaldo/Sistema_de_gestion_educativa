@@ -71,6 +71,7 @@ def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
         conn.commit()
 
 
+<<<<<<< HEAD
 def obtener_todos_los_periodos() -> list:
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -191,3 +192,6 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
             classrooms_dict[class_id]["academic_periods"].append(period_data)
 
     return list(classrooms_dict.values())
+=======
+
+>>>>>>> dbebd0e (Elimina funciones duplicadas)
