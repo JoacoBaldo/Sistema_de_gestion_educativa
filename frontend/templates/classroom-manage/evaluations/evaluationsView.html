@@ -1,4 +1,234 @@
-<section class="cm-panel">
-    <h1 class="cm-panel__title">Evaluaciones</h1>
-    <p class="cm-panel__subtitle">Esta vista está en construcción.</p>
+<section class="ev-page" aria-label="Gestión de evaluaciones y trabajos prácticos">
+    <header class="ev-header">
+        <div>
+            <h1 class="ev-title">Gestión de Evaluaciones y TPs</h1>
+            <p class="ev-subtitle">Administra exámenes, trabajos prácticos y sus respectivas notas.</p>
+        </div>
+        <div class="ev-actions">
+            <a class="st-btn st-btn-primary ev-btn-new" href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
+                <span class="st-btn-icon" aria-hidden="true">+</span>
+                Nueva Evaluación
+            </a>
+        </div>
+    </header>
+
+    <div class="ev-toolbar" role="region" aria-label="Filtros y ordenamiento">
+        <div class="st-search ev-search">
+            <span class="st-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                        stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+            </span>
+            <input id="ev-search-input" type="search" placeholder="Buscar por nombre de evaluación..."
+                aria-label="Buscar evaluaciones">
+        </div>
+
+        <div class="ev-toolbar-right">
+            <label class="st-select">
+                <span class="sr-only">Filtrar por tipo</span>
+                <select id="ev-type-filter" aria-label="Filtrar por tipo de evaluación">
+                    <option value="all">Todos los tipos</option>
+                    <option value="parcial">Parciales</option>
+                    <option value="tp">Trabajos Prácticos</option>
+                    <option value="parcialito">Parcialitos</option>
+                    <option value="recuperatorio">Recuperatorios</option>
+                </select>
+            </label>
+
+            <label class="st-select">
+                <span class="sr-only">Ordenar por fecha</span>
+                <select id="ev-date-sort" aria-label="Ordenar por fecha">
+                    <option value="asc">Fecha: más antigua primero</option>
+                    <option value="desc">Fecha: más reciente primero</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <div class="ev-grid" id="ev-grid" aria-live="polite">
+        <article class="ev-card" data-id="1" data-type="parcial" data-date="2025-05-15"
+            data-nombre="primer parcial programación" data-cargadas="40" data-total="45">
+            <div class="ev-card__top">
+                <span class="ev-badge ev-badge--parcial">Parcial</span>
+                <time class="ev-card__date" datetime="2025-05-15">15-05-2025</time>
+            </div>
+            <div class="ev-card__body">
+                <h2 class="ev-card__title">Primer Parcial - Programación</h2>
+                <p class="ev-card__code">CS101</p>
+            </div>
+            <footer class="ev-card__footer">
+                <p class="ev-card__progress">Notas cargadas: <strong>40/45</strong></p>
+                <a class="ev-grades-link" href="?vista=evaluations&amp;accion=notas&amp;id=1">
+                    Subir Notas
+                    <span class="ev-grades-arrow" aria-hidden="true">→</span>
+                </a>
+            </footer>
+            <div class="ev-card__actions" aria-label="Acciones de la evaluación">
+                <a class="st-icon-btn ev-icon-btn" href="?vista=evaluations&amp;accion=editar&amp;id=1"
+                    aria-label="Editar evaluación" title="Editar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 20h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <button class="st-icon-btn danger ev-icon-btn ev-delete-btn" type="button"
+                    data-id="1" data-nombre="Primer Parcial - Programación"
+                    aria-label="Eliminar evaluación" title="Eliminar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                            stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+        </article>
+
+        <article class="ev-card" data-id="2" data-type="tp" data-date="2025-05-22"
+            data-nombre="tp integrador" data-cargadas="45" data-total="45">
+            <div class="ev-card__top">
+                <span class="ev-badge ev-badge--tp">TP</span>
+                <time class="ev-card__date" datetime="2025-05-22">22-05-2025</time>
+            </div>
+            <div class="ev-card__body">
+                <h2 class="ev-card__title">TP Integrador</h2>
+                <p class="ev-card__code">CS101</p>
+            </div>
+            <footer class="ev-card__footer">
+                <p class="ev-card__progress">Notas cargadas: <strong>45/45</strong></p>
+                <a class="ev-grades-link" href="?vista=evaluations&amp;accion=notas&amp;id=2">
+                    Subir Notas
+                    <span class="ev-grades-arrow" aria-hidden="true">→</span>
+                </a>
+            </footer>
+            <div class="ev-card__actions" aria-label="Acciones de la evaluación">
+                <a class="st-icon-btn ev-icon-btn" href="?vista=evaluations&amp;accion=editar&amp;id=2"
+                    aria-label="Editar evaluación" title="Editar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 20h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <button class="st-icon-btn danger ev-icon-btn ev-delete-btn" type="button"
+                    data-id="2" data-nombre="TP Integrador"
+                    aria-label="Eliminar evaluación" title="Eliminar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                            stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+        </article>
+
+        <article class="ev-card" data-id="3" data-type="recuperatorio" data-date="2025-06-10"
+            data-nombre="recuperatorio primer parcial" data-cargadas="0" data-total="45">
+            <div class="ev-card__top">
+                <span class="ev-badge ev-badge--recuperatorio">Recuperatorio</span>
+                <time class="ev-card__date" datetime="2025-06-10">10-06-2025</time>
+            </div>
+            <div class="ev-card__body">
+                <h2 class="ev-card__title">Recuperatorio - Primer Parcial</h2>
+                <p class="ev-card__code">CS101</p>
+            </div>
+            <footer class="ev-card__footer">
+                <p class="ev-card__progress">Notas cargadas: <strong>0/45</strong></p>
+                <a class="ev-grades-link" href="?vista=evaluations&amp;accion=notas&amp;id=3">
+                    Subir Notas
+                    <span class="ev-grades-arrow" aria-hidden="true">→</span>
+                </a>
+            </footer>
+            <div class="ev-card__actions" aria-label="Acciones de la evaluación">
+                <a class="st-icon-btn ev-icon-btn" href="?vista=evaluations&amp;accion=editar&amp;id=3"
+                    aria-label="Editar evaluación" title="Editar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 20h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <button class="st-icon-btn danger ev-icon-btn ev-delete-btn" type="button"
+                    data-id="3" data-nombre="Recuperatorio - Primer Parcial"
+                    aria-label="Eliminar evaluación" title="Eliminar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                            stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+        </article>
+
+        <article class="ev-card" data-id="4" data-type="parcialito" data-date="2025-04-28"
+            data-nombre="parcialito unidad 3" data-cargadas="42" data-total="45">
+            <div class="ev-card__top">
+                <span class="ev-badge ev-badge--parcialito">Parcialito</span>
+                <time class="ev-card__date" datetime="2025-04-28">28-04-2025</time>
+            </div>
+            <div class="ev-card__body">
+                <h2 class="ev-card__title">Parcialito - Unidad 3</h2>
+                <p class="ev-card__code">CS101</p>
+            </div>
+            <footer class="ev-card__footer">
+                <p class="ev-card__progress">Notas cargadas: <strong>42/45</strong></p>
+                <a class="ev-grades-link" href="?vista=evaluations&amp;accion=notas&amp;id=4">
+                    Subir Notas
+                    <span class="ev-grades-arrow" aria-hidden="true">→</span>
+                </a>
+            </footer>
+            <div class="ev-card__actions" aria-label="Acciones de la evaluación">
+                <a class="st-icon-btn ev-icon-btn" href="?vista=evaluations&amp;accion=editar&amp;id=4"
+                    aria-label="Editar evaluación" title="Editar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 20h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+                            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <button class="st-icon-btn danger ev-icon-btn ev-delete-btn" type="button"
+                    data-id="4" data-nombre="Parcialito - Unidad 3"
+                    aria-label="Eliminar evaluación" title="Eliminar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M6 6l1 16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-16"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6"
+                            stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+        </article>
+    </div>
+
+    <p class="ev-empty" id="ev-empty" hidden>No hay evaluaciones que coincidan con los filtros seleccionados.</p>
 </section>
