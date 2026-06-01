@@ -7,4 +7,3 @@ venv/
 .vscode/
 .idea/
 *.sqlite3
-SGEUBA.sql
