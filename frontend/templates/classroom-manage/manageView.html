@@ -1,14 +1,17 @@
 {% extends "base.html" %}
+{% set vista = request.args.get('vista', 'students') %}
 
 {% block title %}Gestión del aula - UniManage{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManage.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageStudents.css') }}">
+{% if vista == 'evaluations' %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageEvaluations.css') }}">
+{% endif %}
 {% endblock %}
 
 {% block content %}
-{% set vista = request.args.get('vista', 'students') %}
 {% set vistas = {
   'dashboard': 'classroom-manage/dashboard/dashboardView.html',
   'students': 'classroom-manage/students/studentsView.html',
@@ -126,5 +129,8 @@
 <script src="{{ url_for('static', filename='JS/classroomManage.js') }}"></script>
 {% if vista == 'students' %}
 <script src="{{ url_for('static', filename='JS/classroomManageStudents.js') }}"></script>
+{% endif %}
+{% if vista == 'evaluations' %}
+<script src="{{ url_for('static', filename='JS/classroomManageEvaluations.js') }}"></script>
 {% endif %}
 {% endblock %}
