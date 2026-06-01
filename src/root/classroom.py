@@ -56,8 +56,7 @@ def obtener_link(classroom_id):
     if error:
         return jsonify({"error": error["error"]}), error["status"]
 
-    body = request.get_json(silent=True) or {}
-    role_id = body.get("role_id")
+    role_id = request.args.get("role_id")
 
     if role_id is None:
         return jsonify({"error": "role_id es requerido"}), 400
