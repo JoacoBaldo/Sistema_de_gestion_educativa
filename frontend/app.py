@@ -56,6 +56,13 @@ def classroom_manage(classroom_id):
         classroom_id=classroom_id,
     )
 
+@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes")
+def classroom_manage_students(classroom_id):
+    return render_template(
+        "classroom-manage/students/studentsview.html",
+        classroom_id=classroom_id,
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
