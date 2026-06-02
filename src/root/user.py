@@ -1,49 +1,39 @@
-from flask import Blueprint, request, jsonify
-from src.funciones.user import (
-    send_password_mail,
-    create_user,
-)
-from src.db.user import get_user_id_by_email
+from flask import Blueprint, jsonify, request
+
+from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
+from src.funciones.user import create_user, send_password_mail
+from .utils import responder_error
 
 user_bp = Blueprint("user", __name__)
 
 
 @user_bp.route("/api/v1/create_user", methods=["POST"])
 def create_user_route():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
 
     if not username or not email or not password:
-        return jsonify(
-            {"error": "Username, email, and password are required", "status_code": 400}
-        ), 400
+        return responder_error(DATOS_USUARIO_REQUERIDOS)
 
-    user_data = {"username": username, "email": email, "password": password}
+    resultado, error = create_user({"username": username, "email": email, "password": password})
+    if error:
+        return responder_error(error)
 
-    result = create_user(user_data)
-    return jsonify(result), result["status_code"]
+    return jsonify(resultado), resultado["status"]
 
 
 @user_bp.route("/recuperar-password", methods=["POST"])
 def solicitar_recuperacion():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     email_usuario = data.get("email")
-    id_usuario = get_user_id_by_email(email_usuario).get("user_id")
 
     if not email_usuario:
-        return jsonify({"error": "El email es obligatorio"}), 400
+        return responder_error(EMAIL_REQUERIDO)
 
-    exito = send_password_mail(email_usuario, id_usuario)
+    resultado, error = send_password_mail(email_usuario)
+    if error:
+        return responder_error(error)
 
-    if exito:
-        return jsonify(
-            {
-                "mensaje": "Se envió un mail con las instrucciones para recuperar la contraseña."
-            }
-        ), 200
-    else:
-        return jsonify(
-            {"error": "Hubo un problema interno al intentar enviar el correo."}
-        ), 500
+    return jsonify(resultado), 200

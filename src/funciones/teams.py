@@ -16,7 +16,7 @@ def editar_equipo(
         return None, EQUIPO_NO_EXISTE
 
     classroom_id = equipo["classroom_id"]
-    if not db_classroom.es_admin_classroom(classroom_id, usuario_id):
+    if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, NO_ES_ADMIN
 
     if nombre is not None:
@@ -35,7 +35,7 @@ def eliminar_equipo(team_id: int, usuario_id: int) -> tuple:
     if equipo is None:
         return None, EQUIPO_NO_EXISTE
 
-    if not db_classroom.es_admin_classroom(equipo["classroom_id"], usuario_id):
+    if not db_classroom.puede_administrar_classroom(equipo["classroom_id"], usuario_id):
         return None, NO_ES_ADMIN
 
     db_teams.eliminar_equipo_completo(team_id)
