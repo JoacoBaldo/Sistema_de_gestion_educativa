@@ -1,4 +1,6 @@
-from src.db.user import create_User_db, email_exists, change_password_db
+from jose import jwt
+from datetime import datetime, timedelta
+from src.db.user import create_User_db, email_exists
 from src.funciones.errores import (
     EMAIL_NO_EXISTE,
     EMAIL_NO_VALIDO,
@@ -11,10 +13,24 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 
-def change_password_mail(destinatario, link_recuperacion):
+def create_token(user_id: int, email: str) -> str:
+    expiracion = datetime.now(datetime.timezone.utc) + timedelta(minutes=15)
+
+    payload = {
+        "sub": str(user_id),
+        "email": email,
+        "exp": expiracion,
+        "tipo": "reset_password",
+    }
+
+    token = jwt.encode(payload, TOKEN_KEY, algorithm=TOKEN_ALGORITHM)
+    return token
+
+
+def change_password_mail(destinatario, id_usuario):
     if not email_exists(destinatario):
         return EMAIL_NO_EXISTE
-    # funcion para enviar mail con link para cambiar contraseña
+    # funcion para enviar mail con token
     remitente = os.environ.get("EMAIL_SOPORTE")
     password = os.environ.get("EMAIL_PASSWORD")
     mensaje = MIMEMultipart()
@@ -22,8 +38,9 @@ def change_password_mail(destinatario, link_recuperacion):
     mensaje["To"] = destinatario
     mensaje["Subject"] = "Recuperación de contraseña - uniManage"
 
-    cuerpo = """
-    Enviar un token para recuperar contraselña.
+    cuerpo = f"""
+    Enviar un token para recuperar contraseña. {create_token(id_usuario, destinatario)}
+    
     """
     mensaje.attach(MIMEText(cuerpo, "plain"))
     try:
@@ -38,12 +55,6 @@ def change_password_mail(destinatario, link_recuperacion):
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
         return False
-
-
-def change_password(new_password_data: dict) -> dict:
-    if not email_exists(new_password_data["email"]):
-        return EMAIL_NO_EXISTE
-    return change_password_db(new_password_data)
 
 
 def create_user(user: dict) -> dict:
