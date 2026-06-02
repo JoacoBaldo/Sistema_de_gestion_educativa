@@ -17,3 +17,6 @@ DATOS_INVALIDOS = {
 }
 
 CREDENCIALES_INVALIDAS = {"error": "Credenciales inválidas", "status": 401}
+EMAIL_REQUERIDO = {"error": "email es requerido", "status": 400}
+PASSWORD_REQUERIDO = {"error": "password es requerido", "status": 400}
+USER_ID_NO_COINCIDE = {"error": "user_id no coincide", "status": 400}
