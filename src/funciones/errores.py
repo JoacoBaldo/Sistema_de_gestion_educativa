@@ -32,4 +32,12 @@ AULA_NO_VALIDA = {
 CLASSROOM_NO_EXISTE = {
     "error": "El classroom especificado no existe",
     "status_code": 404,
+EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
+MIEMBROS_INVALIDOS = {
+    "error": "Uno o más miembros no pertenecen al aula",
+    "status": 404,
+}
+DATOS_INVALIDOS = {
+    "error": "name, department y university son requeridos",
+    "status": 400,
 }
