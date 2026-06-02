@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from flask import Flask
 
+from src.root.auth import auth_bp
 from src.root.classroom import classroom_bp
 from src.root.auth import auth_bp
 from src.root.teams import teams_bp
@@ -8,6 +9,7 @@ from src.root.teams import teams_bp
 load_dotenv()
 
 app = Flask(__name__)
+app.register_blueprint(auth_bp)
 app.register_blueprint(classroom_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(teams_bp)

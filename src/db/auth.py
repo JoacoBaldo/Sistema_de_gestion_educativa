@@ -39,6 +39,30 @@ def sesion_existe(token: str) -> dict | None:
     return {"id": resultado[0], "username": resultado[1], "email": resultado[2]}
 
 
+def obtener_usuario_por_email(email: str) -> dict | None:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            """
+            SELECT id, username, email, role_id, password
+            FROM users
+            WHERE email = %s
+            """,
+            (email,),
+        ).fetchone()
+
+    if not resultado:
+        return None
+
+    return {
+        "id": resultado[0],
+        "username": resultado[1],
+        "email": resultado[2],
+        "role_id": resultado[3],
+        "password": resultado[4],
+    }
+
+
 def generar_link_classroom(classroom_id: int, role_id: int, expira_en: datetime) -> str:
     token = generar_token()
     engine = obtener_conexion()

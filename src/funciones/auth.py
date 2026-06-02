@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
+
+import bcrypt
+
 from src.db import auth as db_auth
 from flask import request
 from .errores import TOKEN_INVALIDO, FALTAN_DATOS, USUARIO_NO_EXISTE_GLOBAL
+from .errores import CREDENCIALES_INVALIDAS, TOKEN_INVALIDO
 
 TIEMPO_EXPIRACION = 24  # horas
 
@@ -41,3 +45,19 @@ def usuario_existe(usuario_id: int):
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):
     db_auth.actualizar_contrasenia(id_usuario, hash_generado)
     return {"message": "Contraseña actualizada exitosamente"}
+def validar_credenciales(email: str, password: str) -> tuple:
+    usuario = db_auth.obtener_usuario_por_email(email)
+    if not usuario:
+        return None, CREDENCIALES_INVALIDAS
+
+    if not bcrypt.checkpw(
+        password.encode("utf-8"), usuario["password"].encode("utf-8")
+    ):
+        return None, CREDENCIALES_INVALIDAS
+
+    return {
+        "id": usuario["id"],
+        "username": usuario["username"],
+        "email": usuario["email"],
+        "role_id": usuario["role_id"],
+    }, None
