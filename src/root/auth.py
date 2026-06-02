@@ -26,10 +26,12 @@ def login(user_id: int):
 
     token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
-    return jsonify({
-        "id": usuario["id"],
-        "username": usuario["username"],
-        "email": usuario["email"],
-        "role_id": usuario["role_id"],
-        "token": token,
-    }), 200
+    return jsonify(
+        {
+            "id": usuario["id"],
+            "username": usuario["username"],
+            "email": usuario["email"],
+            "role_id": usuario["role_id"],
+            "token": token,
+        }
+    ), 200

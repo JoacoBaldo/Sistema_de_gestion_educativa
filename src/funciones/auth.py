@@ -28,7 +28,9 @@ def validar_credenciales(email: str, password: str) -> tuple:
     if not usuario:
         return None, {"error": "Credenciales inválidas", "status": 401}
 
-    if not bcrypt.checkpw(password.encode("utf-8"), usuario["password"].encode("utf-8")):
+    if not bcrypt.checkpw(
+        password.encode("utf-8"), usuario["password"].encode("utf-8")
+    ):
         return None, {"error": "Credenciales inválidas", "status": 401}
 
     return {
