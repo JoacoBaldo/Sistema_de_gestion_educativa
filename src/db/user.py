@@ -28,7 +28,6 @@ def email_exists(email: str) -> bool:
     conn.close()
 
 
-
 def get_user_id_by_email(email: str) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:

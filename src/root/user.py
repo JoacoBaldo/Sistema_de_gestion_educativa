@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from src.funciones.user import (
-    change_password_mail,
+    send_password_mail,
     create_user,
 )
 from src.db.user import get_user_id_by_email
@@ -34,11 +34,11 @@ def solicitar_recuperacion():
 
     if not email_usuario:
         return jsonify({"error": "El email es obligatorio"}), 400
-    
+
     if not id_usuario:
         return jsonify({"error": "El ID de usuario es obligatorio"}), 400
 
-    exito = change_password_mail(email_usuario, id_usuario)
+    exito = send_password_mail(email_usuario, id_usuario)
 
     if exito:
         return jsonify(
