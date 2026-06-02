@@ -90,7 +90,11 @@ def actualizar_contrasenia():
     resultado = actualizar_contrasenia(id_usuario, hash_generado)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     return jsonify({resultado}), 200
 =======
     return jsonify{resultado}, 200
 >>>>>>> 0e64132 (Agrega funciones para actualizar la contrasenia de un usuario. Ademas añade auth.bp al main)
+=======
+    return jsonify({resultado}), 200
+>>>>>>> f7c4006 (Arregla errores de sintaxis)
