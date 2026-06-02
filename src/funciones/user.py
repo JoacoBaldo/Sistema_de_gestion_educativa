@@ -20,7 +20,9 @@ TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
 
 def create_token(user_id: int, email: str) -> str:
     if TOKEN_KEY is None or TOKEN_ALGORITHM is None:
-        raise RuntimeError("TOKEN_KEY and TOKEN_ALGORITHM environment variables must be set")
+        raise RuntimeError(
+            "TOKEN_KEY and TOKEN_ALGORITHM environment variables must be set"
+        )
 
     expiracion = datetime.now(timezone.utc) + timedelta(minutes=15)
 
