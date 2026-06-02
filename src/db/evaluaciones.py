@@ -22,23 +22,3 @@ def existe_classroom(classroom_id):
         return result is True
 
 
-def eliminar_evaluacion_db(evaluacion_id):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
-            "DELETE FROM evaluaciones WHERE id = %s",
-            (evaluacion_id,),
-        )
-        conn.commit()
-        return {"message": "Evaluacion eliminada exitosamente", "status_code": 200}
-    conn.close()
-
-
-def existe_evaluacion(evaluacion_id):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        with conn.cursor() as cursor:
-            sql = "SELECT 1 FROM evaluaciones WHERE id = %s LIMIT 1"
-            cursor.execute(sql, (evaluacion_id,))
-            result = cursor.fetchone()
-        return result is not None

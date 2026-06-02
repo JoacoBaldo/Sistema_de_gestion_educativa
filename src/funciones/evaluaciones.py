@@ -1,6 +1,5 @@
 from src.db.evaluaciones import crear_evaluacion_db, existe_classroom
 from src.funciones.errores import CLASSROOM_NO_EXISTE, FECHA_NO_VALIDA, AULA_NO_VALIDA
-from src.db.evaluaciones import eliminar_evaluacion_db, existe_evaluacion
 
 
 def crear_evaluacion(classroom_id: int, fecha: str, aulas: tuple):
@@ -30,9 +29,4 @@ def aula_es_valida(aulas):
     return True
 
 
-def eliminar_evaluacion(evaluacion_id):
-    if not evaluacion_id:
-        return {"error": "Falta el ID de la evaluación", "status_code": 400}
-    if not existe_evaluacion(evaluacion_id):
-        return {"error": "La evaluación especificada no existe", "status_code": 404}
-    return eliminar_evaluacion_db(evaluacion_id)
+
