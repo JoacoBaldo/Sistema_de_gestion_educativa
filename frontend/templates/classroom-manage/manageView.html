@@ -9,6 +9,9 @@
 {% if vista == 'evaluations' %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageEvaluations.css') }}">
 {% endif %}
+{% if vista == 'teams' %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageTeams.css') }}">
+{% endif %}
 {% endblock %}
 
 {% block content %}
