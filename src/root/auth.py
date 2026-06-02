@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import crear_token, validar_credenciales
 from src.funciones.errores import (
-    CREDENCIALES_INVALIDAS,
     EMAIL_REQUERIDO,
     PASSWORD_REQUERIDO,
     USER_ID_NO_COINCIDE,
