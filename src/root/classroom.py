@@ -7,6 +7,7 @@ from src.funciones.classroom import (
     obtener_periodos_academicos,
     crear_nueva_classroom,
     obtener_lista_classrooms,
+    obtener_evaluaciones_classroom,
 )
 from src.funciones.errores import DATOS_INVALIDOS
 
@@ -122,3 +123,19 @@ def crear_aula():
         return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 201
+
+@classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/evaluaciones", methods=["GET"])
+def listar_evaluaciones(classroom_id):
+    token = _extraer_token()
+    usuario, error = verificar_token(token)
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    resultado, error = obtener_evaluaciones_classroom(classroom_id, usuario["id"])
+
+    if error:
+        return jsonify({"error": error["error"]}), error["status"]
+
+    return jsonify(resultado), 200
+
