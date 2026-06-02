@@ -1,5 +1,5 @@
 from jose import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.db.user import create_User_db, email_exists
 from src.funciones.errores import (
     EMAIL_NO_EXISTE,
@@ -12,9 +12,19 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+MIN_CARACTERES = 6
+
+TOKEN_KEY = os.environ.get("TOKEN_KEY")
+TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
+
 
 def create_token(user_id: int, email: str) -> str:
-    expiracion = datetime.now(datetime.timezone.utc) + timedelta(minutes=15)
+    if TOKEN_KEY is None or TOKEN_ALGORITHM is None:
+        raise RuntimeError(
+            "TOKEN_KEY and TOKEN_ALGORITHM environment variables must be set"
+        )
+
+    expiracion = datetime.now(timezone.utc) + timedelta(minutes=15)
 
     payload = {
         "sub": str(user_id),
@@ -27,7 +37,7 @@ def create_token(user_id: int, email: str) -> str:
     return token
 
 
-def change_password_mail(destinatario, id_usuario):
+def send_password_mail(destinatario, id_usuario):
     if not email_exists(destinatario):
         return EMAIL_NO_EXISTE
     # funcion para enviar mail con token
@@ -60,9 +70,9 @@ def change_password_mail(destinatario, id_usuario):
 def create_user(user: dict) -> dict:
     if email_exists(user["email"]):
         return EMAIL_YA_EXISTE
-    if "@fi.uba.ar" not in user["email"]:
+    if "@" not in user["email"]:
         return EMAIL_NO_VALIDO
-    if len(user["password"]) < 6:
+    if len(user["password"]) < MIN_CARACTERES:
         return CONTRASENA_DEBIL
 
     return create_User_db(user)
