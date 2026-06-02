@@ -15,3 +15,5 @@ DATOS_INVALIDOS = {
     "error": "name, department y university son requeridos",
     "status": 400,
 }
+
+CREDENCIALES_INVALIDAS = {"error": "Credenciales inválidas", "status": 401}

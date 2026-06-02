@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import bcrypt
 
 from src.db import auth as db_auth
-from .errores import TOKEN_INVALIDO
+from .errores import CREDENCIALES_INVALIDAS, TOKEN_INVALIDO
 
 TIEMPO_EXPIRACION = 24  # horas
 
@@ -26,12 +26,12 @@ def crear_token(usuario_id: int, username: str, email: str) -> str:
 def validar_credenciales(email: str, password: str) -> tuple:
     usuario = db_auth.obtener_usuario_por_email(email)
     if not usuario:
-        return None, {"error": "Credenciales inválidas", "status": 401}
+        return None, CREDENCIALES_INVALIDAS
 
     if not bcrypt.checkpw(
         password.encode("utf-8"), usuario["password"].encode("utf-8")
     ):
-        return None, {"error": "Credenciales inválidas", "status": 401}
+        return None, CREDENCIALES_INVALIDAS
 
     return {
         "id": usuario["id"],
