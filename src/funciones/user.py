@@ -1,5 +1,5 @@
 from jose import jwt
-from datetime import datetime, timedelta, timezone 
+from datetime import datetime, timedelta, timezone
 from src.db.user import create_User_db, email_exists
 from src.funciones.errores import (
     EMAIL_NO_EXISTE,
