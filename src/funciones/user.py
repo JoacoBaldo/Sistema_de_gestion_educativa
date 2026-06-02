@@ -12,7 +12,7 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-
+MIN_CARACTERES = 6
 def create_token(user_id: int, email: str) -> str:
     expiracion = datetime.now(datetime.timezone.utc) + timedelta(minutes=15)
 
@@ -60,9 +60,9 @@ def send_password_mail(destinatario, id_usuario):
 def create_user(user: dict) -> dict:
     if email_exists(user["email"]):
         return EMAIL_YA_EXISTE
-    if "@fi.uba.ar" not in user["email"]:
+    if "@" not in user["email"]:
         return EMAIL_NO_VALIDO
-    if len(user["password"]) < 6:
+    if len(user["password"]) < MIN_CARACTERES:
         return CONTRASENA_DEBIL
 
     return create_User_db(user)
