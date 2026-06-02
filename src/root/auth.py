@@ -6,34 +6,32 @@ from src.funciones.errores import (
     PASSWORD_REQUERIDO,
     USER_ID_NO_COINCIDE,
 )
+from .utils import responder_error
 
 auth_bp = Blueprint("auth", __name__)
 
 
-@auth_bp.route("/api/v1/users/<int:user_id>", methods=["GET"])
+@auth_bp.route("/api/v1/users/<int:user_id>", methods=["POST"])
 def login(user_id: int):
-    email = request.args.get("email")
-    password = request.args.get("password")
+    body = request.get_json(silent=True) or {}
+    email = body.get("email")
+    password = body.get("password")
 
     if not email:
-        return jsonify(EMAIL_REQUERIDO), EMAIL_REQUERIDO["status"]
+        return responder_error(EMAIL_REQUERIDO)
 
     if not password:
-        return jsonify(PASSWORD_REQUERIDO), PASSWORD_REQUERIDO["status"]
+        return responder_error(PASSWORD_REQUERIDO)
 
     usuario, error = validar_credenciales(email, password)
 
     if error:
-        return jsonify({"error": error["error"]}), error["status"]
+        return responder_error(error)
 
     if usuario["id"] != user_id:
-        return jsonify(USER_ID_NO_COINCIDE), USER_ID_NO_COINCIDE["status"]
+        return responder_error(USER_ID_NO_COINCIDE)
 
-    token = crear_token(
-        usuario["id"],
-        usuario["username"],
-        usuario["email"],
-    )
+    token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
     return (
         jsonify(
