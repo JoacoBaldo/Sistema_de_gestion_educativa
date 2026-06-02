@@ -13,6 +13,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 MIN_CARACTERES = 6
+
+
 def create_token(user_id: int, email: str) -> str:
     expiracion = datetime.now(datetime.timezone.utc) + timedelta(minutes=15)
 
