@@ -17,6 +17,7 @@ MIN_CARACTERES = 6
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
 TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
 
+
 def create_token(user_id: int, email: str) -> str:
     expiracion = datetime.now(datetime.timezone.utc) + timedelta(minutes=15)
 
@@ -27,7 +28,7 @@ def create_token(user_id: int, email: str) -> str:
         "tipo": "reset_password",
     }
 
-    token = jwt.encode(payload, TOKEN_KEY, algorithm= TOKEN_ALGORITHM)
+    token = jwt.encode(payload, TOKEN_KEY, algorithm=TOKEN_ALGORITHM)
     return token
 
 
