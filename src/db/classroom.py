@@ -189,3 +189,29 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
             classrooms_dict[class_id]["academic_periods"].append(period_data)
 
     return list(classrooms_dict.values())
+
+def obtener_evaluaciones(classroom_id: int) -> list:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT id, name, description, due_date 
+            FROM evaluations
+            WHERE classroom_id = %s
+            """,
+            (classroom_id,),
+        ).fetchall()
+
+    evaluaciones = []
+    for fila in resultados:
+        evaluaciones.append(
+            {
+                "id": fila[0],
+                "name": fila[1],
+                "description": fila[2],
+                "due_date": str(fila[3]),
+            }
+        )
+    return evaluaciones
+
+
