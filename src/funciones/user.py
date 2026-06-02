@@ -17,6 +17,7 @@ MIN_CARACTERES = 6
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
 TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
 
+
 def create_token(user_id: int, email: str) -> str:
     expiracion = datetime.now(timezone.utc) + timedelta(minutes=15)
 
