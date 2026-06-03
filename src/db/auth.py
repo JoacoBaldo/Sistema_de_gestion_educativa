@@ -44,7 +44,7 @@ def obtener_usuario_por_email(email: str) -> dict | None:
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
             """
-            SELECT id, username, email, role_id, password
+            SELECT id, username, email, password
             FROM users
             WHERE email = %s
             """,
@@ -58,8 +58,7 @@ def obtener_usuario_por_email(email: str) -> dict | None:
         "id": resultado[0],
         "username": resultado[1],
         "email": resultado[2],
-        "role_id": resultado[3],
-        "password": resultado[4],
+        "password": resultado[3],
     }
 
 
