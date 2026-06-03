@@ -1,40 +1,34 @@
 from .conexion import obtener_conexion
 
 
-def create_User_db(user: dict) -> dict:
+def crear_usuario_db(user: dict) -> dict:
     engine = obtener_conexion()
-
     with engine.connect() as conn:
         conn.exec_driver_sql(
             "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
             (user["username"], user["email"], user["password"]),
         )
         conn.commit()
-        return {"message": "User created successfully", "status_code": 201}
-
-    conn.close()
+    return {"message": "User created successfully", "status": 201}
 
 
-def email_exists(email: str) -> bool:
-    engine = obtener_conexion()
-
-    with engine.connect() as conn:
-        with conn.cursor() as cursor:
-            sql = "SELECT 1 FROM users WHERE email = %s LIMIT 1"
-            cursor.execute(sql, (email,))
-            result = cursor.fetchone()
-        return result is not None
-
-    conn.close()
-
-
-def get_user_id_by_email(email: str) -> dict:
+def email_existe(email: str) -> bool:
     engine = obtener_conexion()
     with engine.connect() as conn:
-        with conn.cursor() as cursor:
-            sql = "SELECT id FROM users WHERE email = %s"
-            cursor.execute(sql, (email,))
-            result = cursor.fetchone()
-    if not result:
-        return {"error": "Email not found", "status_code": 404}
-    return {"user_id": result[0], "status_code": 200}
+        resultado = conn.exec_driver_sql(
+            "SELECT 1 FROM users WHERE email = %s LIMIT 1",
+            (email,),
+        ).fetchone()
+    return resultado is not None
+
+
+def obtener_id_por_email(email: str) -> int | None:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            "SELECT id FROM users WHERE email = %s",
+            (email,),
+        ).fetchone()
+    if not resultado:
+        return None
+    return resultado[0]

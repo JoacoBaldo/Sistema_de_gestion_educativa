@@ -5,11 +5,10 @@ import bcrypt
 from src.db import auth as db_auth
 from .errores import (TOKEN_INVALIDO
     , FALTAN_DATOS
-    , USUARIO_NO_EXISTE_GLOBAL)
+    , USUARIO_NO_EXISTE_GLOBAL
+    , CREDENCIALES_INVALIDAS)
 from flask import request
-
-
-TIEMPO_EXPIRACION = 24  # horas
+from .constantes import TIEMPO_EXPIRACION_HORAS
 
 
 def verificar_token(token: str) -> tuple:
@@ -22,7 +21,7 @@ def verificar_token(token: str) -> tuple:
 def crear_token(usuario_id: int, username: str, email: str) -> str:
     db_auth.eliminar_sesiones_usuario(usuario_id)
     token = db_auth.generar_token()
-    expira_en = datetime.now() + timedelta(hours=TIEMPO_EXPIRACION)
+    expira_en = datetime.now() + timedelta(hours=TIEMPO_EXPIRACION_HORAS)
     db_auth.guardar_sesion(usuario_id, token, expira_en)
     return token
 

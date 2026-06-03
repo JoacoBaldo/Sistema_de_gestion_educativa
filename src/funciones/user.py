@@ -1,78 +1,76 @@
-from jose import jwt
+import logging
+import os
+import smtplib
 from datetime import datetime, timedelta, timezone
-from src.db.user import create_User_db, email_exists
-from src.funciones.errores import (
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from jose import jwt
+
+from src.db.user import crear_usuario_db, email_existe, obtener_id_por_email
+from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
+from .errores import (
+    CONTRASENA_DEBIL,
     EMAIL_NO_EXISTE,
     EMAIL_NO_VALIDO,
     EMAIL_YA_EXISTE,
-    CONTRASENA_DEBIL,
+    ERROR_ENVIO_MAIL,
 )
-import smtplib
-import os
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-MIN_CARACTERES = 6
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
 TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
 
 
-def create_token(user_id: int, email: str) -> str:
+def crear_token_reset_password(user_id: int, email: str) -> str:
     if TOKEN_KEY is None or TOKEN_ALGORITHM is None:
         raise RuntimeError(
             "TOKEN_KEY and TOKEN_ALGORITHM environment variables must be set"
         )
-
-    expiracion = datetime.now(timezone.utc) + timedelta(minutes=15)
-
+    expiracion = datetime.now(timezone.utc) + timedelta(
+        minutes=TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
+    )
     payload = {
         "sub": str(user_id),
         "email": email,
         "exp": expiracion,
         "tipo": "reset_password",
     }
-
-    token = jwt.encode(payload, TOKEN_KEY, algorithm=TOKEN_ALGORITHM)
-    return token
+    return jwt.encode(payload, TOKEN_KEY, algorithm=TOKEN_ALGORITHM)
 
 
-def send_password_mail(destinatario, id_usuario):
-    if not email_exists(destinatario):
-        return EMAIL_NO_EXISTE
-    # funcion para enviar mail con token
+def send_password_mail(destinatario: str) -> tuple:
+    id_usuario = obtener_id_por_email(destinatario)
+    if id_usuario is None:
+        return None, EMAIL_NO_EXISTE
+
     remitente = os.environ.get("EMAIL_SOPORTE")
     password = os.environ.get("EMAIL_PASSWORD")
+    token = crear_token_reset_password(id_usuario, destinatario)
+
     mensaje = MIMEMultipart()
     mensaje["From"] = remitente
     mensaje["To"] = destinatario
     mensaje["Subject"] = "Recuperación de contraseña - uniManage"
+    mensaje.attach(MIMEText(f"Token para recuperar contraseña: {token}", "plain"))
 
-    cuerpo = f"""
-    Enviar un token para recuperar contraseña. {create_token(id_usuario, destinatario)}
-    
-    """
-    mensaje.attach(MIMEText(cuerpo, "plain"))
     try:
         servidor = smtplib.SMTP("smtp.gmail.com", 587)
         servidor.starttls()
         servidor.login(remitente, password)
-        texto = mensaje.as_string()
-        servidor.sendmail(remitente, destinatario, texto)
+        servidor.sendmail(remitente, destinatario, mensaje.as_string())
         servidor.quit()
-        return True
-
+        return {"message": "Mail enviado"}, None
     except Exception as e:
-        print(f"Error al enviar el correo: {e}")
-        return False
+        logging.error("Error al enviar el correo: %s", e)
+        return None, ERROR_ENVIO_MAIL
 
 
-def create_user(user: dict) -> dict:
-    if email_exists(user["email"]):
-        return EMAIL_YA_EXISTE
-    if "@" not in user["email"]:
-        return EMAIL_NO_VALIDO
-    if len(user["password"]) < MIN_CARACTERES:
-        return CONTRASENA_DEBIL
-
-    return create_User_db(user)
+def create_user(user: dict) -> tuple:
+    if email_existe(user["email"]):
+        return None, EMAIL_YA_EXISTE
+    if not user["email"].endswith("@fi.uba.ar"):
+        return None, EMAIL_NO_VALIDO
+    if len(user["password"]) < MIN_CARACTERES_PASSWORD:
+        return None, CONTRASENA_DEBIL
+    resultado = crear_usuario_db(user)
+    return resultado, None

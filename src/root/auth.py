@@ -6,6 +6,7 @@ from src.funciones.auth import (
     usuario_existe,
     actualizar_contrasenia,
 )
+from .utils import responder_error
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -19,29 +20,38 @@ def actualizar_contrasenia():
         return jsonify({"error": error["error"]}), error["status"]
 
     token_activo, error = buscar_token(token)
+    
 @auth_bp.route("/api/v1/users/<int:user_id>", methods=["GET"])
 def login(user_id: int):
-    email = request.args.get("email")
-    password = request.args.get("password")
+    body = request.get_json(silent=True) or {}
+    email = body.get("email")
+    password = body.get("password")
 
     if not email:
-        return jsonify(EMAIL_REQUERIDO), EMAIL_REQUERIDO["status"]
+        return responder_error(EMAIL_REQUERIDO)
 
     if not password:
-        return jsonify(PASSWORD_REQUERIDO), PASSWORD_REQUERIDO["status"]
+        return responder_error(PASSWORD_REQUERIDO)
 
     usuario, error = validar_credenciales(email, password)
 
     if error:
-        return jsonify({"error": error["error"]}), error["status"]
+        return responder_error(error)
 
-    id_usuario, error = usuario_existe(token_activo.usuario_id)
+    if usuario["id"] != user_id:
+        return responder_error(USER_ID_NO_COINCIDE)
 
-    if error:
-        return jsonify({"error": error["error"]}), error["status"]
+    token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
-    hash_generado = generate_password_hash(nueva_contrasenia)
-
-    resultado = actualizar_contrasenia(id_usuario, hash_generado)
-
-    return jsonify({resultado}), 200
+    return (
+        jsonify(
+            {
+                "id": usuario["id"],
+                "username": usuario["username"],
+                "email": usuario["email"],
+                "role_id": usuario["role_id"],
+                "token": token,
+            }
+        ),
+        200,
+    )
