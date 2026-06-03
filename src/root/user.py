@@ -5,7 +5,6 @@ from src.funciones.user import create_user, send_password_mail
 from .utils import responder_error
 
 
-
 user_bp = Blueprint("user", __name__)
 
 
@@ -19,7 +18,9 @@ def create_user_route():
     if not username or not email or not password:
         return responder_error(DATOS_USUARIO_REQUERIDOS)
 
-    resultado, error = create_user({"username": username, "email": email, "password": password})
+    resultado, error = create_user(
+        {"username": username, "email": email, "password": password}
+    )
     if error:
         return responder_error(error)
 
