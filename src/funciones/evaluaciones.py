@@ -27,6 +27,7 @@ def fecha_es_valida(fecha: str) -> bool:
         return False
     try:
         from datetime import datetime
+
         datetime.strptime(fecha, "%Y-%m-%d")
         return True
     except ValueError:
