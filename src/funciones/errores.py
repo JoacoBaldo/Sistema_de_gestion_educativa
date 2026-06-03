@@ -27,19 +27,16 @@ SIN_PERMISO_LINK = {
     "status": 403,
 }
 
-
 FECHA_NO_VALIDA = {
     "error": "Fecha no válida, debe ser en formato YYYY-MM-DD",
-    "status_code": 400,
+    "status": 400,
 }
 AULA_NO_VALIDA = {
     "error": "Aula no válida, debe ser una de las aulas permitidas",
-    "status_code": 400,
+    "status": 400,
 }
-CLASSROOM_NO_EXISTE = {
-    "error": "El classroom especificado no existe",
-    "status_code": 404,
-}
+CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
+
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {"error": "Uno o más miembros no pertenecen al aula", "status": 404}
 DATOS_INVALIDOS = {"error": "name, department y university son requeridos", "status": 400}
@@ -59,6 +56,10 @@ DATOS_USUARIO_REQUERIDOS = {"error": "username, email y password son requeridos"
 ERROR_ENVIO_MAIL = {"error": "Hubo un problema interno al intentar enviar el correo", "status": 500}
 DATOS_USUARIO_REQUERIDOS = {
     "error": "username, email y password son requeridos",
+    "status": 400,
+}
+DATOS_EVALUACION_REQUERIDOS = {
+    "error": "classroom_id, fecha y aulas son requeridos",
     "status": 400,
 }
 ERROR_ENVIO_MAIL = {

@@ -4,11 +4,8 @@ from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
 from src.funciones.user import create_user, send_password_mail
 from .utils import responder_error
 from flask import Blueprint, request, jsonify
-from src.funciones.user import (
-    change_password_mail,
-    create_user,
-)
-from src.db.user import get_user_id_by_email
+
+
 
 user_bp = Blueprint("user", __name__)
 
