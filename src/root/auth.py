@@ -1,32 +1,47 @@
-from flask import Blueprint, jsonify
-from src.funciones.auth import (
-    datos_completos,
-    buscar_token,
-    usuario_existe,
-    actualizar_contrasenia,
+from flask import Blueprint, jsonify, request
+
+from src.funciones.auth import crear_token, validar_credenciales
+from src.funciones.errores import (
+    EMAIL_REQUERIDO,
+    PASSWORD_REQUERIDO,
+    USER_ID_NO_COINCIDE,
 )
+from .utils import responder_error
 
 auth_bp = Blueprint("auth", __name__)
 
 
-@auth_bp.route("/api/auth/actualizar-contrasenia", methods=["POST"])
-def actualizar_contrasenia_handler():
+@auth_bp.route("/api/v1/users/<int:user_id>", methods=["POST"])
+def login(user_id: int):
+    body = request.get_json(silent=True) or {}
+    email = body.get("email")
+    password = body.get("password")
 
-    token, nueva_contrasenia, error = datos_completos()
+    if not email:
+        return responder_error(EMAIL_REQUERIDO)
+
+    if not password:
+        return responder_error(PASSWORD_REQUERIDO)
+
+    usuario, error = validar_credenciales(email, password)
 
     if error:
-        return jsonify({"error": error["error"]}), error["status"]
+        return responder_error(error)
 
-    token_activo, error = buscar_token(token)
+    if usuario["id"] != user_id:
+        return responder_error(USER_ID_NO_COINCIDE)
 
-    if error:
-        return jsonify({"error": error["error"]}), error["status"]
+    token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
-    id_usuario, error = usuario_existe(token_activo.usuario_id)
-
-    if error:
-        return jsonify({"error": error["error"]}), error["status"]
-
-    resultado = actualizar_contrasenia(id_usuario, nueva_contrasenia)
-
-    return jsonify({resultado}), 200
+    return (
+        jsonify(
+            {
+                "id": usuario["id"],
+                "username": usuario["username"],
+                "email": usuario["email"],
+                "role_id": usuario["role_id"],
+                "token": token,
+            }
+        ),
+        200,
+    )
