@@ -1,9 +1,12 @@
+from urllib.parse import quote
+
 from flask import Flask, render_template, request, redirect
 
 app = Flask(__name__)
 
 CLASSES = []
 SHARES = []
+TEAMS = []
 
 
 @app.route("/")
@@ -12,11 +15,13 @@ def classrooms():
 
 @app.route("/aulas/crear")
 def crear_aula():
-    return render_template("main/forms/crear_aula.html")
+    return redirect("/?accion=crear")
 
 @app.route("/clases/compartir")
 def compartir_clase():
-    return render_template("main/forms/compartir_clase.html")
+    class_id = request.args.get("id", "")
+    nombre = request.args.get("nombre", "")
+    return redirect(f"/?accion=compartir&id={class_id}&nombre={quote(nombre)}")
 
 @app.route("/clases", methods=["POST"])
 def clases_post():
@@ -31,6 +36,19 @@ def clases_post():
         "h_fin": request.form.get("h_fin", "").strip(),
     }
     CLASSES.append(data)
+    return redirect("/")
+
+@app.route("/equipos", methods=["POST"])
+def equipos_post():
+    data = {
+        "nombre_equipo": request.form.get("nombre_equipo", "").strip(),
+        "proyecto": request.form.get("proyecto", "").strip(),
+        "fecha_entrega": request.form.get("fecha_entrega", "").strip(),
+        "estado": request.form.get("estado", "").strip(),
+        "miembros": request.form.getlist("miembros"),
+        "descripcion": request.form.get("descripcion", "").strip(),
+    }
+    TEAMS.append(data)
     return redirect("/")
 
 @app.route("/clases/compartir", methods=["POST"])

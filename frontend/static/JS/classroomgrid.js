@@ -2,13 +2,6 @@
   const gridEl = document.getElementById("classroomsGrid");
   if (!gridEl) return;
 
-  const btnCrearAula = document.getElementById("btnCrearAula");
-  if (btnCrearAula) {
-    btnCrearAula.addEventListener("click", () => {
-      window.location.href = "/aulas/crear";
-    });
-  }
-
   const mockClassrooms = [
     {
       id: 1,
@@ -70,7 +63,7 @@
     const students = escapeHtml(String(model?.students ?? 0));
     const theme = escapeHtml(model?.theme ?? "theme-violet");
     const id = escapeHtml(String(model?.id ?? ""));
-    const shareName = encodeURIComponent(String(model?.name ?? ""));
+    const shareName = escapeHtml(String(model?.name ?? "").replace(/\n/g, " "));
     const schedules = Array.isArray(model?.schedules) ? model.schedules : [];
 
     const scheduleHtml = schedules
@@ -108,7 +101,7 @@
         </div>
 
         <div class="um-card__footer">
-          <a class="um-link um-link--muted" href="/clases/compartir?id=${id}&nombre=${shareName}">
+          <a class="um-link um-link--muted" href="#" data-action="share" data-class-id="${id}" data-class-name="${shareName}">
             <span class="um-ico um-ico--share" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a2.5 2.5 0 0 0 0-1.39l7-4.11A2.99 2.99 0 1 0 14 5a2.9 2.9 0 0 0 .05.52l-7 4.11A3 3 0 1 0 6 15a2.9 2.9 0 0 0 1.05-.2l7.13 4.18c-.02.14-.04.28-.04.42a3 3 0 1 0 3-3.32z" fill="currentColor"/>
@@ -135,8 +128,15 @@
       .replace(/'/g, "&#39;");
   }
 
+  gridEl.addEventListener("click", (event) => {
+    const shareLink = event.target.closest('[data-action="share"]');
+    if (!shareLink) return;
+
+    event.preventDefault();
+    const classId = shareLink.dataset.classId || "";
+    const className = shareLink.dataset.className || "";
+    window.openCcShareModal?.(classId, className);
+  });
+
   renderMock();
 })();
-
-
-

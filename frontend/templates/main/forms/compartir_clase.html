@@ -1,46 +1,33 @@
-{% extends "base.html" %}
-
-{% block title %}Compartir Clase{% endblock %}
-
-{% block styles %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/compartir_clase.css') }}">
-{% endblock %}
-
-{% block content %}
-<div class="cc-page">
-    <div class="glass-card">
-        <div class="glass-header">
-            <h3 id="shareTitle">Compartir Clase</h3>
-            <button class="btn-close-custom" type="button" data-action="back" aria-label="Volver">✕</button>
-        </div>
-        <p class="subtitle">Ingresa el correo de la persona a la que quieres dar acceso.</p>
-
-        <form id="shareForm" method="POST" action="/clases/compartir">
-            <input type="hidden" id="classId" name="classId">
-
-            <div class="mb-3">
-                <label class="form-label">📧 Email del colaborador <span class="text-danger">*</span></label>
-                <input type="email" id="shareEmail" name="email" placeholder="ejemplo@universidad.edu" class="glass-input" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">🛡️ Rol de acceso <span class="text-danger">*</span></label>
-                <select id="shareRol" name="rol" class="form-select shadow-none glass-input" required>
-                    <option value="Lector">Lector (solo ver)</option>
-                    <option value="Editor">Editor (puede modificar)</option>
-                </select>
-            </div>
-
-            <div class="action-buttons">
-                <button type="button" class="btn-cancelar" data-action="back">Cancelar</button>
-                <button type="submit" class="btn-crear" id="btnCompartir">Conceder Acceso</button>
-            </div>
-        </form>
+<div id="cc-share-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="cc-modal-title">
+  <div class="glass-card">
+    <div class="glass-header">
+      <h3 id="cc-modal-title">Compartir Clase</h3>
+      <button type="button" class="btn-close-custom" id="cc-share-close" aria-label="Cerrar">✕</button>
     </div>
-</div>
-{% endblock %}
+    <p class="subtitle">Ingresa el correo de la persona a la que quieres dar acceso.</p>
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='JS/compartir_clase.js') }}"></script>
-{% endblock %}
+    <form id="shareForm" method="POST" action="/clases/compartir" novalidate>
+      <input type="hidden" id="classId" name="classId">
+
+      <div class="mb-3">
+        <label class="form-label" for="shareEmail">✉️ Email del colaborador <span class="text-danger">*</span></label>
+        <input type="email" id="shareEmail" name="email" placeholder="ejemplo@universidad.edu" class="glass-input" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="shareRol">🔐 Rol de acceso <span class="text-danger">*</span></label>
+        <select id="shareRol" name="rol" class="glass-input" required>
+          <option value="Lector">Lector (solo ver)</option>
+          <option value="Editor">Editor (puede modificar)</option>
+        </select>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn-cancelar" id="cc-share-cancel-btn">Cancelar</button>
+        <button type="submit" class="btn-crear" id="btnCompartir">Conceder Acceso</button>
+      </div>
+
+      <div id="cc-share-toast" class="glass-toast hidden" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
