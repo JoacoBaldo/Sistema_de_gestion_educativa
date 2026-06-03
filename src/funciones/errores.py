@@ -19,6 +19,19 @@ SIN_PERMISO_LINK = {
     "error": "Solo PROFESOR o ADMINISTRADOR pueden compartir el link",
     "status": 403,
 }
+
+
+FECHA_NO_VALIDA = {
+    "error": "Fecha no válida, debe ser en formato YYYY-MM-DD",
+    "status_code": 400,
+}
+AULA_NO_VALIDA = {
+    "error": "Aula no válida, debe ser una de las aulas permitidas",
+    "status_code": 400,
+}
+CLASSROOM_NO_EXISTE = {
+    "error": "El classroom especificado no existe",
+    "status_code": 404,
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {
     "error": "Uno o más miembros no pertenecen al aula",

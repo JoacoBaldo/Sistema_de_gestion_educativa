@@ -1,8 +1,9 @@
-from flask import Blueprint, jsonify, request
-
-from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
-from src.funciones.user import create_user, send_password_mail
-from .utils import responder_error
+from flask import Blueprint, request, jsonify
+from src.funciones.user import (
+    change_password_mail,
+    create_user,
+)
+from src.db.user import get_user_id_by_email
 
 user_bp = Blueprint("user", __name__)
 
@@ -23,19 +24,5 @@ def create_user_route():
     if error:
         return responder_error(error)
 
-    return jsonify(resultado), resultado["status"]
-
-
-@user_bp.route("/recuperar-password", methods=["POST"])
-def solicitar_recuperacion():
-    data = request.get_json(silent=True) or {}
-    email_usuario = data.get("email")
-
-    if not email_usuario:
-        return responder_error(EMAIL_REQUERIDO)
-
-    resultado, error = send_password_mail(email_usuario)
-    if error:
-        return responder_error(error)
-
-    return jsonify(resultado), 200
+    result = create_user(user_data)
+    return jsonify(result), result["status_code"]
