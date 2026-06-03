@@ -169,6 +169,12 @@ body > main {
   max-width: 1280px;
 }
 
+.cm-content--dashboard,
+.cm-content--asistance,
+.cm-content--library {
+  max-width: none;
+}
+
 .cm-panel__title {
   margin: 0;
   font-size: 1.5rem;
