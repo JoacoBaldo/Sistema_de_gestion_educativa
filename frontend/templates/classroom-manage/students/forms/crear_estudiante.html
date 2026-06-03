@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Estudiante{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/crear_estudiante.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="ce-page">
+    <div class="glass-card">
+        <div class="glass-header">
+            <h3>Crear Nuevo Estudiante</h3>
+            <button class="btn-close-custom" type="button" data-action="back" aria-label="Volver">✕</button>
+        </div>
+        <p class="subtitle">Completa la información para registrar un estudiante en el sistema</p>
+
+        <form id="formEstudiante" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label class="form-label">👤 Nombre <span class="text-danger">*</span></label>
+                <input type="text" id="nombre" class="glass-input" placeholder="Ejemplo: Juan" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">👤 Apellido <span class="text-danger">*</span></label>
+                <input type="text" id="apellido" class="glass-input" placeholder="Ejemplo: Pérez" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">🆔 Padrón / ID <span class="text-danger">*</span></label>
+                <input type="number" id="padron" class="glass-input" placeholder="Ejemplo: 102456" min="1" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">📧 Email <span class="text-danger">*</span></label>
+                <input type="email" id="email" class="glass-input" placeholder="ejemplo@universidad.edu" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">⚠️ Estado de Ingreso <span class="text-danger">*</span></label>
+                <select id="estadoAbandono" class="form-select shadow-none glass-input" required>
+                    <option value="false" selected>Regular (Activo)</option>
+                    <option value="true">Abandono</option>
+                </select>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn-cancelar" data-action="back">Cancelar</button>
+                <button type="submit" class="btn-crear" id="btnCrear" disabled>Crear Estudiante</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='JS/crear_estudiante.js') }}"></script>
+{% endblock %}

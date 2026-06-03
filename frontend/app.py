@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 
 app = Flask(__name__)
 
@@ -81,6 +81,21 @@ def classroom_manage_students(classroom_id):
         classroom_id=classroom_id,
     )
 
+@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/crear")
+def crear_estudiante_view(classroom_id):
+    return render_template("classroom-manage/students/crear_estudiante.html", classroom_id=classroom_id)
+
+@app.route("/api/estudiantes", methods=["POST"])
+def estudiantes_post():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No se recibieron datos válidos."}), 400
+    
+    padron = data.get("padron", "").strip()
+    
+    if padron == "123456": 
+        return jsonify({"error": "El padrón/ID ya se encuentra registrado en el sistema."}), 400
+    return jsonify({"message": "Estudiante creado correctamente."}), 201
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

@@ -83,7 +83,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (addBtn) {
     addBtn.addEventListener("click", () => {
-      alert("Añadir estudiante (pendiente de implementar).");
+      const classroomId = window.location.pathname.split("/")[2];
+      
+      window.location.href = `/aulas/${classroomId}/gestionar/estudiantes/crear`;
     });
   }
 
