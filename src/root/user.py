@@ -17,7 +17,9 @@ def create_user_route():
     if not username or not email or not password:
         return responder_error(DATOS_USUARIO_REQUERIDOS)
 
-    resultado, error = create_user({"username": username, "email": email, "password": password})
+    resultado, error = create_user(
+        {"username": username, "email": email, "password": password}
+    )
     if error:
         return responder_error(error)
 

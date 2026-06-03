@@ -1,0 +1,50 @@
+<div id="ev-evaluation-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ev-modal-title">
+  <div class="glass-card">
+    <div class="glass-header">
+      <h3 id="ev-modal-title">Nueva Evaluación</h3>
+      <button type="button" class="btn-close-custom" id="ev-evaluation-close" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="subtitle">Completa la información para registrar una evaluación o TP.</p>
+
+    <form id="ev-evaluation-form" novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="ev-evaluation-name">📝 Nombre <span class="text-danger">*</span></label>
+        <input type="text" id="ev-evaluation-name" name="nombre" class="glass-input" placeholder="Ejemplo: Parcial 1" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="ev-evaluation-type">📂 Tipo <span class="text-danger">*</span></label>
+        <select id="ev-evaluation-type" name="tipo" class="glass-input" required>
+          <option value="" disabled selected>Seleccionar tipo</option>
+          <option value="parcial">Parcial</option>
+          <option value="tp">TP</option>
+          <option value="parcialito">Parcialito</option>
+          <option value="recuperatorio">Recuperatorio</option>
+        </select>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label" for="ev-evaluation-date">📅 Fecha de entrega</label>
+          <input type="date" id="ev-evaluation-date" name="fecha" class="glass-input">
+        </div>
+        <div class="col-6">
+          <label class="form-label" for="ev-evaluation-classroom">🏛️ Aula / Materia</label>
+          <input type="text" id="ev-evaluation-classroom" name="classroom" class="glass-input" placeholder="Ejemplo: Sistemas Operativos">
+        </div>
+      </div>
+
+      <div class="glass-form-row--toggle mb-3">
+        <label class="form-label mb-0" for="ev-evaluation-individual">👤 Individual</label>
+        <input type="checkbox" id="ev-evaluation-individual" name="individual">
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn-cancelar" id="ev-evaluation-cancel-btn">Cancelar</button>
+        <button type="submit" class="btn-crear" id="ev-evaluation-save-btn">Guardar</button>
+      </div>
+
+      <div id="ev-evaluation-toast" class="glass-toast hidden" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
