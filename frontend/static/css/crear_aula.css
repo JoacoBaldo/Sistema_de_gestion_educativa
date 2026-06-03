@@ -42,3 +42,17 @@
   border-left: 0;
   padding-left: 10px;
 }
+
+/* simple two-column helper (replaces bootstrap row/col) */
+.two-cols {
+  display: flex;
+  gap: 12px;
+}
+.two-cols .col {
+  flex: 1 1 0;
+}
+@media (max-width: 560px) {
+  .two-cols {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,96 @@
+.glass-page {
+  background-color: #121212;
+  background-image: radial-gradient(
+      at 20% 30%,
+      rgba(37, 117, 252, 0.4) 0px,
+      transparent 50%
+    ),
+    radial-gradient(at 80% 40%, rgba(106, 17, 203, 0.4) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, rgba(255, 65, 108, 0.4) 0px, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  padding: 2rem 1rem;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: 1fr 40px;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.member-row input {
+  min-height: 2.75rem;
+}
+
+.btn-add-member {
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  color: #1f2937;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-add-member:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.btn-remove-member {
+  width: 100%;
+  min-height: 2.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: rgba(248, 113, 113, 0.16);
+  color: #b91c1c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-remove-member:hover {
+  background: rgba(248, 113, 113, 0.25);
+}
+
+.member-hint {
+  margin-top: 0.5rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 540px) {
+  .member-row {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-remove-member {
+    width: auto;
+    padding: 0 12px;
+  }
+}
+
+/* two-column helper for forms */
+.two-cols {
+  display: flex;
+  gap: 12px;
+}
+.two-cols .col {
+  flex: 1 1 0;
+}
+@media (max-width: 560px) {
+  .two-cols {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Equipo{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/crear_equipo.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="glass-page">
+    <div class="glass-card">
+        <div class="glass-header">
+            <h3>Crear Nuevo Equipo</h3>
+            <button class="btn-close-custom" type="button" data-action="back" aria-label="Volver">✕</button>
+        </div>
+        <p class="glass-subtitle">Configura el equipo, su proyecto y los miembros de forma rápida.</p>
+
+        <form id="formEquipo" method="POST" action="/equipos">
+            <div class="mb-3">
+                <label class="form-label">Nombre del Equipo <span class="text-danger">*</span></label>
+                <input type="text" id="nombre_equipo" name="nombre_equipo" class="glass-input" placeholder="Ejemplo: Equipo Hipatia" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Proyecto</label>
+                <input type="text" id="proyecto" name="proyecto" class="glass-input" placeholder="Ejemplo: Portal de gestión">
+            </div>
+
+            <div class="two-cols mb-3">
+                <div class="col">
+                    <label class="form-label">Fecha de Entrega</label>
+                    <input type="date" id="fecha_entrega" name="fecha_entrega" class="glass-input">
+                </div>
+                <div class="col">
+                    <label class="form-label">Estado</label>
+                    <select id="estado" name="estado" class="glass-input">
+                        <option value="activo" selected>Activo</option>
+                        <option value="en_revision">En revisión</option>
+                        <option value="finalizado">Finalizado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="horarios-header">
+                    <label class="form-label mb-0">Miembros del equipo</label>
+                    <button type="button" class="btn-add-member" id="btn-add-member">+ Agregar miembro</button>
+                </div>
+                <div id="miembros-list" class="member-list">
+                    <div class="member-row">
+                        <input type="text" name="miembros" class="glass-input" placeholder="Nombre del miembro" required>
+                        <button type="button" class="btn-remove-member" aria-label="Eliminar miembro">✕</button>
+                    </div>
+                </div>
+                <p class="member-hint">Agrega al menos un miembro y completa el nombre del equipo.</p>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                <textarea id="descripcion" name="descripcion" class="glass-input" rows="4" placeholder="Descripción breve del equipo"></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn-cancelar" data-action="back">Cancelar</button>
+                <button type="submit" class="btn-crear" id="btnGuardarEquipo">Crear Equipo</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='JS/crear_equipo.js') }}"></script>
+{% endblock %}
