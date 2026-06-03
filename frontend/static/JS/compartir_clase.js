@@ -1,3 +1,13 @@
+import { submitForm } from "./common/http.js";
+import {
+  APP_EVENTS,
+  bindModalButtons,
+  bindModalDismiss,
+  bindToast,
+  getQueryParam,
+  onAppEvent,
+} from "./common/ui.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("cc-share-modal");
   const form = document.getElementById("shareForm");
@@ -10,12 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!modal || !form) return;
 
+  const showToast = bindToast(toast);
+
   function openModal(classId = "", className = "") {
     if (classIdEl) classIdEl.value = classId;
     if (titleEl) {
-      titleEl.textContent = className
-        ? `Compartir: ${className}`
-        : "Compartir Clase";
+      titleEl.textContent = className ? `Compartir: ${className}` : "Compartir Clase";
     }
     modal.classList.remove("hidden");
   }
@@ -24,32 +34,19 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("hidden");
   }
 
-  function showToast(message) {
-    if (!toast) return;
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 2400);
-  }
-
   function resetForm() {
     form.reset();
     if (classIdEl) classIdEl.value = "";
     if (titleEl) titleEl.textContent = "Compartir Clase";
   }
 
-  cancelBtn?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeModal();
-  });
+  function openShareModal({ classId = "", className = "" } = {}) {
+    resetForm();
+    openModal(classId, className);
+  }
 
-  closeBtn?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeModal();
-  });
-
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) closeModal();
-  });
+  bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });
+  bindModalDismiss(modal, closeModal);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -66,11 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch(form.action, {
-        method: "POST",
-        body: new FormData(form),
-      });
-
+      const response = await submitForm(form.action, new FormData(form));
       if (!response.ok) throw new Error("Error al compartir");
 
       showToast("Acceso concedido correctamente.");
@@ -92,17 +85,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  window.openCcShareModal = (classId = "", className = "") => {
-    resetForm();
-    openModal(classId, className);
-  };
+  onAppEvent(APP_EVENTS.SHARE_MODAL_OPEN, openShareModal);
 
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("accion") === "compartir") {
-    const nombre = params.get("nombre") || "";
-    window.openCcShareModal(
-      params.get("id") || "",
-      nombre ? decodeURIComponent(nombre) : ""
-    );
+  if (getQueryParam("accion") === "compartir") {
+    const nombre = getQueryParam("nombre") || "";
+    openShareModal({
+      classId: getQueryParam("id") || "",
+      className: nombre ? decodeURIComponent(nombre) : "",
+    });
   }
 });

@@ -1,4 +1,7 @@
+import { createCmrToast, escapeHtml } from "./common/ui.js";
+
 (function () {
+  const showToast = createCmrToast();
   const STORAGE_KEY = "unimanage_library_public";
 
   const DEFAULT_RESOURCES = [
@@ -93,14 +96,6 @@
     return '<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>';
   }
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
   function matches(r) {
     const q = (searchInput?.value || "").trim().toLowerCase();
     if (activeType !== "all" && r.type !== activeType) return false;
@@ -167,20 +162,6 @@
     grid.querySelectorAll(".lb-card__actions").forEach((el) => {
       el.addEventListener("click", (e) => e.stopPropagation());
     });
-  }
-
-  function showToast(msg) {
-    let toast = document.getElementById("cmr-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "cmr-toast";
-      toast.className = "cmr-toast";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.classList.add("is-visible");
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove("is-visible"), 2800);
   }
 
   function openModal(mode, id) {

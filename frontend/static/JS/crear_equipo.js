@@ -1,3 +1,10 @@
+import {
+  bindModalButtons,
+  bindModalDismiss,
+  bindToast,
+  getQueryParam,
+} from "./common/ui.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("tm-team-modal");
   const form = document.getElementById("formEquipo");
@@ -11,26 +18,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!modal || !form) return;
 
+  const showToast = bindToast(toast);
+
   function openModal() {
     modal.classList.remove("hidden");
   }
 
   function closeModal() {
     modal.classList.add("hidden");
-  }
-
-  function showToast(message) {
-    if (!toast) return;
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 2400);
-  }
-
-  function resetForm() {
-    form.reset();
-    if (!miembrosList) return;
-    miembrosList.innerHTML = "";
-    miembrosList.appendChild(createMemberRow());
   }
 
   function createMemberRow(value = "") {
@@ -67,13 +62,18 @@ document.addEventListener("DOMContentLoaded", () => {
     miembrosList.removeChild(row);
   }
 
-  function addMemberRow(value = "") {
-    const row = createMemberRow(value);
-    miembrosList.appendChild(row);
-    row.querySelector("input")?.focus();
+  function resetForm() {
+    form.reset();
+    if (!miembrosList) return;
+    miembrosList.innerHTML = "";
+    miembrosList.appendChild(createMemberRow());
   }
 
-  btnAddMember?.addEventListener("click", () => addMemberRow());
+  btnAddMember?.addEventListener("click", () => {
+    const row = createMemberRow();
+    miembrosList.appendChild(row);
+    row.querySelector("input")?.focus();
+  });
 
   newBtn?.addEventListener("click", (event) => {
     event.preventDefault();
@@ -81,22 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal();
   });
 
-  cancelBtn?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeModal();
-  });
+  bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });
+  bindModalDismiss(modal, closeModal);
 
-  closeBtn?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeModal();
-  });
-
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) closeModal();
-  });
-
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("vista") === "teams" && params.get("accion") === "nueva") {
+  if (getQueryParam("vista") === "teams" && getQueryParam("accion") === "nueva") {
     resetForm();
     openModal();
   }

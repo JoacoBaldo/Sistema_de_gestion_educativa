@@ -1,3 +1,5 @@
+import { escapeHtml, emitAppEvent, APP_EVENTS } from "./common/ui.js";
+
 (() => {
   const gridEl = document.getElementById("classroomsGrid");
   if (!gridEl) return;
@@ -119,23 +121,15 @@
     `;
   }
 
-  function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
   gridEl.addEventListener("click", (event) => {
     const shareLink = event.target.closest('[data-action="share"]');
     if (!shareLink) return;
 
     event.preventDefault();
-    const classId = shareLink.dataset.classId || "";
-    const className = shareLink.dataset.className || "";
-    window.openCcShareModal?.(classId, className);
+    emitAppEvent(APP_EVENTS.SHARE_MODAL_OPEN, {
+      classId: shareLink.dataset.classId || "",
+      className: shareLink.dataset.className || "",
+    });
   });
 
   renderMock();

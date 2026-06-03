@@ -1,3 +1,5 @@
+import { goTo } from "./common/ui.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const root = document.querySelector(".cm-layout");
   if (!root) return;
@@ -9,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
     link.classList.toggle("is-active", link.dataset.vista === vistaActual);
   });
 
-  // Acciones (por ahora placeholders)
   document.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const action = btn.getAttribute("data-action");
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
 
       if (action === "back-to-classes") {
-        window.location.href = "/";
+        goTo("/");
         return;
       }
 
@@ -32,4 +33,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-

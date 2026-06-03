@@ -1,4 +1,8 @@
+import { createCmrToast } from "./common/ui.js";
+
 (function () {
+  const showToast = createCmrToast();
+  const QRCodeLib = globalThis.QRCode;
   const RECORDS = [
     { fecha: "2026-06-03", hora: "09:00", presentes: "42/45", pct: 93 },
     { fecha: "2026-06-02", hora: "11:00", presentes: "38/42", pct: 90 },
@@ -54,35 +58,21 @@
     });
   }
 
-  function showToast(msg) {
-    let toast = document.getElementById("cmr-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "cmr-toast";
-      toast.className = "cmr-toast";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.classList.add("is-visible");
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove("is-visible"), 2800);
-  }
-
   function renderQr() {
     currentToken = buildToken();
     if (codeText) codeText.textContent = currentToken;
     if (sessionDateEl) sessionDateEl.textContent = formatSessionDate();
     if (emailPreview) emailPreview.textContent = currentToken;
 
-    if (!qrContainer || typeof QRCode === "undefined") return;
+    if (!qrContainer || !QRCodeLib) return;
     qrContainer.innerHTML = "";
-    new QRCode(qrContainer, {
+    new QRCodeLib(qrContainer, {
       text: currentToken,
       width: 200,
       height: 200,
       colorDark: "#0f172a",
       colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.M,
+      correctLevel: QRCodeLib.CorrectLevel.M,
     });
   }
 

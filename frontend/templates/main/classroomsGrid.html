@@ -68,7 +68,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='JS/crear_aula.js') }}"></script>
-<script src="{{ url_for('static', filename='JS/compartir_clase.js') }}"></script>
-<script src="{{ url_for('static', filename='JS/classroomgrid.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/crear_aula.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/compartir_clase.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomgrid.js') }}"></script>
 {% endblock %}

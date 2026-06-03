@@ -1,3 +1,14 @@
+import { submitForm } from "./common/http.js";
+import {
+  APP_EVENTS,
+  bindModalButtons,
+  bindModalDismiss,
+  bindToast,
+  getQueryParam,
+  goTo,
+  onAppEvent,
+} from "./common/ui.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("ca-aula-modal");
   const form = document.getElementById("formAula");
@@ -11,19 +22,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!modal || !form) return;
 
+  const showToast = bindToast(toast);
+
   function openModal() {
     modal.classList.remove("hidden");
   }
 
   function closeModal() {
     modal.classList.add("hidden");
-  }
-
-  function showToast(message) {
-    if (!toast) return;
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 2400);
   }
 
   function createHorarioRow() {
@@ -51,29 +57,22 @@ document.addEventListener("DOMContentLoaded", () => {
     horariosList.appendChild(createHorarioRow());
   }
 
+  function openFromQuery() {
+    resetForm();
+    openModal();
+  }
+
   btnAddHorario?.addEventListener("click", () => {
     horariosList?.appendChild(createHorarioRow());
   });
 
   createBtn?.addEventListener("click", (event) => {
     event.preventDefault();
-    resetForm();
-    openModal();
+    openFromQuery();
   });
 
-  cancelBtn?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeModal();
-  });
-
-  closeBtn?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeModal();
-  });
-
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) closeModal();
-  });
+  bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });
+  bindModalDismiss(modal, closeModal);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -102,17 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch(form.action, {
-        method: "POST",
-        body: new FormData(form),
-      });
-
+      const response = await submitForm(form.action, new FormData(form));
       if (!response.ok) throw new Error("Error al crear el aula");
 
       showToast("Aula creada correctamente.");
       setTimeout(() => {
         closeModal();
-        window.location.href = "/";
+        goTo("/");
       }, 600);
     } catch (error) {
       console.error(error);
@@ -124,13 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  window.openCaAulaModal = () => {
-    resetForm();
-    openModal();
-  };
+  onAppEvent(APP_EVENTS.AULA_MODAL_OPEN, openFromQuery);
 
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("accion") === "crear") {
-    window.openCaAulaModal();
+  if (getQueryParam("accion") === "crear") {
+    openFromQuery();
   }
 });

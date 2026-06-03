@@ -1,3 +1,7 @@
+import { requestJson } from "./common/http.js";
+import { authHeaders, getAuthToken } from "./common/auth.js";
+import { bindToast, goTo } from "./common/ui.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("st-student-modal");
   const form = document.getElementById("st-student-form");
@@ -11,16 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const abandonedInput = document.getElementById("st-student-abandoned");
   const cancelBtn = document.getElementById("st-student-cancel-btn");
 
-  function hasToken() {
-    try {
-      return !!localStorage.getItem("token");
-    } catch (e) {
-      return false;
-    }
-  }
+  const showToast = bindToast(toast, 2500);
 
   function openModal() {
-    if (!hasToken()) return (window.location.href = "/auth");
+    if (!getAuthToken()) {
+      goTo("/auth");
+      return;
+    }
     modal.classList.remove("hidden");
   }
 
@@ -28,47 +29,51 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("hidden");
   }
 
-  function showToast(message) {
-    if (!toast) return;
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 2500);
-  }
-
   function populateFromRow(tr) {
-    const nombre = tr.dataset.nombre || "";
-    const apellido = tr.dataset.apellido || "";
-    const padron = tr.dataset.padron || "";
-    const email = tr.dataset.email || "";
-    const status = tr.dataset.status || "active";
-
-    nameInput.value = nombre;
-    lastInput.value = apellido;
-    padronInput.value = padron;
-    emailInput.value = email;
-    abandonedInput.checked = status === "abandoned";
-
+    nameInput.value = tr.dataset.nombre || "";
+    lastInput.value = tr.dataset.apellido || "";
+    padronInput.value = tr.dataset.padron || "";
+    emailInput.value = tr.dataset.email || "";
+    abandonedInput.checked = (tr.dataset.status || "active") === "abandoned";
     openModal();
   }
 
-  if (tbody) {
-    tbody.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[aria-label='Editar']");
-      if (!btn) return;
-      const tr = btn.closest("tr");
-      if (!tr) return;
-      populateFromRow(tr);
-    });
+  function updateStudentRow(padron, payload) {
+    const row = Array.from(document.querySelectorAll("#st-tbody tr")).find(
+      (r) => (r.dataset.padron || "") === padron
+    );
+    if (!row) return;
+
+    row.dataset.nombre = payload.nombre;
+    row.dataset.apellido = payload.apellido;
+    row.dataset.email = payload.email;
+    row.dataset.status = payload.abandoned ? "abandoned" : "active";
+
+    const cell1 = row.querySelector("td:nth-child(1)");
+    if (cell1) cell1.textContent = payload.nombre;
+    const cell2 = row.querySelector("td:nth-child(2)");
+    if (cell2) cell2.textContent = payload.apellido;
+    const emailCell = row.querySelector(".st-col-email");
+    if (emailCell) emailCell.textContent = payload.email;
+    const statusCell = row.querySelector("td:nth-child(5)");
+    if (statusCell) {
+      statusCell.innerHTML = payload.abandoned
+        ? '<span class="st-badge st-badge-dropped">Abandono</span>'
+        : '<span class="st-badge st-badge-active">Activo</span>';
+    }
   }
+
+  tbody?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[aria-label='Editar']");
+    if (!btn) return;
+    const tr = btn.closest("tr");
+    if (tr) populateFromRow(tr);
+  });
 
   cancelBtn?.addEventListener("click", (e) => {
     e.preventDefault();
     closeModal();
   });
-
-  function validateEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -83,14 +88,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showToast("Formato de email inválido.");
       emailInput.focus();
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) return (window.location.href = "/auth");
+    if (!getAuthToken()) {
+      goTo("/auth");
+      return;
+    }
 
     const payload = {
       nombre,
@@ -101,33 +108,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const res = await fetch(`/api/students/${encodeURIComponent(padron)}`, {
+      const res = await requestJson(`/api/students/${encodeURIComponent(padron)}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+        headers: authHeaders(),
+        body: payload,
       });
-
       if (!res.ok) throw new Error("Error en la actualización");
 
-      const row = Array.from(document.querySelectorAll("#st-tbody tr")).find((r) => (r.dataset.padron || "") === padron);
-      if (row) {
-        row.dataset.nombre = nombre;
-        row.dataset.apellido = apellido;
-        row.dataset.email = email;
-        row.dataset.status = payload.abandoned ? "abandoned" : "active";
-        const cell1 = row.querySelector("td:nth-child(1)");
-        if (cell1) cell1.textContent = nombre;
-        const cell2 = row.querySelector("td:nth-child(2)");
-        if (cell2) cell2.textContent = apellido;
-        const emailCell = row.querySelector(".st-col-email");
-        if (emailCell) emailCell.textContent = email;
-        const statusCell = row.querySelector("td:nth-child(5)");
-        if (statusCell) statusCell.innerHTML = payload.abandoned ? '<span class="st-badge st-badge-dropped">Abandono</span>' : '<span class="st-badge st-badge-active">Activo</span>';
-      }
-
+      updateStudentRow(padron, payload);
       showToast("Datos guardados correctamente.");
       setTimeout(closeModal, 800);
     } catch (err) {

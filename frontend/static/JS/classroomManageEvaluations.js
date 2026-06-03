@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleDelete(btn) {
     const nombre = btn.dataset.nombre || "esta evaluación";
     const id = btn.dataset.id || "";
-    const confirmed = window.confirm(
+    const confirmed = confirm(
       `¿Eliminar "${nombre}"?\n\nEsta acción no se puede deshacer.`
     );
     if (!confirmed) return;

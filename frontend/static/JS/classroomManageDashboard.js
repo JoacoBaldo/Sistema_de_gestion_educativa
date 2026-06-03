@@ -1,4 +1,7 @@
+import { createCmrToast, getJsPdfConstructor } from "./common/ui.js";
+
 (function () {
+  const showToast = createCmrToast();
   const STUDENTS = [
     { nombre: "Emma", apellido: "Thompson", padron: "S001", email: "emma.t@universidad.edu", estado: "active", equipo: "Equipo Azul", approval: "approved" },
     { nombre: "Liam", apellido: "Chen", padron: "S002", email: "liam.c@universidad.edu", estado: "active", equipo: "Equipo Azul", approval: "pending" },
@@ -131,22 +134,8 @@
     return STUDENTS.filter(matchesFilters);
   }
 
-  function showToast(msg) {
-    let toast = document.getElementById("cmr-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "cmr-toast";
-      toast.className = "cmr-toast";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.classList.add("is-visible");
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove("is-visible"), 2800);
-  }
-
   function exportStudentsPdf() {
-    const { jsPDF } = window.jspdf || {};
+    const jsPDF = getJsPdfConstructor();
     if (!jsPDF) {
       showToast("Biblioteca PDF no disponible.");
       return;
@@ -197,7 +186,7 @@
   }
 
   function exportStatsPdf() {
-    const { jsPDF } = window.jspdf || {};
+    const jsPDF = getJsPdfConstructor();
     if (!jsPDF) return;
     const total = APPROVAL.approved + APPROVAL.pending + APPROVAL.failed;
     const rate = Math.round((APPROVAL.approved / total) * 100);
@@ -217,7 +206,7 @@
   }
 
   function exportTeamsPdf() {
-    const { jsPDF } = window.jspdf || {};
+    const jsPDF = getJsPdfConstructor();
     if (!jsPDF) return;
     const doc = new jsPDF();
     doc.setFontSize(14);

@@ -133,28 +133,28 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='JS/classroomManage.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomManage.js') }}"></script>
 {% if vista == 'students' %}
-<script src="{{ url_for('static', filename='JS/classroomManageStudents.js') }}"></script>
-<script src="{{ url_for('static', filename='JS/studentform.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomManageStudents.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/studentform.js') }}"></script>
 {% endif %}
 {% if vista == 'evaluations' %}
-<script src="{{ url_for('static', filename='JS/classroomManageEvaluations.js') }}"></script>
-<script src="{{ url_for('static', filename='JS/evaluationForm.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomManageEvaluations.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/evaluationForm.js') }}"></script>
 {% endif %}
 {% if vista == 'teams' %}
-<script src="{{ url_for('static', filename='JS/crear_equipo.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/crear_equipo.js') }}"></script>
 {% endif %}
 {% if vista == 'dashboard' %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='JS/classroomManageDashboard.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomManageDashboard.js') }}"></script>
 {% endif %}
 {% if vista == 'asistance' %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='JS/classroomManageAsistance.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomManageAsistance.js') }}"></script>
 {% endif %}
 {% if vista == 'library' %}
-<script src="{{ url_for('static', filename='JS/classroomManageLibrary.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/classroomManageLibrary.js') }}"></script>
 {% endif %}
 {% endblock %}
