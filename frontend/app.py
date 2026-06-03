@@ -13,15 +13,18 @@ TEAMS = []
 def classrooms():
     return render_template("main/classroomsGrid.html")
 
+
 @app.route("/aulas/crear")
 def crear_aula():
     return redirect("/?accion=crear")
+
 
 @app.route("/clases/compartir")
 def compartir_clase():
     class_id = request.args.get("id", "")
     nombre = request.args.get("nombre", "")
     return redirect(f"/?accion=compartir&id={class_id}&nombre={quote(nombre)}")
+
 
 @app.route("/clases", methods=["POST"])
 def clases_post():
@@ -38,6 +41,7 @@ def clases_post():
     CLASSES.append(data)
     return redirect("/")
 
+
 @app.route("/equipos", methods=["POST"])
 def equipos_post():
     data = {
@@ -50,6 +54,7 @@ def equipos_post():
     }
     TEAMS.append(data)
     return redirect("/")
+
 
 @app.route("/clases/compartir", methods=["POST"])
 def compartir_post():
@@ -73,6 +78,7 @@ def classroom_manage(classroom_id):
         "classroom-manage/manageView.html",
         classroom_id=classroom_id,
     )
+
 
 @app.route("/aulas/<int:classroom_id>/gestionar/estudiantes")
 def classroom_manage_students(classroom_id):

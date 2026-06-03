@@ -162,8 +162,12 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                 {
                     "id": fila["ap_id"],
                     "name": fila["ap_name"],
-                    "period_start": str(fila["ap_start"]) if fila["ap_start"] is not None else None,
-                    "period_end": str(fila["ap_end"]) if fila["ap_end"] is not None else None,
+                    "period_start": str(fila["ap_start"])
+                    if fila["ap_start"] is not None
+                    else None,
+                    "period_end": str(fila["ap_end"])
+                    if fila["ap_end"] is not None
+                    else None,
                 }
             )
 
