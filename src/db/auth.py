@@ -46,7 +46,7 @@ def obtener_usuario_por_email(email: str) -> dict | None:
     with cursor_db() as cur:
         cur.execute(
             """
-            SELECT id, username, email, role_id, password
+            SELECT id, username, email, password
             FROM users
             WHERE email = %s
             """,
@@ -58,11 +58,10 @@ def obtener_usuario_por_email(email: str) -> dict | None:
         return None
 
     return {
-        "id": resultado["id"],
-        "username": resultado["username"],
-        "email": resultado["email"],
-        "role_id": resultado["role_id"],
-        "password": resultado["password"],
+        "id": resultado[0],
+        "username": resultado[1],
+        "email": resultado[2],
+        "password": resultado[3],
     }
 
 
