@@ -4,15 +4,14 @@ from src.funciones.auth import crear_token, validar_credenciales
 from src.funciones.errores import (
     EMAIL_REQUERIDO,
     PASSWORD_REQUERIDO,
-    USER_ID_NO_COINCIDE,
 )
 from .utils import responder_error
 
 auth_bp = Blueprint("auth", __name__)
 
 
-@auth_bp.route("/api/v1/users/<int:user_id>", methods=["POST"])
-def login(user_id: int):
+@auth_bp.route("/api/v1/users/login", methods=["POST"])
+def login():
     body = request.get_json(silent=True) or {}
     email = body.get("email")
     password = body.get("password")
@@ -28,9 +27,6 @@ def login(user_id: int):
     if error:
         return responder_error(error)
 
-    if usuario["id"] != user_id:
-        return responder_error(USER_ID_NO_COINCIDE)
-
     token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
     return (
@@ -39,7 +35,6 @@ def login(user_id: int):
                 "id": usuario["id"],
                 "username": usuario["username"],
                 "email": usuario["email"],
-                "role_id": usuario["role_id"],
                 "token": token,
             }
         ),

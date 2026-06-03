@@ -36,5 +36,4 @@ def validar_credenciales(email: str, password: str) -> tuple:
         "id": usuario["id"],
         "username": usuario["username"],
         "email": usuario["email"],
-        "role_id": usuario["role_id"],
     }, None
