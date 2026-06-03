@@ -129,7 +129,7 @@ def crear_aula():
 
 @classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/evaluaciones", methods=["GET"])
 def listar_evaluaciones(classroom_id):
-    token = _extraer_token()
+    token = extraer_token()
     usuario, error = verificar_token(token)
 
     if error:
