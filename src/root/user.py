@@ -3,7 +3,6 @@ from flask import Blueprint, jsonify, request
 from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
 from src.funciones.user import create_user, send_password_mail
 from .utils import responder_error
-from flask import Blueprint, request, jsonify
 
 
 
