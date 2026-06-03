@@ -114,14 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
       btnGuardar.disabled = true;
     }
 
-    showToast("Equipo creado correctamente.");
-    setTimeout(() => {
-      closeModal();
-      resetForm();
-      if (btnGuardar) {
-        btnGuardar.textContent = "Crear Equipo";
-        btnGuardar.disabled = false;
-      }
-    }, 900);
+    showToast("Alta de equipos no disponible (POST /api/v1/teams no implementado).");
+    if (btnGuardar) {
+      btnGuardar.textContent = "Crear Equipo";
+      btnGuardar.disabled = false;
+    }
   });
 });

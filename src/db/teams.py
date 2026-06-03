@@ -1,13 +1,12 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from .conexion import obtener_conexion
+from .conexion import cursor_db
 
 
 def obtener_equipo(team_id: int) -> Optional[dict]:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        fila = conn.exec_driver_sql(
+    with cursor_db() as cur:
+        cur.execute(
             """
             SELECT id, name, classroom_id
             FROM teams
@@ -15,18 +14,18 @@ def obtener_equipo(team_id: int) -> Optional[dict]:
             LIMIT 1
             """,
             (team_id,),
-        ).fetchone()
+        )
+        fila = cur.fetchone()
 
     if fila is None:
         return None
 
-    return {"id": fila[0], "name": fila[1], "classroom_id": fila[2]}
+    return {"id": fila["id"], "name": fila["name"], "classroom_id": fila["classroom_id"]}
 
 
 def actualizar_nombre(team_id: int, nombre: str):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
+    with cursor_db(commit=True) as cur:
+        cur.execute(
             """
             UPDATE teams
             SET name = %s, updated_at = %s
@@ -34,61 +33,56 @@ def actualizar_nombre(team_id: int, nombre: str):
             """,
             (nombre, datetime.now(timezone.utc), team_id),
         )
-        conn.commit()
 
 
 def miembros_pertenecen_aula(classroom_id: int, user_ids: list[int]) -> bool:
     if not user_ids:
         return True
 
-    engine = obtener_conexion()
     placeholders = ", ".join(["%s"] * len(user_ids))
     params = (classroom_id, *user_ids)
 
-    with engine.connect() as conn:
-        fila = conn.exec_driver_sql(
+    with cursor_db() as cur:
+        cur.execute(
             f"""
-            SELECT COUNT(DISTINCT user_id)
+            SELECT COUNT(DISTINCT user_id) AS total
             FROM classroom_users
             WHERE classroom_id = %s AND user_id IN ({placeholders})
             """,
             params,
-        ).fetchone()
+        )
+        fila = cur.fetchone()
 
-    return fila[0] == len(user_ids)
+    return fila["total"] == len(user_ids)
 
 
 def reemplazar_miembros(team_id: int, user_ids: list[int]):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
+    with cursor_db(commit=True) as cur:
+        cur.execute(
             "DELETE FROM team_members WHERE team_id = %s",
             (team_id,),
         )
         for user_id in user_ids:
-            conn.exec_driver_sql(
+            cur.execute(
                 """
                 INSERT INTO team_members (team_id, user_id)
                 VALUES (%s, %s)
                 """,
                 (team_id, user_id),
             )
-        conn.commit()
 
 
 def eliminar_equipo_completo(team_id: int):
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
+    with cursor_db(commit=True) as cur:
+        cur.execute(
             "DELETE FROM grades WHERE team_id = %s",
             (team_id,),
         )
-        conn.exec_driver_sql(
+        cur.execute(
             "DELETE FROM team_members WHERE team_id = %s",
             (team_id,),
         )
-        conn.exec_driver_sql(
+        cur.execute(
             "DELETE FROM teams WHERE id = %s",
             (team_id,),
         )
-        conn.commit()

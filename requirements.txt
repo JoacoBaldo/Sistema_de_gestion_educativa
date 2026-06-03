@@ -8,13 +8,13 @@ ruff
 
 # Web Framework & API
 Flask==3.0.2
+requests>=2.31.0
 
 # Data Validation & Contracts
 pydantic
 email-validator==2.1.1
 
 # Infrastructure & Database
-SQLAlchemy==2.0.28
 python-dotenv==1.0.1
 
 # Testing & Quality

@@ -1,6 +1,15 @@
+import { clearSession, getUser, requireAuth, userInitials } from "./common/auth.js";
 import { goTo } from "./common/ui.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (!requireAuth()) return;
+
+  const user = getUser();
+  const brandSubtitle = document.querySelector(".cm-brand-subtitle");
+  if (brandSubtitle && user?.username) {
+    brandSubtitle.textContent = user.username;
+  }
+
   const root = document.querySelector(".cm-layout");
   if (!root) return;
 
@@ -22,13 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const mensajes = {
-        settings: "Configuración (pendiente de implementar).",
-        logout: "Cerrar sesión (pendiente de implementar).",
-      };
+      if (action === "logout") {
+        clearSession();
+        goTo("/auth");
+        return;
+      }
 
-      if (mensajes[action]) {
-        alert(mensajes[action]);
+      if (action === "settings") {
+        alert("Configuración (sin endpoint en la API actual).");
       }
     });
   });
