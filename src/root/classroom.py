@@ -127,7 +127,10 @@ def crear_aula():
 
     return jsonify(resultado), 201
 
-@classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/evaluaciones", methods=["GET"])
+
+@classroom_bp.route(
+    "/api/v1/classrooms/<int:classroom_id>/evaluaciones", methods=["GET"]
+)
 def listar_evaluaciones(classroom_id):
     token = extraer_token()
     usuario, error = verificar_token(token)
@@ -141,4 +144,3 @@ def listar_evaluaciones(classroom_id):
         return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
-

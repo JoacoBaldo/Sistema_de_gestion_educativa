@@ -3,11 +3,8 @@ from src.db import auth as db_auth
 from flask import request
 from .errores import TOKEN_INVALIDO, FALTAN_DATOS, USUARIO_NO_EXISTE_GLOBAL
 
-import bcrypt
 
-from src.db import auth as db_auth
 from .constantes import TIEMPO_EXPIRACION_HORAS
-from .errores import CREDENCIALES_INVALIDAS, TOKEN_INVALIDO
 
 
 def verificar_token(token: str) -> tuple:

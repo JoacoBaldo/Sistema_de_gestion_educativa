@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from src.db import auth as db_auth
 from src.db import classroom as db_classroom
 from src.db import teams as db_teams
-from .auth import TIEMPO_EXPIRACION
 from .constantes import TIEMPO_EXPIRACION_HORAS
 from .errores import NO_ES_ADMIN, SIN_ACCESO, USUARIO_NO_EXISTE
 
@@ -60,6 +59,7 @@ def crear_nueva_classroom(
 def obtener_lista_classrooms(usuario_id: int) -> tuple:
     classrooms = db_classroom.obtener_classrooms_usuario(usuario_id)
     return classrooms, None
+
 
 def obtener_evaluaciones_classroom(classroom_id: int, usuario_id: int) -> tuple:
     if not db_teams.miembros_pertenecen_aula(classroom_id, [usuario_id]):

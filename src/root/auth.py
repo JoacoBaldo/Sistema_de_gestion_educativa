@@ -1,9 +1,3 @@
-from src.funciones.auth import (
-    datos_completos,
-    buscar_token,
-    usuario_existe,
-    actualizar_contrasenia,
-)
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import crear_token, validar_credenciales
