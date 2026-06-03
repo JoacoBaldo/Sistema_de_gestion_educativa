@@ -8,9 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const typeSelect = document.getElementById("ev-evaluation-type");
   const classroomInput = document.getElementById("ev-evaluation-classroom");
   const individualInput = document.getElementById("ev-evaluation-individual");
-  const cancelBtn = document.getElementById("ev-evaluation-cancel-btn");
-
-  let currentEvaluationCard = null;
+    const newBtn = document.getElementById("ev-new-btn");
+    const cancelBtn = document.getElementById("ev-evaluation-cancel-btn");
+    let currentEvaluationCard = null;
 
   function hasToken() {
     try {
@@ -21,10 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openModal() {
-    if (!hasToken()) {
-      window.location.href = "/auth";
-      return;
-    }
     modal.classList.remove("hidden");
   }
 
@@ -68,6 +64,25 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal();
   }
 
+    newBtn?.addEventListener("click", (event) => {
+      event.preventDefault();
+      currentEvaluationCard = null;
+      nameInput.value = "";
+      typeSelect.value = "";
+      classroomInput.value = "";
+      individualInput.checked = false;
+      openModal();
+    });
+    const modalCloseBtn = document.getElementById("ev-evaluation-close");
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    modalCloseBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeModal();
+    });
   function validateName(name) {
     return name.trim().length > 0;
   }
@@ -113,12 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const evaluationId = currentEvaluationCard?.dataset.id;
-    if (!evaluationId) {
-      showToast("No se pudo identificar la evaluación.");
-      return;
-    }
-
     const payload = {
       nombre,
       tipo,
@@ -127,20 +136,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const response = await fetch(`/api/evaluations/${encodeURIComponent(evaluationId)}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error en la actualización");
-      }
-
       if (currentEvaluationCard) {
+        // Edición (PUT)
+        const evaluationId = currentEvaluationCard.dataset.id;
+        const response = await fetch(`/api/evaluations/${encodeURIComponent(evaluationId)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) throw new Error("Error en la actualización");
+
+        // Actualizar DOM
         currentEvaluationCard.dataset.nombre = nombre;
         currentEvaluationCard.dataset.type = tipo;
         currentEvaluationCard.dataset.classroom = classroom;
@@ -162,10 +172,28 @@ document.addEventListener("DOMContentLoaded", () => {
           }[tipo] || badge.textContent;
           badge.className = `ev-badge ev-badge--${tipo}`;
         }
-      }
 
-      showToast("Evaluación guardada correctamente.");
-      setTimeout(closeModal, 900);
+        showToast("Evaluación guardada correctamente.");
+        setTimeout(closeModal, 900);
+      } else {
+        // Creación (POST)
+        const response = await fetch(`/api/evaluations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) throw new Error("Error al crear la evaluación");
+
+        showToast("Evaluación creada correctamente.");
+        setTimeout(() => {
+          closeModal();
+          window.location.reload();
+        }, 900);
+      }
     } catch (error) {
       console.error(error);
       showToast("No se pudo guardar. Intenta nuevamente.");

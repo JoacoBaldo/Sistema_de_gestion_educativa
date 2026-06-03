@@ -1,0 +1,47 @@
+<div id="ev-evaluation-modal" class="st-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ev-modal-title">
+  <div class="st-modal-panel">
+    <header class="st-modal-header">
+      <h3 id="ev-modal-title" class="st-modal-title">Evaluación</h3>
+      <button id="ev-evaluation-close" class="st-btn st-btn-ghost" aria-label="Cerrar">✕</button>
+    </header>
+
+    <form id="ev-evaluation-form">
+      <div class="st-form-row">
+        <label for="ev-evaluation-name">Nombre <span class="text-danger">*</span></label>
+        <input type="text" id="ev-evaluation-name" name="nombre" required />
+      </div>
+
+      <div class="st-form-row">
+        <label for="ev-evaluation-type">Tipo <span class="text-danger">*</span></label>
+        <select id="ev-evaluation-type" name="tipo" required>
+          <option value="parcial">Parcial</option>
+          <option value="tp">TP</option>
+          <option value="parcialito">Parcialito</option>
+          <option value="recuperatorio">Recuperatorio</option>
+        </select>
+      </div>
+
+      <div class="st-form-row">
+        <label for="ev-evaluation-classroom">Fecha/Fecha de Entrega</label>
+        <input type="date" id="ev-evaluation-classroom" name="classroom" />
+      </div>
+      
+      <div class="st-form-row">
+        <label for="ev-evaluation-classroom">Aula/Materia</label>
+        <input type="text" id="ev-evaluation-classroom" name="classroom" />
+      </div>
+
+      <div class="st-form-row st-form-row--toggle">
+        <label for="ev-evaluation-individual">Individual</label>
+        <input type="checkbox" id="ev-evaluation-individual" name="individual" />
+      </div>
+
+      <div class="st-form-actions">
+        <button type="button" id="ev-evaluation-cancel-btn" class="st-btn">Cancelar</button>
+        <button type="submit" class="st-btn st-btn-primary">Guardar</button>
+      </div>
+
+      <div id="ev-evaluation-toast" class="st-toast hidden" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</div>

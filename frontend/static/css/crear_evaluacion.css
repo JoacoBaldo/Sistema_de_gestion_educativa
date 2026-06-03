@@ -1,0 +1,11 @@
+/* Placeholder styles for evaluation modal */
+.ev-modal.hidden { display: none; }
+.ev-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+.ev-modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+.ev-modal__panel { position: relative; background: #fff; padding: 1rem; border-radius: 8px; width: 420px; max-width: 95%; z-index: 10; }
+.ev-modal__header { display:flex; justify-content: space-between; align-items:center; }
+.ev-modal__close { background: transparent; border: none; font-size: 1.1rem; }
+.ev-modal__body { margin-top: 0.5rem; }
+.ev-modal__actions { display:flex; gap:0.5rem; justify-content: flex-end; margin-top: 1rem; }
+.ev-toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background:#222; color:#fff; padding:0.5rem 1rem; border-radius:6px; }
+.ev-toast.hidden { display:none; }

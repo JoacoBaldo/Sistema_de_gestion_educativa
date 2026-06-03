@@ -39,4 +39,45 @@
 
     <div id="ev-evaluation-toast" class="st-toast hidden" role="status" aria-live="polite"></div>
   </div>
+</div><div id="ev-evaluation-modal" class="st-modal hidden" role="dialog" aria-modal="true" aria-label="Editar evaluación">
+  <div class="st-modal-panel">
+    <header class="st-modal-header">
+      <h2 class="st-modal-title">Editar evaluación</h2>
+    </header>
+
+    <form id="ev-evaluation-form" class="st-form" novalidate>
+      <div class="st-form-row">
+        <label for="ev-evaluation-name">Nombre</label>
+        <input id="ev-evaluation-name" name="nombre" type="text" required>
+      </div>
+
+      <div class="st-form-row">
+        <label for="ev-evaluation-type">Tipo</label>
+        <select id="ev-evaluation-type" name="tipo" required>
+          <option value="">Selecciona un tipo</option>
+          <option value="parcial">Parcial</option>
+          <option value="tp">Trabajo práctico</option>
+          <option value="parcialito">Parcialito</option>
+          <option value="recuperatorio">Recuperatorio</option>
+        </select>
+      </div>
+
+      <div class="st-form-row">
+        <label for="ev-evaluation-classroom">Aula / Materia</label>
+        <input id="ev-evaluation-classroom" name="classroom" type="text" required>
+      </div>
+
+      <div class="st-form-row st-form-row--toggle">
+        <label for="ev-evaluation-individual">Individual</label>
+        <input id="ev-evaluation-individual" name="individual" type="checkbox">
+      </div>
+
+      <div class="st-form-actions">
+        <button type="button" class="st-btn" id="ev-evaluation-cancel-btn">Cancelar</button>
+        <button type="submit" class="st-btn st-btn-primary" id="ev-evaluation-save-btn">Guardar</button>
+      </div>
+    </form>
+
+    <div id="ev-evaluation-toast" class="st-toast hidden" role="status" aria-live="polite"></div>
+  </div>
 </div>
