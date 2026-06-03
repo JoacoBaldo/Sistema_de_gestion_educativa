@@ -118,9 +118,7 @@ def crear_aula():
     if not name or not department or not university:
         return responder_error(DATOS_INVALIDOS)
 
-    resultado, error = crear_nueva_classroom(
-        name, department, university, usuario["id"]
-    )
+    resultado, error = crear_nueva_classroom(name, department, university, usuario["id"])
     if error:
         return responder_error(error)
 

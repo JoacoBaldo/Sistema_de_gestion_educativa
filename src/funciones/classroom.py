@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from src.db import auth as db_auth
 from src.db import classroom as db_classroom
 from .constantes import TIEMPO_EXPIRACION_HORAS
-from .errores import NO_ES_ADMIN, SIN_ACCESO, USUARIO_NO_EXISTE
+from .errores import NO_ES_ADMIN, SIN_ACCESO, SIN_PERMISO_LINK, USUARIO_NO_EXISTE
 
 
 def obtener_profesores_classroom(classroom_id: int, usuario_id: int) -> tuple:
@@ -29,7 +29,7 @@ def eliminar_usuario_classroom(
 
 def obtener_link_classroom(classroom_id: int, usuario_id: int, role_id: int) -> tuple:
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
-        return None, NO_ES_ADMIN
+        return None, SIN_PERMISO_LINK
 
     expira_en = datetime.now() + timedelta(hours=TIEMPO_EXPIRACION_HORAS)
     token = db_auth.generar_link_classroom(classroom_id, role_id, expira_en)

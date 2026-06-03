@@ -1,16 +1,27 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+
+from src.funciones.auth import verificar_token
 from src.funciones.evaluaciones import crear_evaluacion
+from .utils import extraer_token, responder_error
 
 evaluacion_bp = Blueprint("evaluacion", __name__)
 
 
 @evaluacion_bp.route(
-    "api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["POST"]
+    "/api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["POST"]
 )
-def crear_evaluacion_root(classroom_id: int, fecha: str, aulas: tuple):
-    resultado, error = crear_evaluacion(classroom_id, fecha, aulas)
-
+def crear_evaluacion_root(classroom_id: int):
+    token = extraer_token()
+    _, error = verificar_token(token)
     if error:
-        return jsonify({"error": error}), 400
+        return responder_error(error)
 
-    return jsonify(resultado), resultado.get("status_code", 500)
+    body = request.get_json(silent=True) or {}
+    fecha = body.get("fecha")
+    aulas = body.get("aulas")
+
+    resultado, error = crear_evaluacion(classroom_id, fecha, aulas)
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), resultado["status"]

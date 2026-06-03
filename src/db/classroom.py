@@ -151,9 +151,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                 "university": fila["university"],
                 "schedule_id": fila["schedule_id"],
                 "class_day": fila["class_day"],
-                "class_start": str(fila["class_start"])
-                if fila["class_start"]
-                else None,
+                "class_start": str(fila["class_start"]) if fila["class_start"] else None,
                 "class_end": str(fila["class_end"]) if fila["class_end"] else None,
                 "academic_periods": [],
             }
@@ -162,12 +160,8 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                 {
                     "id": fila["ap_id"],
                     "name": fila["ap_name"],
-                    "period_start": str(fila["ap_start"])
-                    if fila["ap_start"] is not None
-                    else None,
-                    "period_end": str(fila["ap_end"])
-                    if fila["ap_end"] is not None
-                    else None,
+                    "period_start": str(fila["ap_start"]) if fila["ap_start"] is not None else None,
+                    "period_end": str(fila["ap_end"]) if fila["ap_end"] is not None else None,
                 }
             )
 
