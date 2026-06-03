@@ -20,5 +20,3 @@ def existe_classroom(classroom_id):
             cursor.execute(sql, (classroom_id,))
             result = cursor.fetchone()
         return result is True
-
-
