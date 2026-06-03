@@ -13,6 +13,9 @@
 {% if vista == 'teams' %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageTeams.css') }}">
 {% endif %}
+{% if vista in ['dashboard', 'asistance', 'library'] %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageInsights.css') }}">
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -141,5 +144,17 @@
 {% endif %}
 {% if vista == 'teams' %}
 <script src="{{ url_for('static', filename='JS/crear_equipo.js') }}"></script>
+{% endif %}
+{% if vista == 'dashboard' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='JS/classroomManageDashboard.js') }}"></script>
+{% endif %}
+{% if vista == 'asistance' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='JS/classroomManageAsistance.js') }}"></script>
+{% endif %}
+{% if vista == 'library' %}
+<script src="{{ url_for('static', filename='JS/classroomManageLibrary.js') }}"></script>
 {% endif %}
 {% endblock %}

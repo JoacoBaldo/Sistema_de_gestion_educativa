@@ -1,4 +1,118 @@
-<section class="cm-panel">
-    <h1 class="cm-panel__title">Asistencia</h1>
-    <p class="cm-panel__subtitle">Esta vista está en construcción.</p>
+<section class="cmr-page st-page" aria-label="Centro de control de asistencia" id="at-page">
+    <header class="st-header">
+        <div>
+            <h1 class="st-title">Centro de control de asistencia</h1>
+            <p class="st-subtitle">Códigos QR dinámicos para registrar asistencia del aula</p>
+        </div>
+        <div class="st-actions">
+            <button class="st-btn st-btn-primary" type="button" id="at-email-all">
+                <span class="st-ghost-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.5"/><path d="m22 6-10 7L2 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                Enviar QR por correo
+            </button>
+        </div>
+    </header>
+
+    <div class="cmr-grid-2 cmr-grid-2--equal">
+        <section class="cm-panel cmr-qr-panel" aria-label="Generador de código QR">
+            <h2 class="cmr-qr-panel__title">Generador de QR</h2>
+            <p class="cmr-hint">Código de sesión vinculado al aula y la fecha actual. Se regenera automáticamente cada 30 s.</p>
+            <label class="cmr-check">
+                <input type="checkbox" id="at-auto-refresh" checked>
+                Auto-refresco cada 30 segundos
+            </label>
+
+            <div class="cmr-qr-flex">
+                <div class="cmr-qr-flex__controls">
+                    <button class="st-btn st-btn-primary" type="button" id="at-generate">
+                        <span class="st-ghost-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 1 1-2.64-6.36" stroke="currentColor" stroke-width="1.6"/><path d="M21 3v6h-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        </span>
+                        Generar nuevo QR
+                    </button>
+                    <button class="st-btn st-btn-ghost" type="button" id="at-send-email">Enviar por correo</button>
+                    <button class="st-btn st-btn-ghost" type="button" id="at-download-png">Descargar PNG</button>
+                    <code class="cmr-qr-code-text" id="at-code-text">UNI-ATT-PENDIENTE</code>
+                </div>
+                <div class="cmr-qr-flex__preview">
+                    <div class="cmr-qr-display" id="at-qr-display">
+                        <div id="at-qrcode" aria-label="Código QR de asistencia"></div>
+                    </div>
+                    <span class="cmr-qr-meta" id="at-session-date">—</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="cm-panel cmr-stats-panel" aria-label="Estadísticas rápidas">
+            <div class="cmr-card-head">
+                <div>
+                    <h2>Estadísticas rápidas</h2>
+                    <p>Resumen del día</p>
+                </div>
+            </div>
+            <div class="cmr-stats-stack">
+                <div class="cmr-stat-box cmr-stat-box--blue">
+                    <div class="cmr-stat-box__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="1.6"/></svg>
+                    </div>
+                    <div>
+                        <div class="cmr-stat-box__value" id="at-stat-today">0</div>
+                        <div class="cmr-stat-box__label">Asistencias de hoy</div>
+                    </div>
+                </div>
+                <div class="cmr-stat-box cmr-stat-box--green">
+                    <div class="cmr-stat-box__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </div>
+                    <div>
+                        <div class="cmr-stat-box__value" id="at-stat-rate">91.5%</div>
+                        <div class="cmr-stat-box__label">Tasa de asistencia</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="st-table-card" aria-label="Registros recientes de asistencia">
+        <div class="cmr-table-head">
+            <h2>Registros recientes</h2>
+            <div class="st-search" style="max-width:320px; flex:1;">
+                <span class="st-search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                </span>
+                <input id="at-search" type="search" placeholder="Buscar por fecha..." aria-label="Buscar registros">
+            </div>
+        </div>
+        <table class="st-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Presentes</th>
+                    <th>Porcentaje</th>
+                </tr>
+            </thead>
+            <tbody id="at-records-tbody"></tbody>
+        </table>
+    </section>
 </section>
+
+<div id="at-email-modal" class="st-modal hidden" role="dialog" aria-labelledby="at-email-title" aria-modal="true">
+    <div class="st-modal-panel">
+        <header class="st-modal-header">
+            <h2 class="st-modal-title" id="at-email-title">Enviar QR por correo</h2>
+        </header>
+        <form id="at-email-form">
+            <div class="st-form-row">
+                <label for="at-email-to">Correo de destino</label>
+                <input type="email" id="at-email-to" required placeholder="destino@universidad.edu">
+            </div>
+            <p class="cmr-hint">Se adjuntará el código <strong id="at-email-code-preview">—</strong> de la sesión actual.</p>
+            <div class="st-actions" style="justify-content:flex-end; margin-top:1rem;">
+                <button type="button" class="st-btn st-btn-secondary" id="at-email-cancel">Cancelar</button>
+                <button type="submit" class="st-btn st-btn-primary">Enviar</button>
+            </div>
+        </form>
+    </div>
+</div>
