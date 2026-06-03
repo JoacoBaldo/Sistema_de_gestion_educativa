@@ -9,7 +9,11 @@ from src.funciones.classroom import (
     obtener_periodos_academicos,
     obtener_profesores_classroom,
 )
-from src.funciones.errores import DATOS_INVALIDOS, ROLE_ID_REQUERIDO, USER_ID_NO_COINCIDE
+from src.funciones.errores import (
+    DATOS_INVALIDOS,
+    ROLE_ID_REQUERIDO,
+    USER_ID_NO_COINCIDE,
+)
 from .utils import extraer_token, responder_error
 
 classroom_bp = Blueprint("classroom", __name__)
@@ -115,6 +119,9 @@ def crear_aula():
         return responder_error(DATOS_INVALIDOS)
 
     resultado, error = crear_nueva_classroom(name, department, university, usuario["id"])
+    resultado, error = crear_nueva_classroom(
+        name, department, university, usuario["id"]
+    )
     if error:
         return responder_error(error)
 

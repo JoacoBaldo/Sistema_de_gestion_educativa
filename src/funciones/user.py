@@ -16,6 +16,7 @@ from .errores import (
     EMAIL_YA_EXISTE,
     ERROR_ENVIO_MAIL,
 )
+from src.db.user import create_User_db, email_exists
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
 TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
@@ -64,6 +65,16 @@ def send_password_mail(destinatario: str) -> tuple:
         logging.error("Error al enviar el correo: %s", e)
         return None, ERROR_ENVIO_MAIL
 
+
+
+
+def create_user(user: dict) -> dict:
+    if email_exists(user["email"]):
+        return EMAIL_YA_EXISTE
+    if "@" not in user["email"]:
+        return EMAIL_NO_VALIDO
+    if len(user["password"]) < 6:
+        return CONTRASENA_DEBIL
 
 def create_user(user: dict) -> tuple:
     if email_existe(user["email"]):
