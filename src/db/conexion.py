@@ -7,5 +7,4 @@ load_dotenv()
 
 def obtener_conexion():
     url = os.getenv("DATABASE_URL", "")
-    engine = create_engine(url)
-    return engine
+    return create_engine(url)
