@@ -8,7 +8,7 @@ from src.funciones.errores import (
     NAME_O_MIEMBROS_REQUERIDO,
     NAME_VACIO,
 )
-from src.funciones.teams import editar_equipo, eliminar_equipo
+from src.funciones.teams import editar_equipo, eliminar_equipo, listar_equipos, crear_equipo
 from .utils import extraer_token, responder_error
 
 teams_bp = Blueprint("teams", __name__)
@@ -68,3 +68,35 @@ def borrar_equipo():
         return responder_error(error)
 
     return jsonify(resultado), 200
+
+
+@teams_bp.route("/api/v1/teams", methods=["GET"])
+def get_equipos():
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    resultado, error = listar_equipos()
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
+
+
+@teams_bp.route("/api/v1/teams", methods=["POST"])
+def post_equipo():
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    data = request.get_json(silent=True) or {}
+    nombre = data.get("nombre")
+    id_usuarios = data.get("id_usuarios")
+
+    resultado, error = crear_equipo(nombre, id_usuarios)
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 201

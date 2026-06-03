@@ -1,5 +1,9 @@
+import csv
+import io
+from src.db.evaluaciones import eliminar_evaluacion_db, insertar_notas_csv_db
 from src.db.evaluaciones import crear_evaluacion_db, existe_classroom
 from .errores import (
+    ARCHIVO_INVALIDO,
     AULA_NO_VALIDA,
     CLASSROOM_NO_EXISTE,
     DATOS_EVALUACION_REQUERIDOS,
@@ -39,3 +43,31 @@ def aula_es_valida(aulas: tuple) -> bool:
         if aula not in AULAS_VALIDAS:
             return False
     return True
+
+
+def eliminar_evaluacion(eval_id: int) -> tuple:
+    eliminar_evaluacion_db(eval_id)
+    return {"message": f"La evaluación {eval_id} fue eliminada exitosamente."}, None
+
+
+def procesar_notas_csv(eval_id: int, file) -> tuple:
+    if not file or file.filename == '':
+        return None, ARCHIVO_INVALIDO
+        
+    if not file.filename.endswith('.csv'):
+        return None, ARCHIVO_INVALIDO
+        
+    stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+    csv_reader = csv.reader(stream)
+    
+    registros = []
+    for row in csv_reader:
+        if len(row) >= 2: 
+            registros.append({"padron": row[0], "nota": row[1]})
+            
+    cantidad_insertadas = insertar_notas_csv_db(eval_id, registros)
+    
+    return {
+        "message": f"Se procesaron {cantidad_insertadas} notas exitosamente.",
+        "data": registros
+    }, None

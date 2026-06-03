@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
 
+from src.funciones.auth import verificar_token
 from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
-from src.funciones.user import create_user, send_password_mail
-from .utils import responder_error
+from src.funciones.user import create_user, send_password_mail, actualizar_alumno_db, crear_alumno_db
+from .utils import extraer_token, responder_error
 
 
 user_bp = Blueprint("user", __name__)
@@ -40,3 +41,33 @@ def solicitar_recuperacion():
         return responder_error(error)
 
     return jsonify(resultado), 200
+
+
+@user_bp.route("/api/v1/students/<int:user_id>", methods=["PUT"])
+def update_student(user_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    data = request.get_json(silent=True) or {}
+    resultado, error = actualizar_alumno_db(user_id, data, usuario.get("role_id"))
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
+
+
+@user_bp.route("/api/v1/students", methods=["POST"])
+def post_student():
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    data = request.get_json(silent=True) or {}
+    resultado, error = crear_alumno_db(data, usuario.get("role_id"))
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 201

@@ -92,3 +92,36 @@ def eliminar_equipo_completo(team_id: int):
             (team_id,),
         )
         conn.commit()
+
+
+def obtener_equipos_db() -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT id, name, classroom_id 
+            FROM teams
+            """
+        ).fetchall()
+        
+    return [{"id": f[0], "nombre": f[1], "classroom_id": f[2]} for f in resultados]
+
+
+def crear_equipo_db(nombre: str, id_usuarios: list[int]) -> dict:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            "INSERT INTO teams (name, classroom_id) VALUES (%s, %s) RETURNING id",
+            (nombre, 1) 
+        )
+        nuevo_team_id = resultado.fetchone()[0]
+        
+        if id_usuarios:
+            for user_id in id_usuarios:
+                conn.exec_driver_sql(
+                    "INSERT INTO team_members (team_id, user_id) VALUES (%s, %s)",
+                    (nuevo_team_id, user_id)
+                )
+        conn.commit()
+        
+    return {"id": nuevo_team_id, "nombre": nombre, "id_usuarios": id_usuarios}

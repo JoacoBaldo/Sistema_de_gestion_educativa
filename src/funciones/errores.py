@@ -63,3 +63,15 @@ ERROR_ENVIO_MAIL = {
     "error": "Hubo un problema interno al intentar enviar el correo",
     "status": 500,
 }
+DATOS_EQUIPO_REQUERIDOS = {
+    "error": "El nombre y los id_usuarios son requeridos",
+    "status": 400
+    }
+PROHIBIDO_ESTUDIANTE = {
+    "error": "Prohibido: Los estudiantes no tienen permisos para esta acción.", 
+    "status": 403
+    }
+ARCHIVO_INVALIDO = {
+    "error": "Archivo no válido. Asegúrese de subir un .csv", 
+    "status": 400
+    }

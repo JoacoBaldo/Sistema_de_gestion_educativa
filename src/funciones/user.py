@@ -5,12 +5,12 @@ import smtplib
 from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
 from jose import jwt
-
-from src.db.user import crear_usuario_db, email_existe, obtener_id_por_email
+from src.db.user import crear_usuario_db, email_existe, obtener_id_por_email, actualizar_alumno_db, crear_alumno_db
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
+from src.db.roles import ESTUDIANTE
 from .errores import (
+    PROHIBIDO_ESTUDIANTE,
     CONTRASENA_DEBIL,
     EMAIL_NO_EXISTE,
     EMAIL_NO_VALIDO,
@@ -81,4 +81,24 @@ def create_user(user: dict) -> tuple:
         user["password"].encode("utf-8"), bcrypt.gensalt()
     ).decode("utf-8")
     resultado = crear_usuario_db({**user, "password": password_hasheada})
+    return resultado, None
+
+
+
+def actualizar_alumno(user_id_target: int, datos: dict, requester_role_id: int) -> tuple:
+    if requester_role_id == ESTUDIANTE:
+        return None, PROHIBIDO_ESTUDIANTE
+    datos_limpios = {
+        "username": datos.get("username"),
+        "email": datos.get("email"),
+        "document": datos.get("document")
+    }
+    resultado = actualizar_alumno_db(user_id_target, datos_limpios)
+    return resultado, None
+
+
+def crear_alumno(datos: dict, requester_role_id: int) -> tuple:
+    if requester_role_id == ESTUDIANTE:
+        return None, PROHIBIDO_ESTUDIANTE
+    resultado = crear_alumno_db(datos)
     return resultado, None
