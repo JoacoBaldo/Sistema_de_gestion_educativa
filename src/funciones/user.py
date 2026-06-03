@@ -73,7 +73,7 @@ def send_password_mail(destinatario: str) -> tuple:
 def create_user(user: dict) -> tuple:
     if email_existe(user["email"]):
         return None, EMAIL_YA_EXISTE
-    if not user["email"].endswith("@fi.uba.ar"):
+    if "@" not in user["email"]:
         return None, EMAIL_NO_VALIDO
     if len(user["password"]) < MIN_CARACTERES_PASSWORD:
         return None, CONTRASENA_DEBIL
