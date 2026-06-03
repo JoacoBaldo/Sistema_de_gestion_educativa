@@ -10,36 +10,11 @@ EMAIL_YA_EXISTE = {"error": "Ya existe un usuario con ese email", "status": 409}
 CONTRASENA_DEBIL = {"error": "La contraseña debe tener al menos 6 caracteres", "status": 400}
 
 SIN_PERMISO_LINK = {"error": "Solo PROFESOR o ADMINISTRADOR pueden compartir el link", "status": 403}
-EMAIL_NO_EXISTE = {
-    "error": "El email ingresado no esta en la base de datos",
-    "status": 404,
-}
-EMAIL_NO_VALIDO = {"error": "El email debe terminar en @fi.uba.ar", "status": 400}
-EMAIL_YA_EXISTE = {"error": "Ya existe un usuario con ese email", "status": 409}
 
-CONTRASENA_DEBIL = {
-    "error": "La contraseña debe tener al menos 6 caracteres",
-    "status": 400,
-}
+FECHA_NO_VALIDA = {"error": "Fecha no válida, debe ser en formato YYYY-MM-DD", "status": 400}
+AULA_NO_VALIDA = {"error": "Aula no válida, debe ser una de las aulas permitidas", "status": 400}
+CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
 
-SIN_PERMISO_LINK = {
-    "error": "Solo PROFESOR o ADMINISTRADOR pueden compartir el link",
-    "status": 403,
-}
-
-
-FECHA_NO_VALIDA = {
-    "error": "Fecha no válida, debe ser en formato YYYY-MM-DD",
-    "status_code": 400,
-}
-AULA_NO_VALIDA = {
-    "error": "Aula no válida, debe ser una de las aulas permitidas",
-    "status_code": 400,
-}
-CLASSROOM_NO_EXISTE = {
-    "error": "El classroom especificado no existe",
-    "status_code": 404,
-}
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {"error": "Uno o más miembros no pertenecen al aula", "status": 404}
 DATOS_INVALIDOS = {"error": "name, department y university son requeridos", "status": 400}
@@ -56,12 +31,5 @@ NAME_VACIO = {"error": "name no puede estar vacío", "status": 400}
 MIEMBROS_NO_ES_LISTA = {"error": "member_ids debe ser una lista", "status": 400}
 MIEMBROS_NO_INT = {"error": "member_ids debe contener enteros", "status": 400}
 DATOS_USUARIO_REQUERIDOS = {"error": "username, email y password son requeridos", "status": 400}
+DATOS_EVALUACION_REQUERIDOS = {"error": "classroom_id, fecha y aulas son requeridos", "status": 400}
 ERROR_ENVIO_MAIL = {"error": "Hubo un problema interno al intentar enviar el correo", "status": 500}
-DATOS_USUARIO_REQUERIDOS = {
-    "error": "username, email y password son requeridos",
-    "status": 400,
-}
-ERROR_ENVIO_MAIL = {
-    "error": "Hubo un problema interno al intentar enviar el correo",
-    "status": 500,
-}

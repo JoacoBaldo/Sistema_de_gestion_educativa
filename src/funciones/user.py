@@ -1,3 +1,4 @@
+import bcrypt
 import logging
 import os
 import smtplib
@@ -16,7 +17,6 @@ from .errores import (
     EMAIL_YA_EXISTE,
     ERROR_ENVIO_MAIL,
 )
-from src.db.user import create_User_db, email_exists
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
 TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
@@ -40,12 +40,16 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 
 def send_password_mail(destinatario: str) -> tuple:
+    remitente = os.environ.get("EMAIL_SOPORTE")
+    password_env = os.environ.get("EMAIL_PASSWORD")
+
+    if remitente is None or password_env is None:
+        return None, ERROR_ENVIO_MAIL
+
     id_usuario = obtener_id_por_email(destinatario)
     if id_usuario is None:
         return None, EMAIL_NO_EXISTE
 
-    remitente = os.environ.get("EMAIL_SOPORTE")
-    password = os.environ.get("EMAIL_PASSWORD")
     token = crear_token_reset_password(id_usuario, destinatario)
 
     mensaje = MIMEMultipart()
@@ -57,7 +61,7 @@ def send_password_mail(destinatario: str) -> tuple:
     try:
         servidor = smtplib.SMTP("smtp.gmail.com", 587)
         servidor.starttls()
-        servidor.login(remitente, password)
+        servidor.login(remitente, password_env)
         servidor.sendmail(remitente, destinatario, mensaje.as_string())
         servidor.quit()
         return {"message": "Mail enviado"}, None
@@ -66,16 +70,6 @@ def send_password_mail(destinatario: str) -> tuple:
         return None, ERROR_ENVIO_MAIL
 
 
-
-
-def create_user(user: dict) -> dict:
-    if email_exists(user["email"]):
-        return EMAIL_YA_EXISTE
-    if "@" not in user["email"]:
-        return EMAIL_NO_VALIDO
-    if len(user["password"]) < 6:
-        return CONTRASENA_DEBIL
-
 def create_user(user: dict) -> tuple:
     if email_existe(user["email"]):
         return None, EMAIL_YA_EXISTE
@@ -83,5 +77,8 @@ def create_user(user: dict) -> tuple:
         return None, EMAIL_NO_VALIDO
     if len(user["password"]) < MIN_CARACTERES_PASSWORD:
         return None, CONTRASENA_DEBIL
-    resultado = crear_usuario_db(user)
+    password_hasheada = bcrypt.hashpw(
+        user["password"].encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    resultado = crear_usuario_db({**user, "password": password_hasheada})
     return resultado, None

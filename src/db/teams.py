@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from .conexion import obtener_conexion
@@ -32,7 +32,7 @@ def actualizar_nombre(team_id: int, nombre: str):
             SET name = %s, updated_at = %s
             WHERE id = %s
             """,
-            (nombre, datetime.now(), team_id),
+            (nombre, datetime.now(timezone.utc), team_id),
         )
         conn.commit()
 
