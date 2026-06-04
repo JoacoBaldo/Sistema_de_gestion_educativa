@@ -16,8 +16,14 @@ AULA_NO_VALIDA = {"error": "Aula no válida, debe ser una de las aulas permitida
 CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
 
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
-MIEMBROS_INVALIDOS = {"error": "Uno o más miembros no pertenecen al aula", "status": 404}
-DATOS_INVALIDOS = {"error": "name, department y university son requeridos", "status": 400}
+MIEMBROS_INVALIDOS = {
+    "error": "Uno o más miembros no pertenecen al aula",
+    "status": 404,
+}
+DATOS_INVALIDOS = {
+    "error": "name, department y university son requeridos",
+    "status": 400,
+}
 
 CREDENCIALES_INVALIDAS = {"error": "Credenciales inválidas", "status": 401}
 EMAIL_REQUERIDO = {"error": "email es requerido", "status": 400}

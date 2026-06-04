@@ -5,7 +5,6 @@ from src.funciones.errores import (
     EMAIL_REQUERIDO,
     LINK_INVALIDO,
     PASSWORD_REQUERIDO,
-    USER_ID_NO_COINCIDE,
 )
 from .utils import responder_error
 
@@ -51,9 +50,6 @@ def login(user_id: int):
 
     if error:
         return responder_error(error)
-
-    if usuario["id"] != user_id:
-        return responder_error(USER_ID_NO_COINCIDE)
 
     token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
