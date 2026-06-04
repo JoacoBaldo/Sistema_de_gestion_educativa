@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 import bcrypt
 
 from src.db import auth as db_auth
+from src.db import classroom as db_classroom
 from .constantes import TIEMPO_EXPIRACION_HORAS
-from .errores import CREDENCIALES_INVALIDAS, TOKEN_INVALIDO
+from .errores import CREDENCIALES_INVALIDAS, LINK_INVALIDO, TOKEN_INVALIDO, USUARIO_YA_EN_CLASSROOM
 
 
 def verificar_token(token: str) -> tuple:
@@ -22,6 +23,27 @@ def crear_token(usuario_id: int, username: str, email: str) -> str:
     return token
 
 
+def login_con_link(email: str, password: str, join_token: str) -> tuple:
+    usuario, error = validar_credenciales(email, password)
+    if error:
+        return None, error
+
+    link = db_auth.obtener_link_join(join_token)
+    if not link:
+        return None, LINK_INVALIDO
+
+    classroom_id = link["classroom_id"]
+    role_id = link["role_id"]
+
+    if db_classroom.usuario_en_classroom(classroom_id, usuario["id"]):
+        return None, USUARIO_YA_EN_CLASSROOM
+
+    db_classroom.agregar_usuario_classroom(classroom_id, usuario["id"], role_id)
+
+    token = crear_token(usuario["id"], usuario["username"], usuario["email"])
+    return {**usuario, "role_id": role_id, "token": token}, None
+
+
 def validar_credenciales(email: str, password: str) -> tuple:
     usuario = db_auth.obtener_usuario_por_email(email)
     if not usuario:
@@ -36,5 +58,4 @@ def validar_credenciales(email: str, password: str) -> tuple:
         "id": usuario["id"],
         "username": usuario["username"],
         "email": usuario["email"],
-        "role_id": usuario["role_id"],
     }, None

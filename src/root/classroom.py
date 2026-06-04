@@ -12,6 +12,7 @@ from src.funciones.classroom import (
 from src.funciones.errores import (
     DATOS_INVALIDOS,
     ROLE_ID_REQUERIDO,
+    SCHEDULE_REQUERIDO,
     USER_ID_NO_COINCIDE,
 )
 from .utils import extraer_token, responder_error
@@ -114,13 +115,20 @@ def crear_aula():
     name = body.get("name")
     department = body.get("department")
     university = body.get("university")
+    class_day = body.get("class_day")
+    class_start = body.get("class_start")
+    class_end = body.get("class_end")
+    academic_period_id = body.get("academic_period_id")
 
     if not name or not department or not university:
         return responder_error(DATOS_INVALIDOS)
 
-    resultado, error = crear_nueva_classroom(name, department, university, usuario["id"])
+    if class_day is None or not class_start or not class_end or not academic_period_id:
+        return responder_error(SCHEDULE_REQUERIDO)
+
     resultado, error = crear_nueva_classroom(
-        name, department, university, usuario["id"]
+        name, department, university, usuario["id"],
+        int(class_day), class_start, class_end, int(academic_period_id),
     )
     if error:
         return responder_error(error)
