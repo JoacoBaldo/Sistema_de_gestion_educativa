@@ -194,7 +194,9 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                 else None,
                 "class_end": str(fila["class_end"]) if fila["class_end"] else None,
                 "academic_period_id": fila["academic_period_id"],
-            } if fila["schedule_id"] is not None else None,
+            }
+            if fila["schedule_id"] is not None
+            else None,
         }
         for fila in resultados
     ]

@@ -127,8 +127,14 @@ def crear_aula():
         return responder_error(SCHEDULE_REQUERIDO)
 
     resultado, error = crear_nueva_classroom(
-        name, department, university, usuario["id"],
-        int(class_day), class_start, class_end, int(academic_period_id),
+        name,
+        department,
+        university,
+        usuario["id"],
+        int(class_day),
+        class_start,
+        class_end,
+        int(academic_period_id),
     )
     if error:
         return responder_error(error)
