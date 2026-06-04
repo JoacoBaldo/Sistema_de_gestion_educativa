@@ -28,4 +28,66 @@
     <p class="tm-empty" id="tm-empty">No hay equipos listados. El alta y listado por API no están disponibles; podés eliminar equipos existentes por ID si los conocés.</p>
 
     {% include 'classroom-manage/teams/forms/crear_equipo.html' %}
+    <div id="tm-edit-team-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="tm-edit-modal-title">
+  <div class="glass-card">
+    <div class="glass-header">
+      <h3 id="tm-edit-modal-title">Editar Equipo</h3>
+      <button type="button" class="btn-close-custom" id="tm-edit-team-close" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="subtitle">Modifica los datos del equipo, su proyecto y los miembros asignados.</p>
+
+    <form id="formEditarEquipo" novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="edit_nombre_equipo">Nombre del Equipo <span class="text-danger">*</span></label>
+        <input type="text" id="edit_nombre_equipo" name="nombre_equipo" class="glass-input" placeholder="Ejemplo: Equipo Hipatia" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="edit_proyecto">Proyecto</label>
+        <input type="text" id="edit_proyecto" name="proyecto" class="glass-input" placeholder="Ejemplo: Portal de gestión">
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label" for="edit_fecha_entrega">Fecha de Entrega</label>
+          <input type="date" id="edit_fecha_entrega" name="fecha_entrega" class="glass-input">
+        </div>
+        <div class="col-6">
+          <label class="form-label" for="edit_estado">Estado</label>
+          <select id="edit_estado" name="estado" class="glass-input">
+            <option value="activo">Activo</option>
+            <option value="en_revision">En revisión</option>
+            <option value="finalizado">Finalizado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="glass-section-header">
+          <label class="form-label mb-0">Miembros del equipo <span class="text-danger">*</span></label>
+          <button type="button" class="btn-add-horario" id="btn-edit-add-member">+ Agregar miembro</button>
+        </div>
+        <div id="edit-miembros-list" class="glass-dynamic-list">
+          <div class="glass-list-row--member">
+            <input type="text" name="miembros" class="glass-input" placeholder="Nombre del miembro" required>
+            <button type="button" class="glass-btn-remove" aria-label="Eliminar miembro">✕</button>
+          </div>
+        </div>
+        <p class="glass-field-hint">Modifica los integrantes o agrega nuevos de ser necesario.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="edit_descripcion">Descripción</label>
+        <textarea id="edit_descripcion" name="descripcion" class="glass-input" rows="4" placeholder="Descripción breve del equipo"></textarea>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn-cancelar" id="tm-edit-team-cancel-btn">Cancelar</button>
+        <button type="submit" class="btn-crear" id="btnActualizarEquipo">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
 </section>
+
+<script type="module" src="{{ url_for('static', filename='js/editar_equipo.js') }}"></script>
