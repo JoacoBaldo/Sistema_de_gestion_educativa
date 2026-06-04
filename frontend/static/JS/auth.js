@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const originalText = sendTokenBtn.textContent;
             sendTokenBtn.textContent = "Token enviado";
 
-            window.setTimeout(() => {
+            setTimeout(() => {
                 sendTokenBtn.disabled = false;
                 sendTokenBtn.textContent = originalText;
             }, 3000);
