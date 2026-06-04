@@ -6,7 +6,6 @@ from src.root.classroom import classroom_bp
 from src.root.evaluaciones import evaluacion_bp
 from src.root.teams import teams_bp
 from src.root.user import user_bp
-from src.root.user import user_bp
 
 load_dotenv()
 
