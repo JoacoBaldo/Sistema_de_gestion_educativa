@@ -1,12 +1,53 @@
+import os
 from urllib.parse import quote
 
-from flask import Flask, render_template, request, redirect
+import requests
+from flask import Flask, Response, render_template, request, redirect
 
 app = Flask(__name__)
 
-CLASSES = []
-SHARES = []
-TEAMS = []
+API_BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:5000").rstrip("/")
+
+
+def _proxy_to_api(path: str):
+    target = f"{API_BASE_URL}/{path.lstrip('/')}"
+    headers = {}
+    auth = request.headers.get("Authorization")
+    if auth:
+        headers["Authorization"] = auth
+    content_type = request.headers.get("Content-Type")
+    if content_type:
+        headers["Content-Type"] = content_type
+
+    upstream = requests.request(
+        method=request.method,
+        url=target,
+        params=request.args,
+        data=request.get_data(),
+        headers=headers,
+        timeout=60,
+    )
+    excluded = {"content-encoding", "content-length", "transfer-encoding", "connection"}
+    response_headers = [
+        (key, value)
+        for key, value in upstream.headers.items()
+        if key.lower() not in excluded
+    ]
+    return Response(upstream.content, status=upstream.status_code, headers=response_headers)
+
+
+@app.route("/api/<path:api_path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+def api_proxy(api_path):
+    if request.method == "OPTIONS":
+        return "", 204
+    return _proxy_to_api(f"api/{api_path}")
+
+
+@app.route("/recuperar-password", methods=["POST", "OPTIONS"])
+def recover_proxy():
+    if request.method == "OPTIONS":
+        return "", 204
+    return _proxy_to_api("recuperar-password")
 
 
 @app.route("/")
@@ -24,47 +65,6 @@ def compartir_clase():
     class_id = request.args.get("id", "")
     nombre = request.args.get("nombre", "")
     return redirect(f"/?accion=compartir&id={class_id}&nombre={quote(nombre)}")
-
-
-@app.route("/clases", methods=["POST"])
-def clases_post():
-    data = {
-        "nombre": request.form.get("nombre", "").strip(),
-        "catedra": request.form.get("catedra", "").strip(),
-        "universidad": request.form.get("universidad", "").strip(),
-        "fecha_inicio": request.form.get("fecha_inicio", "").strip(),
-        "fecha_fin": request.form.get("fecha_fin", "").strip(),
-        "dia": request.form.get("dia", "").strip(),
-        "h_inicio": request.form.get("h_inicio", "").strip(),
-        "h_fin": request.form.get("h_fin", "").strip(),
-    }
-    CLASSES.append(data)
-    return redirect("/")
-
-
-@app.route("/equipos", methods=["POST"])
-def equipos_post():
-    data = {
-        "nombre_equipo": request.form.get("nombre_equipo", "").strip(),
-        "proyecto": request.form.get("proyecto", "").strip(),
-        "fecha_entrega": request.form.get("fecha_entrega", "").strip(),
-        "estado": request.form.get("estado", "").strip(),
-        "miembros": request.form.getlist("miembros"),
-        "descripcion": request.form.get("descripcion", "").strip(),
-    }
-    TEAMS.append(data)
-    return redirect("/")
-
-
-@app.route("/clases/compartir", methods=["POST"])
-def compartir_post():
-    data = {
-        "classId": request.form.get("classId", "").strip(),
-        "email": request.form.get("email", "").strip(),
-        "rol": request.form.get("rol", "").strip(),
-    }
-    SHARES.append(data)
-    return redirect("/")
 
 
 @app.route("/auth")
