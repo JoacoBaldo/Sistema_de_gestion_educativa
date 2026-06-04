@@ -17,10 +17,14 @@ def crear_evaluacion_root(classroom_id: int):
         return responder_error(error)
 
     body = request.get_json(silent=True) or {}
-    fecha = body.get("fecha")
-    aulas = body.get("aulas")
+    name = body.get("name")
+    evaluation_type_id = body.get("evaluation_type_id")
+    referenced_eval_id = body.get("referenced_eval_id")
+    individual = body.get("individual", 1)
 
-    resultado, error = crear_evaluacion(classroom_id, fecha, aulas)
+    resultado, error = crear_evaluacion(
+        classroom_id, name, evaluation_type_id, referenced_eval_id, individual
+    )
     if error:
         return responder_error(error)
 

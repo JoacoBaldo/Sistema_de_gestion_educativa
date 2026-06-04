@@ -4,7 +4,6 @@ from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
 from src.funciones.user import create_user, send_password_mail
 from .utils import responder_error
 
-
 user_bp = Blueprint("user", __name__)
 
 
