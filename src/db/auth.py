@@ -62,6 +62,34 @@ def obtener_usuario_por_email(email: str) -> dict | None:
     }
 
 
+def token_classroom_existe(classroom_id: int, role_id: int) -> str | None:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            """
+            SELECT token FROM sesiones_activas
+            WHERE classroom_id = %s AND role_id = %s AND usuario_id IS NULL
+            LIMIT 1
+            """,
+            (classroom_id, role_id),
+        ).fetchone()
+    return resultado[0] if resultado else None
+
+
+def actualizar_link_classroom(token: str, expira_en: datetime):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            UPDATE sesiones_activas
+            SET expira_en = %s
+            WHERE token = %s
+            """,
+            (expira_en, token),
+        )
+        conn.commit()
+
+
 def generar_link_classroom(classroom_id: int, role_id: int, expira_en: datetime) -> str:
     token = generar_token()
     engine = obtener_conexion()
@@ -75,6 +103,25 @@ def generar_link_classroom(classroom_id: int, role_id: int, expira_en: datetime)
         )
         conn.commit()
     return token
+
+
+def obtener_link_join(token: str) -> dict | None:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            """
+            SELECT classroom_id, role_id
+            FROM sesiones_activas
+            WHERE token = %s AND classroom_id IS NOT NULL AND expira_en > NOW()
+            LIMIT 1
+            """,
+            (token,),
+        ).fetchone()
+
+    if not resultado:
+        return None
+
+    return {"classroom_id": resultado[0], "role_id": resultado[1]}
 
 
 def eliminar_sesiones_usuario(usuario_id: int):
