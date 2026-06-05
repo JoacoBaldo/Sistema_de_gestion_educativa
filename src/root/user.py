@@ -39,3 +39,62 @@ def solicitar_recuperacion():
         return responder_error(error)
 
     return jsonify(resultado), 200
+
+
+@user_bp.route("/api/v1/cargar-csv", methods=["POST"])
+def cargar_usuarios_csv():
+    if "archivo" not in request.files:
+        return jsonify(
+            {"error": "No se envió ningún archivo con la clave 'archivo'"}
+        ), 400
+
+    archivo = request.files["archivo"]
+
+    if archivo.filename == "":
+        return jsonify({"error": "El nombre del archivo está vacío"}), 400
+
+    try:
+        contenido_texto = archivo.read().decode("utf-8")
+        lineas = contenido_texto.split("\n")
+        titulos = lineas[0].strip().split(",")
+
+        usuarios_cargados = []
+
+        for linea in lineas[1:]:
+            linea_limpia = linea.strip()
+            if not linea_limpia:
+                continue
+
+            valores = linea_limpia.split(",")
+            usuario = dict(zip(titulos, valores))
+            usuarios_cargados.append(usuario)
+
+        usuarios_guardados = 0
+        errores_guardado = []
+
+        for u in usuarios_cargados:
+            resultado, error = create_user(
+                {
+                    "username": u.get("username"),
+                    "email": u.get("email"),
+                    "password": u.get("password"),
+                }
+            )
+
+            if error:
+                errores_guardado.append({"usuario": u.get("email"), "error": error})
+            else:
+                usuarios_guardados += 1
+
+        return jsonify(
+            {
+                "status": "ok",
+                "mensaje": "Proceso de CSV finalizado",
+                "cantidad_procesados": len(usuarios_cargados),
+                "cantidad_guardados_ok": usuarios_guardados,
+                "errores": errores_guardado,
+            }
+        ), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error al procesar el archivo: {str(e)}"}), 500
