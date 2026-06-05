@@ -200,3 +200,21 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
         }
         for fila in resultados
     ]
+
+def obtener_alumnos(classroom_id: int) -> list:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT u.id, u.username, u.email, cu.role_id
+            FROM classroom_users cu
+            JOIN users u ON cu.user_id = u.id
+            WHERE cu.classroom_id = %s AND cu.role_id = %s
+            """,
+            (classroom_id, ESTUDIANTE),
+        ).fetchall()
+
+    return [
+        {"id": f[0], "username": f[1], "email": f[2], "role_id": f[3]}
+        for f in resultados
+    ]
