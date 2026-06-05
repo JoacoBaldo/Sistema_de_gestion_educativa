@@ -1,4 +1,8 @@
+import { requireAuth } from "./common/auth.js";
+
 document.addEventListener("DOMContentLoaded", () => {
+  requireAuth();
+
   const dropzone = document.getElementById("st-dropzone");
   const fileInput = document.getElementById("st-file-input");
   const exportBtn = document.getElementById("st-export-btn");
@@ -8,8 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const teamFilter = document.getElementById("st-team-filter");
   const tbody = document.getElementById("st-tbody");
 
+  function showEmptyTableMessage() {
+    if (!tbody) return;
+    if (tbody.querySelector("tr")) return;
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td colspan="6">No hay estudiantes cargados. Los endpoints de listado/alta de alumnos no están disponibles en la API.</td>';
+    tbody.appendChild(tr);
+  }
+
   function openFilePicker() {
-    if (fileInput) fileInput.click();
+    fileInput?.click();
   }
 
   function setDropzoneHint(text) {
@@ -23,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const status = statusFilter?.value || "all";
     const team = teamFilter?.value || "all";
 
-    Array.from(tbody.querySelectorAll("tr")).forEach((tr) => {
+    Array.from(tbody.querySelectorAll("tr[data-padron]")).forEach((tr) => {
       const rowNombre = (tr.dataset.nombre || "").toLowerCase();
       const rowApellido = (tr.dataset.apellido || "").toLowerCase();
       const rowPadron = (tr.dataset.padron || "").toLowerCase();
@@ -31,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const rowTeam = (tr.dataset.team || "").toLowerCase();
 
       const fullName = `${rowNombre} ${rowApellido}`.trim();
-
       const matchQuery =
         q === "" || fullName.includes(q) || rowPadron.includes(q);
       const matchStatus = status === "all" || rowStatus === status;
@@ -62,62 +74,34 @@ document.addEventListener("DOMContentLoaded", () => {
         setDropzoneHint("Arrastra tu archivo aquí o haz clic para buscar");
       });
     });
-    dropzone.addEventListener("drop", (e) => {
-      const file = e.dataTransfer?.files?.[0];
-      if (file) alert(`Archivo seleccionado: ${file.name} (importación pendiente)`);
+    dropzone.addEventListener("drop", () => {
+      alert("Importación CSV no disponible (endpoint no implementado en la API).");
     });
   }
 
   if (fileInput) {
     fileInput.addEventListener("change", () => {
-      const file = fileInput.files?.[0];
-      if (file) alert(`Archivo seleccionado: ${file.name} (importación pendiente)`);
+      alert("Importación CSV no disponible (endpoint no implementado en la API).");
+      fileInput.value = "";
     });
   }
 
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
-      alert("Exportación (pendiente de implementar).");
+      alert("Exportación no disponible sin endpoint de estudiantes.");
     });
   }
 
   if (addBtn) {
     addBtn.addEventListener("click", () => {
-      alert("Añadir estudiante (pendiente de implementar).");
+      alert("Alta de estudiantes no disponible sin endpoint POST de alumnos.");
     });
   }
 
-  if (searchInput) {
-    searchInput.addEventListener("input", applyFilters);
-  }
-  if (statusFilter) {
-    statusFilter.addEventListener("change", applyFilters);
-  }
-  if (teamFilter) {
-    teamFilter.addEventListener("change", applyFilters);
-  }
+  searchInput?.addEventListener("input", applyFilters);
+  statusFilter?.addEventListener("change", applyFilters);
+  teamFilter?.addEventListener("change", applyFilters);
 
-  // Poblar filtro por equipos a partir de los datos en la tabla.
-  if (teamFilter && tbody) {
-    const teams = Array.from(tbody.querySelectorAll("tr"))
-      .map((tr) => tr.dataset.team)
-      .filter(Boolean);
-
-    const uniqueTeams = Array.from(new Set(teams)).sort((a, b) => a.localeCompare(b, "es"));
-
-    // Conserva la opción inicial (Todos los equipos) y reemplaza el resto.
-    while (teamFilter.options.length > 1) {
-      teamFilter.remove(1);
-    }
-
-    uniqueTeams.forEach((team) => {
-      const opt = document.createElement("option");
-      opt.value = team;
-      opt.textContent = team;
-      teamFilter.appendChild(opt);
-    });
-  }
-
+  showEmptyTableMessage();
   applyFilters();
 });
-

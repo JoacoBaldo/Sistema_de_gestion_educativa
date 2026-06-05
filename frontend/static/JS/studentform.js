@@ -1,8 +1,9 @@
-import { requestJson } from "./common/http.js";
-import { authHeaders, getAuthToken } from "./common/auth.js";
 import { bindToast, goTo } from "./common/ui.js";
+import { getAuthToken, requireAuth } from "./common/auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  requireAuth();
+
   const modal = document.getElementById("st-student-modal");
   const form = document.getElementById("st-student-form");
   const tbody = document.getElementById("st-tbody");
@@ -39,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateStudentRow(padron, payload) {
-    const row = Array.from(document.querySelectorAll("#st-tbody tr")).find(
+    const row = Array.from(document.querySelectorAll("#st-tbody tr[data-padron]")).find(
       (r) => (r.dataset.padron || "") === padron
     );
     if (!row) return;
@@ -66,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   tbody?.addEventListener("click", (e) => {
     const btn = e.target.closest("button[aria-label='Editar']");
     if (!btn) return;
-    const tr = btn.closest("tr");
+    const tr = btn.closest("tr[data-padron]");
     if (tr) populateFromRow(tr);
   });
 
@@ -94,11 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (!getAuthToken()) {
-      goTo("/auth");
-      return;
-    }
-
     const payload = {
       nombre,
       apellido,
@@ -107,20 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
       abandoned: !!abandonedInput.checked,
     };
 
-    try {
-      const res = await requestJson(`/api/students/${encodeURIComponent(padron)}`, {
-        method: "PUT",
-        headers: authHeaders(),
-        body: payload,
-      });
-      if (!res.ok) throw new Error("Error en la actualización");
-
-      updateStudentRow(padron, payload);
-      showToast("Datos guardados correctamente.");
-      setTimeout(closeModal, 800);
-    } catch (err) {
-      console.error(err);
-      showToast("No se pudo guardar. Intenta nuevamente.");
-    }
+    updateStudentRow(padron, payload);
+    showToast("Cambios guardados localmente (sin endpoint PUT de alumnos).");
+    setTimeout(closeModal, 800);
   });
 });
