@@ -14,7 +14,6 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(classroom_bp)
 app.register_blueprint(evaluacion_bp)
 app.register_blueprint(teams_bp)
-app.register_blueprint(evaluacion_bp)
 app.register_blueprint(user_bp)
 
 if __name__ == "__main__":
