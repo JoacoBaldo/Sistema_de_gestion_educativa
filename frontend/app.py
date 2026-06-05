@@ -33,10 +33,14 @@ def _proxy_to_api(path: str):
         for key, value in upstream.headers.items()
         if key.lower() not in excluded
     ]
-    return Response(upstream.content, status=upstream.status_code, headers=response_headers)
+    return Response(
+        upstream.content, status=upstream.status_code, headers=response_headers
+    )
 
 
-@app.route("/api/<path:api_path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+@app.route(
+    "/api/<path:api_path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+)
 def api_proxy(api_path):
     if request.method == "OPTIONS":
         return "", 204
