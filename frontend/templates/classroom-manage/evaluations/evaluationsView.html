@@ -1,0 +1,57 @@
+<section class="ev-page" aria-label="Gestión de evaluaciones y trabajos prácticos">
+    <header class="ev-header">
+        <div>
+            <h1 class="ev-title">Gestión de Evaluaciones y TPs</h1>
+            <p class="ev-subtitle">Administra exámenes, trabajos prácticos y sus respectivas notas.</p>
+        </div>
+        <div class="ev-actions">
+            <a class="st-btn st-btn-primary ev-btn-new" href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
+                <span class="st-btn-icon" aria-hidden="true">+</span>
+                Nueva Evaluación
+            </a>
+        </div>
+    </header>
+
+    <div class="ev-toolbar" role="region" aria-label="Filtros y ordenamiento">
+        <div class="st-search ev-search">
+            <span class="st-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                        stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+            </span>
+            <input id="ev-search-input" type="search" placeholder="Buscar por nombre de evaluación..."
+                aria-label="Buscar evaluaciones">
+        </div>
+
+        <div class="ev-toolbar-right">
+            <label class="st-select">
+                <span class="sr-only">Filtrar por tipo</span>
+                <select id="ev-type-filter" aria-label="Filtrar por tipo de evaluación">
+                    <option value="all">Todos los tipos</option>
+                    <option value="parcial">Parciales</option>
+                    <option value="tp">Trabajos Prácticos</option>
+                    <option value="parcialito">Parcialitos</option>
+                    <option value="recuperatorio">Recuperatorios</option>
+                </select>
+            </label>
+
+            <label class="st-select">
+                <span class="sr-only">Ordenar por fecha</span>
+                <select id="ev-date-sort" aria-label="Ordenar por fecha">
+                    <option value="asc">Fecha: más antigua primero</option>
+                    <option value="desc">Fecha: más reciente primero</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <div class="ev-grid" id="ev-grid" aria-live="polite"></div>
+
+    {% include 'classroom-manage/evaluations/forms/crear_evaluation.html' %}
+
+    <p class="ev-empty" id="ev-empty">No hay evaluaciones cargadas. Usá «Nueva Evaluación» para registrar una vía API.</p>
+
+</section>
