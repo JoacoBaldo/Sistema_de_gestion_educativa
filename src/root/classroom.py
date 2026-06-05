@@ -8,6 +8,7 @@ from src.funciones.classroom import (
     obtener_lista_classrooms,
     obtener_periodos_academicos,
     obtener_profesores_classroom,
+    obtener_alumnos_classroom,
 )
 from src.funciones.errores import (
     DATOS_INVALIDOS,
@@ -140,3 +141,33 @@ def crear_aula():
         return responder_error(error)
 
     return jsonify(resultado), 201
+
+
+@classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/alumnos", methods=["GET"])
+def listar_alumnos_paginados(classroom_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    pagina = request.args.get("pagina", default=1, type=int)
+    cantidad = request.args.get("cantidad", default=10, type=int)
+
+    if pagina < 1 or cantidad < 1:
+        return jsonify({"error": "Los parámetros de paginación deben ser mayores a 0"}), 400
+
+    todos_los_alumnos, error = obtener_alumnos_classroom(classroom_id)
+    if error:
+        return responder_error(error)
+
+    inicio = (pagina - 1) * cantidad
+    fin = inicio + cantidad
+
+    alumnos_paginados = todos_los_alumnos[inicio:fin]
+
+    return jsonify({
+        "pagina_actual": pagina,
+        "cantidad_por_pagina": cantidad,
+        "total_alumnos_curso": len(todos_los_alumnos),
+        "datos": alumnos_paginados
+    }), 200
