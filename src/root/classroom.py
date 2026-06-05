@@ -154,7 +154,9 @@ def listar_alumnos_paginados(classroom_id):
     cantidad = request.args.get("cantidad", default=10, type=int)
 
     if pagina < 1 or cantidad < 1:
-        return jsonify({"error": "Los parámetros de paginación deben ser mayores a 0"}), 400
+        return jsonify(
+            {"error": "Los parámetros de paginación deben ser mayores a 0"}
+        ), 400
 
     todos_los_alumnos, error = obtener_alumnos_classroom(classroom_id)
     if error:
@@ -165,9 +167,11 @@ def listar_alumnos_paginados(classroom_id):
 
     alumnos_paginados = todos_los_alumnos[inicio:fin]
 
-    return jsonify({
-        "pagina_actual": pagina,
-        "cantidad_por_pagina": cantidad,
-        "total_alumnos_curso": len(todos_los_alumnos),
-        "datos": alumnos_paginados
-    }), 200
+    return jsonify(
+        {
+            "pagina_actual": pagina,
+            "cantidad_por_pagina": cantidad,
+            "total_alumnos_curso": len(todos_los_alumnos),
+            "datos": alumnos_paginados,
+        }
+    ), 200
