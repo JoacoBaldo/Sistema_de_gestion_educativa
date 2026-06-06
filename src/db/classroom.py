@@ -249,7 +249,4 @@ def obtener_alumnos_classroom(classroom_id: int) -> list[dict]:
             (classroom_id, ESTUDIANTE),
         ).fetchall()
 
-    return [
-        {"id": f[0], "username": f[1], "email": f[2]}
-        for f in resultados
-    ]
+    return [{"id": f[0], "username": f[1], "email": f[2]} for f in resultados]
