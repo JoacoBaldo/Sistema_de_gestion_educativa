@@ -25,7 +25,9 @@ def obtener_metricas_classroom(classroom_id: int, usuario_id: int) -> tuple:
     conteos = db_metrics.obtener_conteos_estudiantes(classroom_id)
 
     return {
-        "promedio_aprobados": round(promedio_aprobados * 100, 2) if promedio_aprobados is not None else 0,
+        "promedio_aprobados": round(promedio_aprobados * 100, 2)
+        if promedio_aprobados is not None
+        else 0,
         "ingresos_por_año": ingresos_por_año,
         "total_estudiantes": conteos["total_estudiantes"],
         "total_activos": conteos["total_activos"],
@@ -63,6 +65,5 @@ def _agrupar_ingresos_por_año(ingresos_data: list[dict]) -> list[dict]:
 
     # Retornar ordenado por año
     return [
-        {"year": año, "total": total}
-        for año, total in sorted(ingresos_por_año.items())
+        {"year": año, "total": total} for año, total in sorted(ingresos_por_año.items())
     ]
