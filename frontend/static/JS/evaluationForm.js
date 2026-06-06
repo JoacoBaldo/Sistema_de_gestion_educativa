@@ -16,6 +16,13 @@ const EVALUATION_TYPE_LABELS = {
   recuperatorio: "Recuperatorio",
 };
 
+const TYPE_MAP = {
+  parcial: 1,
+  tp: 2,
+  parcialito: 4,
+  recuperatorio: 3,
+};
+
 const AULAS_VALIDAS = ["Aula 101", "Aula 102", "Aula 103"];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -31,8 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const nameInput = document.getElementById("ev-evaluation-name");
   const typeSelect = document.getElementById("ev-evaluation-type");
-  const dateInput = document.getElementById("ev-evaluation-date");
-  const classroomInput = document.getElementById("ev-evaluation-classroom");
   const individualInput = document.getElementById("ev-evaluation-individual");
   const newBtn = document.getElementById("ev-new-btn");
   const cancelBtn = document.getElementById("ev-evaluation-cancel-btn");
@@ -40,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!modal || !form) return;
 
-  let currentEvaluationCard = null;
   const showToast = bindToast(toast);
 
   function openModal() {
@@ -49,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeModal() {
     modal.classList.add("hidden");
-    currentEvaluationCard = null;
   }
 
   function resetForm() {
@@ -59,66 +62,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (saveBtn) saveBtn.textContent = "Guardar";
   }
 
-  function resolveAulas(raw) {
-    const trimmed = (raw || "").trim();
-    if (AULAS_VALIDAS.includes(trimmed)) return [trimmed];
-    return [AULAS_VALIDAS[0]];
-  }
-
-  function appendEvaluationCard({ nombre, tipo, fecha, aula }) {
+  function appendEvaluationCard({ nombre, tipo }) {
     if (!grid) return;
     const id = `ev-${Date.now()}`;
-    const dateLabel = fecha
-      ? new Date(fecha + "T12:00:00").toLocaleDateString("es-AR")
-      : "—";
     const cardHtml = `
-      <article class="ev-card" data-id="${escapeHtml(id)}" data-type="${escapeHtml(tipo)}"
-        data-date="${escapeHtml(fecha || "")}" data-nombre="${escapeHtml(nombre)}"
-        data-classroom="${escapeHtml(aula)}" data-individual="false">
+      <article class="ev-card" data-id="${escapeHtml(id)}" data-type="${escapeHtml(tipo)}" data-nombre="${escapeHtml(nombre)}">
         <div class="ev-card__top">
           <span class="ev-badge ev-badge--${escapeHtml(tipo)}">${escapeHtml(EVALUATION_TYPE_LABELS[tipo] || tipo)}</span>
-          <time class="ev-card__date">${escapeHtml(dateLabel)}</time>
         </div>
         <div class="ev-card__body">
           <h2 class="ev-card__title">${escapeHtml(nombre)}</h2>
-          <p class="ev-card__code">${escapeHtml(aula)}</p>
         </div>
-        <footer class="ev-card__footer">
-          <p class="ev-card__progress">Notas cargadas: <strong>—</strong></p>
-        </footer>
       </article>`;
     grid.insertAdjacentHTML("afterbegin", cardHtml);
     if (emptyState) emptyState.hidden = true;
-  }
-
-  function applyEvaluationToCard(card, { nombre, tipo, classroom, fecha }) {
-    card.dataset.nombre = nombre;
-    card.dataset.type = tipo;
-    card.dataset.classroom = classroom;
-    card.dataset.date = fecha;
-
-    const title = card.querySelector(".ev-card__title");
-    if (title) title.textContent = nombre;
-    const code = card.querySelector(".ev-card__code");
-    if (code) code.textContent = classroom;
-
-    const badge = card.querySelector(".ev-badge");
-    if (badge) {
-      badge.textContent = EVALUATION_TYPE_LABELS[tipo] || badge.textContent;
-      badge.className = `ev-badge ev-badge--${tipo}`;
-    }
-  }
-
-  function populateFromCard(card) {
-    currentEvaluationCard = card;
-    if (modalTitle) modalTitle.textContent = "Editar Evaluación";
-    if (saveBtn) saveBtn.textContent = "Guardar cambios";
-    nameInput.value = card.dataset.nombre || "";
-    typeSelect.value = card.dataset.type || "";
-    classroomInput.value = card.dataset.classroom || "";
-    dateInput.value = card.dataset.date || "";
-    individualInput.checked = card.dataset.individual === "true";
-    openModal();
   }
 
   newBtn?.addEventListener("click", (event) => {
@@ -130,74 +87,58 @@ document.addEventListener("DOMContentLoaded", () => {
   bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });
   bindModalDismiss(modal, closeModal);
 
-  if (getQueryParam("vista") === "evaluations" && getQueryParam("accion") === "nueva") {
-    resetForm();
-    openModal();
-  }
-
-  grid?.addEventListener("click", (event) => {
-    const editLink = event.target.closest("a[aria-label='Editar evaluación']");
-    if (!editLink) return;
-    event.preventDefault();
-    const card = editLink.closest(".ev-card");
-    if (card) populateFromCard(card);
-  });
-
-  form.addEventListener("submit", async (event) => {
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const nombre = nameInput.value.trim();
-    const tipo = typeSelect.value;
-    const classroom = classroomInput.value.trim();
-    const fecha = dateInput.value;
-    const aulas = resolveAulas(classroom);
+    const tipoString = typeSelect.value;
+    const individual = individualInput.checked ? 1 : 0;
 
-    if (!nombre || !tipo) {
+    if (!nombre || !tipoString) {
       showToast("Completa nombre y tipo antes de guardar.");
       return;
     }
-    if (!fecha) {
-      showToast("Indica la fecha de la evaluación (YYYY-MM-DD).");
-      return;
-    }
-    if (!getAuthToken()) {
-      requireAuth();
-      return;
+
+    if (saveBtn) {
+      saveBtn.textContent = "Guardando...";
+      saveBtn.disabled = true;
     }
 
-    if (currentEvaluationCard) {
-      applyEvaluationToCard(currentEvaluationCard, {
-        nombre,
-        tipo,
-        classroom: aulas[0],
-        fecha,
-      });
-      showToast("Cambios guardados localmente (sin endpoint de actualización).");
-      setTimeout(closeModal, 900);
-      return;
-    }
+    // --- INTEGRACIÓN AJAX (CERO FETCH) ---
+    const payload = {
+      name: nombre,
+      evaluation_type_id: TYPE_MAP[tipoString] || 1,
+      individual: individual,
+      referenced_eval_id: null
+    };
 
-    try {
-      const response = await requestJson(
-        apiUrl(`/api/v1/classroom/${encodeURIComponent(classroomId)}/evaluaciones`),
-        {
-          method: "POST",
-          headers: authHeaders(),
-          body: { fecha, aulas },
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/v1/classroom/${encodeURIComponent(classroomId)}/evaluaciones`, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (saveBtn) {
+          saveBtn.textContent = "Guardar";
+          saveBtn.disabled = false;
         }
-      );
-      const body = response.json();
-      if (!response.ok) {
-        throw new Error(apiErrorMessage(body, "Error al crear la evaluación"));
-      }
 
-      appendEvaluationCard({ nombre, tipo, fecha, aula: aulas[0] });
-      showToast(body.message || "Evaluación creada correctamente.");
-      setTimeout(closeModal, 900);
-      resetForm();
-    } catch (error) {
-      console.error(error);
-      showToast(error.message || "No se pudo guardar. Intenta nuevamente.");
-    }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          showToast("Evaluación creada correctamente.");
+          appendEvaluationCard({ nombre, tipo: tipoString });
+          setTimeout(closeModal, 900);
+          resetForm();
+        } else {
+          let errorMsg = "Error al crear la evaluación.";
+          try {
+            const res = JSON.parse(xhr.responseText);
+            if (res.error) errorMsg = res.error;
+          } catch (e) { }
+          showToast(errorMsg);
+        }
+      }
+    };
+    xhr.send(JSON.stringify(payload));
   });
 });
