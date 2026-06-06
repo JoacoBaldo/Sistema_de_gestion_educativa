@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from flask import Flask
 
+from src.root.attendance import attendance_bp
 from src.root.auth import auth_bp
 from src.root.classroom import classroom_bp
 from src.root.evaluaciones import evaluacion_bp
@@ -15,6 +16,7 @@ app.register_blueprint(classroom_bp)
 app.register_blueprint(evaluacion_bp)
 app.register_blueprint(teams_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(attendance_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
