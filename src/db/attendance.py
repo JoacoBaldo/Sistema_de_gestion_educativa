@@ -24,16 +24,16 @@ def obtener_inasistencias_por_alumno(classroom_id: int) -> list[dict]:
                 u.id        AS student_id,
                 u.username  AS username,
                 u.email     AS email,
-                COALESCE(SUM(a.absense), 0) AS inasistencias
+                a.absense   AS inasistencias
             FROM classroom_users cu
             JOIN users u ON u.id = cu.user_id
             LEFT JOIN attendance_events ae
-                   ON ae.classroom_id = cu.classroom_id
+                ON ae.classroom_id = cu.classroom_id
             LEFT JOIN attendance a
-                   ON a.student_id = cu.user_id
-                  AND a.attendance_event_id = ae.id
+                ON a.student_id = cu.user_id
+                AND a.attendance_event_id = ae.id
             WHERE cu.classroom_id = %s
-              AND cu.role_id = %s
+                AND cu.role_id = %s
             GROUP BY u.id, u.username, u.email
             """,
             (classroom_id, ESTUDIANTE),
