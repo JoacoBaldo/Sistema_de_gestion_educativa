@@ -17,6 +17,7 @@ def crear_evaluacion_root(classroom_id: int):
         return responder_error(error)
 
     body = request.get_json(silent=True) or {}
+<<<<<<< HEAD
 
     name = body.get("name")
     if not isinstance(name, str):
@@ -42,6 +43,19 @@ def crear_evaluacion_root(classroom_id: int):
 
     resultado, error = crear_evaluacion(
         classroom_id, name, evaluation_type_id, referenced_eval_id, individual
+=======
+    name: str | None = body.get("name")
+    evaluation_type_id: int | None = body.get("evaluation_type_id")
+    referenced_eval_id: int | None = body.get("referenced_eval_id")
+    individual = body.get("individual", 1)
+
+    resultado, error = crear_evaluacion(
+        classroom_id,
+        name,
+        evaluation_type_id,
+        referenced_eval_id,
+        individual,  # type: ignore[arg-type]
+>>>>>>> c131af838aec2d191d01e5dd0ca592dce31bb401
     )
     if error:
         return responder_error(error)
