@@ -29,7 +29,8 @@ def crear_evaluacion_root(classroom_id: int):
         return responder_error(error)
 
     return jsonify(resultado), resultado["status"]
-    
+
+
 @evaluacion_bp.route("/api/v1/evaluaciones/<int:evaluation_id>", methods=["PATCH"])
 def actualizar_evaluacion_root(evaluation_id: int):
     token = extraer_token()
@@ -56,4 +57,3 @@ def actualizar_evaluacion_root(evaluation_id: int):
         return responder_error(error)
 
     return jsonify(resultado), resultado["status"]
-
