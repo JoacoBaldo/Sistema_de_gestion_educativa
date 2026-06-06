@@ -23,7 +23,7 @@ def crear_evaluacion_root(classroom_id: int):
     individual = body.get("individual", 1)
 
     resultado, error = crear_evaluacion(
-        classroom_id, name, evaluation_type_id, referenced_eval_id, individual
+        classroom_id, name: str, evaluation_type_id: int, referenced_eval_id: int, individual: int
     )
     if error:
         return responder_error(error)
