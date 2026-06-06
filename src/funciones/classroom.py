@@ -59,7 +59,7 @@ def crear_nueva_classroom(
 ) -> tuple:
     inserted_id = db_classroom.guardar_classroom(name, department, university)
     schedule_id = db_classroom.guardar_class_schedule(
-        inserted_id, class_day, class_start, class_end, academic_period_id
+        inserted_id, int(class_day), class_start, class_end, academic_period_id
     )
     db_classroom.asignar_admin_classroom(inserted_id, usuario_id)
     return {
@@ -80,3 +80,8 @@ def crear_nueva_classroom(
 def obtener_lista_classrooms(usuario_id: int) -> tuple:
     classrooms = db_classroom.obtener_classrooms_usuario(usuario_id)
     return classrooms, None
+
+
+def obtener_alumnos_classroom(classroom_id: int) -> tuple:
+    alumnos = db_classroom.obtener_alumnos(classroom_id)
+    return alumnos, None
