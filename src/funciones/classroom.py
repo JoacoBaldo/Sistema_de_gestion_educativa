@@ -81,6 +81,7 @@ def obtener_lista_classrooms(usuario_id: int) -> tuple:
     classrooms = db_classroom.obtener_classrooms_usuario(usuario_id)
     return classrooms, None
 
+
 def obtener_alumnos_classroom(classroom_id: int) -> tuple:
     alumnos = db_classroom.obtener_alumnos(classroom_id)
     return alumnos, None
