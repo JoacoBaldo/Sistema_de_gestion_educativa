@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .roles import ADMINISTRADOR, PROFESOR
+from .roles import ADMINISTRADOR, ESTUDIANTE, PROFESOR
 
 
 def obtener_profesores(classroom_id: int) -> list:
@@ -151,6 +151,40 @@ def agregar_usuario_classroom(classroom_id: int, user_id: int, role_id: int):
             (classroom_id, user_id, role_id),
         )
         conn.commit()
+
+
+def obtener_classroom_ids_de_periodos_finalizados() -> list[int]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT DISTINCT cs.classroom_id
+            FROM class_schedule cs
+            JOIN academic_period ap ON cs.academic_period_id = ap.id
+            WHERE ap.period_end < CURDATE()
+            """
+        ).fetchall()
+    return [f[0] for f in resultados]
+
+
+def desactivar_alumnos_de_classrooms(classroom_ids: list[int]) -> int:
+    if not classroom_ids:
+        return 0
+    placeholders = ", ".join(["%s"] * len(classroom_ids))
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        cursor = conn.exec_driver_sql(
+            f"""
+            UPDATE classroom_users
+            SET status_type_id = 2
+            WHERE classroom_id IN ({placeholders})
+              AND role_id = %s
+              AND status_type_id = 1
+            """,
+            (*classroom_ids, ESTUDIANTE),
+        )
+        conn.commit()
+        return cursor.rowcount
 
 
 def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
