@@ -16,6 +16,13 @@ const EVALUATION_TYPE_LABELS = {
   recuperatorio: "Recuperatorio",
 };
 
+const EVALUATION_TYPE_IDS = {
+  parcial: 1,
+  tp: 2,
+  recuperatorio: 3,
+  parcialito: 4,
+};
+
 const AULAS_VALIDAS = ["Aula 101", "Aula 102", "Aula 103"];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -55,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function resetForm() {
     form.reset();
     if (typeSelect) typeSelect.value = "";
+    if (individualInput) individualInput.checked = false;
     if (modalTitle) modalTitle.textContent = "Nueva Evaluación";
     if (saveBtn) saveBtn.textContent = "Guardar";
   }
@@ -65,18 +73,28 @@ document.addEventListener("DOMContentLoaded", () => {
     return [AULAS_VALIDAS[0]];
   }
 
-  function appendEvaluationCard({ nombre, tipo, fecha, aula }) {
+  function typeIdForType(tipo) {
+    return EVALUATION_TYPE_IDS[tipo] ?? null;
+  }
+
+  function appendEvaluationCard({ nombre, tipo, fecha, aula, evaluationId, individual }) {
     if (!grid) return;
-    const id = `ev-${Date.now()}`;
+    const id = evaluationId ? `ev-${evaluationId}` : `ev-${Date.now()}`;
     const dateLabel = fecha
       ? new Date(fecha + "T12:00:00").toLocaleDateString("es-AR")
       : "—";
     const cardHtml = `
-      <article class="ev-card" data-id="${escapeHtml(id)}" data-type="${escapeHtml(tipo)}"
+      <article class="ev-card" data-id="${escapeHtml(id)}" data-evaluation-id="${escapeHtml(
+      evaluationId ?? ""
+    )}" data-type="${escapeHtml(tipo)}"
         data-date="${escapeHtml(fecha || "")}" data-nombre="${escapeHtml(nombre)}"
-        data-classroom="${escapeHtml(aula)}" data-individual="false">
+        data-classroom="${escapeHtml(aula)}" data-individual="${escapeHtml(
+      individual ? "true" : "false"
+    )}">
         <div class="ev-card__top">
-          <span class="ev-badge ev-badge--${escapeHtml(tipo)}">${escapeHtml(EVALUATION_TYPE_LABELS[tipo] || tipo)}</span>
+          <span class="ev-badge ev-badge--${escapeHtml(tipo)}">${escapeHtml(
+      EVALUATION_TYPE_LABELS[tipo] || tipo
+    )}</span>
           <time class="ev-card__date">${escapeHtml(dateLabel)}</time>
         </div>
         <div class="ev-card__body">
@@ -84,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="ev-card__code">${escapeHtml(aula)}</p>
         </div>
         <footer class="ev-card__footer">
+          <button type="button" class="ev-card__edit-btn" aria-label="Editar evaluación">Editar</button>
           <p class="ev-card__progress">Notas cargadas: <strong>—</strong></p>
         </footer>
       </article>`;
@@ -91,11 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (emptyState) emptyState.hidden = true;
   }
 
-  function applyEvaluationToCard(card, { nombre, tipo, classroom, fecha }) {
+  function applyEvaluationToCard(card, { nombre, tipo, classroom, fecha, individual }) {
     card.dataset.nombre = nombre;
     card.dataset.type = tipo;
     card.dataset.classroom = classroom;
     card.dataset.date = fecha;
+    card.dataset.individual = individual ? "true" : "false";
 
     const title = card.querySelector(".ev-card__title");
     if (title) title.textContent = nombre;
@@ -136,10 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   grid?.addEventListener("click", (event) => {
-    const editLink = event.target.closest("a[aria-label='Editar evaluación']");
-    if (!editLink) return;
+    const editBtn = event.target.closest(".ev-card__edit-btn");
+    if (!editBtn) return;
     event.preventDefault();
-    const card = editLink.closest(".ev-card");
+    const card = editBtn.closest(".ev-card");
     if (card) populateFromCard(card);
   });
 
@@ -151,6 +171,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const classroom = classroomInput.value.trim();
     const fecha = dateInput.value;
     const aulas = resolveAulas(classroom);
+    const individual = individualInput.checked ? 1 : 0;
+    const evaluationTypeId = typeIdForType(tipo);
 
     if (!nombre || !tipo) {
       showToast("Completa nombre y tipo antes de guardar.");
@@ -166,14 +188,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (currentEvaluationCard) {
-      applyEvaluationToCard(currentEvaluationCard, {
-        nombre,
-        tipo,
-        classroom: aulas[0],
-        fecha,
-      });
-      showToast("Cambios guardados localmente (sin endpoint de actualización).");
-      setTimeout(closeModal, 900);
+      const evaluationId = currentEvaluationCard.dataset.evaluationId;
+      if (!evaluationId) {
+        showToast("No se puede actualizar esta evaluación: falta el ID de backend.");
+        return;
+      }
+
+      try {
+        const response = await requestJson(
+          apiUrl(`/api/v1/evaluaciones/${encodeURIComponent(evaluationId)}`),
+          {
+            method: "PATCH",
+            headers: authHeaders(),
+            body: {
+              name: nombre,
+              evaluation_type_id: evaluationTypeId,
+              individual,
+            },
+          }
+        );
+        const body = response.json();
+        if (!response.ok) {
+          throw new Error(apiErrorMessage(body, "Error al actualizar la evaluación"));
+        }
+
+        applyEvaluationToCard(currentEvaluationCard, {
+          nombre,
+          tipo,
+          classroom: aulas[0],
+          fecha,
+          individual: individual === 1,
+        });
+
+        showToast(body.message || "Evaluación actualizada correctamente.");
+        setTimeout(closeModal, 900);
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || "No se pudo actualizar. Intenta nuevamente.");
+      }
+
+      return;
+    }
+
+    if (!classroomId) {
+      showToast("No se encontró el aula para crear la evaluación.");
       return;
     }
 
@@ -183,7 +241,11 @@ document.addEventListener("DOMContentLoaded", () => {
         {
           method: "POST",
           headers: authHeaders(),
-          body: { fecha, aulas },
+          body: {
+            name: nombre,
+            evaluation_type_id: evaluationTypeId,
+            individual,
+          },
         }
       );
       const body = response.json();
@@ -191,7 +253,14 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(apiErrorMessage(body, "Error al crear la evaluación"));
       }
 
-      appendEvaluationCard({ nombre, tipo, fecha, aula: aulas[0] });
+      appendEvaluationCard({
+        nombre,
+        tipo,
+        fecha,
+        aula: aulas[0],
+        evaluationId: body.id,
+        individual: individual === 1,
+      });
       showToast(body.message || "Evaluación creada correctamente.");
       setTimeout(closeModal, 900);
       resetForm();
