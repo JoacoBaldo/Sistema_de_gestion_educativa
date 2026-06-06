@@ -1,4 +1,3 @@
-from collections import defaultdict
 from src.db import classroom as db_classroom
 from src.db import metrics as db_metrics
 from .errores import CLASSROOM_NO_EXISTE, NO_ES_ADMIN, SIN_ACCESO
@@ -14,21 +13,13 @@ def obtener_metricas_classroom(classroom_id: int, usuario_id: int) -> tuple:
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, NO_ES_ADMIN
 
-    # Obtener scores y calcular promedio de aprobados
-    scores_raw = db_metrics.obtener_promedio_aprobados(classroom_id)
-    promedio_aprobados = _calcular_promedio_aprobados(scores_raw)
-
-    # Obtener fechas de ingreso y agrupar por año
-    ingresos_raw = db_metrics.obtener_ingresos_por_año(classroom_id)
-    ingresos_por_año = _agrupar_ingresos_por_año(ingresos_raw)
-
+    promedio_aprobados = db_metrics.obtener_promedio_aprobados(classroom_id)
+    ingresos_por_anio = db_metrics.obtener_ingresos_por_anio(classroom_id)
     conteos = db_metrics.obtener_conteos_estudiantes(classroom_id)
 
     return {
-        "promedio_aprobados": round(promedio_aprobados * 100, 2)
-        if promedio_aprobados is not None
-        else 0,
-        "ingresos_por_año": ingresos_por_año,
+        "promedio_aprobados": round(promedio_aprobados * 100, 2) if promedio_aprobados is not None else 0,
+        "ingresos_por_anio": ingresos_por_anio,
         "total_estudiantes": conteos["total_estudiantes"],
         "total_activos": conteos["total_activos"],
         "total_abandonaron": conteos["total_abandonaron"],
