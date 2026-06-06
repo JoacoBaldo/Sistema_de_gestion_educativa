@@ -34,19 +34,5 @@ services:
       - .:/app
     command: flask run --host=0.0.0.0
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: gestion_educativa_frontend
-    ports:
-      - "5001:5001"
-    environment:
-      - API_BASE_URL=http://web:5000
-    depends_on:
-      - web
-    volumes:
-      - ./frontend:/app
-
 volumes:
   mysql_data:
