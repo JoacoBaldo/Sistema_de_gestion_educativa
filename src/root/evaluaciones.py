@@ -30,7 +30,9 @@ def crear_evaluacion_root(classroom_id: int):
 
     referenced_eval_raw = body.get("referenced_eval_id")
     try:
-        referenced_eval_id = int(referenced_eval_raw) if referenced_eval_raw is not None else None
+        referenced_eval_id = (
+            int(referenced_eval_raw) if referenced_eval_raw is not None else None
+        )
     except (TypeError, ValueError):
         referenced_eval_id = None
 
