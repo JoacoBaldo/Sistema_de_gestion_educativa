@@ -42,6 +42,7 @@ def crear_evaluacion(
     )
     return resultado, None
 
+
 def actualizar_evaluacion(
     classroom_id: int | None,
     name: str | None,
@@ -69,13 +70,13 @@ def actualizar_evaluacion(
     if classroom_id is not None and not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
 
-    if evaluation_type_id is not None and not existe_evaluation_type(evaluation_type_id):
+    if evaluation_type_id is not None and not existe_evaluation_type(
+        evaluation_type_id
+    ):
         return None, TIPO_EVALUACION_INVALIDO
 
     new_classroom_id = (
-        classroom_id
-        if classroom_id is not None
-        else evaluacion_actual["classroom_id"]
+        classroom_id if classroom_id is not None else evaluacion_actual["classroom_id"]
     )
     new_evaluation_type_id = (
         evaluation_type_id

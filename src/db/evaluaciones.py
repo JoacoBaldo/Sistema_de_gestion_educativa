@@ -48,10 +48,14 @@ def existe_evaluacion_en_classroom(evaluation_id: int, classroom_id: int) -> boo
 def obtener_evaluacion_por_id(evaluation_id: int) -> dict | None:
     engine = obtener_conexion()
     with engine.connect() as conn:
-        resultado = conn.exec_driver_sql(
-            "SELECT id, classroom_id, name, evaluation_type_id, referenced_eval_id, individual FROM evaluations WHERE id = %s LIMIT 1",
-            (evaluation_id,),
-        ).mappings().fetchone()
+        resultado = (
+            conn.exec_driver_sql(
+                "SELECT id, classroom_id, name, evaluation_type_id, referenced_eval_id, individual FROM evaluations WHERE id = %s LIMIT 1",
+                (evaluation_id,),
+            )
+            .mappings()
+            .fetchone()
+        )
     return dict(resultado) if resultado else None
 
 
@@ -61,7 +65,7 @@ def actualizar_evaluacion_db(
     evaluation_type_id: int | None,
     referenced_eval_id: int | None,
     individual: int | None,
-    evaluation_id: int
+    evaluation_id: int,
 ) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
