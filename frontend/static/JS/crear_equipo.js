@@ -114,10 +114,55 @@ document.addEventListener("DOMContentLoaded", () => {
       btnGuardar.disabled = true;
     }
 
-    showToast("Alta de equipos no disponible (POST /api/v1/teams no implementado).");
-    if (btnGuardar) {
-      btnGuardar.textContent = "Crear Equipo";
-      btnGuardar.disabled = false;
+    const classroomId = getQueryParam("id") || getQueryParam("classroom_id");
+
+    const payload = {
+      classroom_id: classroomId ? parseInt(classroomId) : null,
+      nombre: nombreEquipo,
+      miembros: miembros
+    };
+
+    const xhr = new XMLHttpRequest();
+    // Apuntamos al proxy de Flask en el frontend
+    xhr.open("POST", "/api/v1/teams/", true);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+    // Si tu API requiere token de autenticación (JWT)
+    const token = localStorage.getItem("token");
+    if (token) {
+      xhr.setRequestHeader("Authorization", "Bearer " + token);
     }
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        // Restaurar el botón al finalizar la petición
+        if (btnGuardar) {
+          btnGuardar.textContent = "Crear Equipo";
+          btnGuardar.disabled = false;
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          showToast("Equipo creado exitosamente.");
+          closeModal();
+          // Recargamos la grilla después de 1 segundo para ver el nuevo equipo
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          // Manejo de errores devueltos por el backend
+          let msjError = "Ocurrió un error al crear el equipo.";
+          try {
+            const respuesta = JSON.parse(xhr.responseText);
+            if (respuesta.error) msjError = respuesta.error;
+            if (respuesta.message) msjError = respuesta.message;
+          } catch (ex) {
+            console.error("Error parseando la respuesta:", ex);
+          }
+          showToast(msjError);
+        }
+      }
+    };
+
+    xhr.send(JSON.stringify(payload));
   });
 });

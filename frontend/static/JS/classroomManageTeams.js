@@ -3,14 +3,13 @@ import { apiUrl, apiErrorMessage } from "./common/api.js";
 import { authHeaders, requireAuth } from "./common/auth.js";
 import { createCmrToast } from "./common/ui.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+ddocument.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("tm-grid");
   if (!grid) return;
-  requireAuth();
 
   const showToast = createCmrToast();
 
-  grid.addEventListener("click", async (event) => {
+  grid.addEventListener("click", (event) => {
     const deleteBtn = event.target.closest(".tm-delete-btn");
     if (!deleteBtn) return;
     event.preventDefault();
@@ -20,25 +19,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!teamId) return;
     if (!confirm(`¿Eliminar "${nombre}"?`)) return;
 
-    try {
-      const response = await requestJson(apiUrl("/api/v1/teams"), {
-        method: "DELETE",
-        headers: authHeaders(),
-        body: { id: Number(teamId) },
-      });
-      const body = response.json();
-      if (!response.ok) {
-        throw new Error(apiErrorMessage(body, "No se pudo eliminar el equipo"));
+    const xhr = new XMLHttpRequest();
+    xhr.open("DELETE", "/api/v1/teams", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          deleteBtn.closest(".tm-card")?.remove();
+          showToast("Equipo eliminado.");
+          if (!grid.querySelector(".tm-card")) {
+            const empty = document.getElementById("tm-empty");
+            if (empty) empty.hidden = false;
+          }
+        } else {
+          showToast("Error al eliminar el equipo.");
+        }
       }
-      deleteBtn.closest(".tm-card")?.remove();
-      showToast("Equipo eliminado.");
-      if (!grid.querySelector(".tm-card")) {
-        const empty = document.getElementById("tm-empty");
-        if (empty) empty.hidden = false;
-      }
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || "Error al eliminar.");
-    }
+    };
+    xhr.send(JSON.stringify({ id: Number(teamId) }));
   });
 });
