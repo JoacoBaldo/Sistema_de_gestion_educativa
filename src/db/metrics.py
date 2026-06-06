@@ -1,6 +1,5 @@
 from .conexion import obtener_conexion
-from .roles import ESTUDIANTE
-
+from .constantes import ESTUDIANTE, STATUS_ACTIVO, STATUS_ABANDONO
 
 def obtener_promedio_aprobados(classroom_id: int) -> float | None:
     engine = obtener_conexion()
@@ -44,11 +43,6 @@ def obtener_ingresos_por_anio(classroom_id: int) -> list[dict]:
             (classroom_id, ESTUDIANTE),
         ).fetchall()
     return [{"year": int(f[0]), "total": int(f[1])} for f in resultados]
-
-
-STATUS_ACTIVO = 1
-STATUS_ABANDONO = 4
-
 
 def obtener_conteos_estudiantes(classroom_id: int) -> dict:
     engine = obtener_conexion()
