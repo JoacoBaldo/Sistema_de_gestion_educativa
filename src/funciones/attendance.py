@@ -5,6 +5,7 @@ from .errores import SIN_ACCESO
 FULL_ASISTENCIA = 100
 FULL_INASISTENCIA = 0
 
+
 def obtener_inasistencias_classroom(classroom_id: int, usuario_id: int) -> tuple:
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, SIN_ACCESO
