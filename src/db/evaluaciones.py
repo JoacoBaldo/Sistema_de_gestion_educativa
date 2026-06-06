@@ -14,7 +14,7 @@ def crear_evaluacion_db(
             "INSERT INTO evaluations (classroom_id, name, evaluation_type_id, referenced_eval_id, individual) VALUES (%s, %s, %s, %s, %s) RETURNING id",
             (classroom_id, name, evaluation_type_id, referenced_eval_id, individual),
         )
-        inserted = result.fetchone()
+        inserted = resultado.fetchone()
         conn.commit()
 
     evaluation_id = inserted[0] if inserted else None
