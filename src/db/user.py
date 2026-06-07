@@ -20,5 +20,3 @@ def email_existe(email: str) -> bool:
             (email,),
         ).fetchone()
     return resultado is not None
-
-
