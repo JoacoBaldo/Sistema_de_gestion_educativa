@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from flask import request
 from src.db import auth as db_auth
 from src.db import classroom as db_classroom
 from .constantes import TIEMPO_EXPIRACION_HORAS
@@ -7,6 +8,8 @@ from .errores import (
     LINK_INVALIDO,
     TOKEN_INVALIDO,
     USUARIO_YA_EN_CLASSROOM,
+    FALTAN_DATOS,
+    USUARIO_NO_EXISTE,
 )
 
 
@@ -70,7 +73,7 @@ def buscar_token(token: str):
 
 
 def usuario_existe(usuario_id: int):
-    return db_auth.usuario_existe(usuario_id), USUARIO_NO_EXISTE_GLOBAL
+    return db_auth.usuario_existe(usuario_id), USUARIO_NO_EXISTE
 
 
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):

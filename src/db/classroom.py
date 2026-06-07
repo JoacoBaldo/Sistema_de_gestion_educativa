@@ -242,9 +242,6 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
         for fila in resultados
     ]
 
-    return list(classrooms_dict.values())
-
-
 def obtener_evaluaciones(classroom_id: int) -> list:
     engine = obtener_conexion()
     with engine.connect() as conn:
