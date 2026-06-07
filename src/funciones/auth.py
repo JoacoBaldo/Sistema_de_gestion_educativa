@@ -3,13 +3,11 @@ from src.db import auth as db_auth
 from flask import request
 import bcrypt
 
-from src.db import auth as db_auth
 from src.db import classroom as db_classroom
 from .constantes import TIEMPO_EXPIRACION_HORAS
-from .errores import (TOKEN_INVALIDO,
+from .errores import (
     FALTAN_DATOS,
     USUARIO_NO_EXISTE_GLOBAL,
-    CREDENCIALES_INVALIDAS,
     CREDENCIALES_INVALIDAS,
     LINK_INVALIDO,
     TOKEN_INVALIDO,
@@ -52,12 +50,15 @@ def login_con_link(email: str, password: str, join_token: str) -> tuple:
     token = crear_token(usuario["id"], usuario["username"], usuario["email"])
     return {**usuario, "role_id": role_id, "token": token}, None
 
+
 def buscar_token(token: str):
     return db_auth.buscar_token(token), TOKEN_INVALIDO
+
 
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):
     db_auth.actualizar_contrasenia(id_usuario, hash_generado)
     return {"message": "Contraseña actualizada exitosamente"}
+
 
 def validar_credenciales(email: str, password: str) -> tuple:
     usuario = db_auth.obtener_usuario_por_email(email)
@@ -73,7 +74,8 @@ def validar_credenciales(email: str, password: str) -> tuple:
         "username": usuario["username"],
         "email": usuario["email"],
     }, None
-    
+
+
 def datos_completos():
     body = request.get_json()
     token = body.get("token")
@@ -82,7 +84,7 @@ def datos_completos():
         return token, nueva_contraseña, FALTAN_DATOS
     return token, nueva_contraseña, None
 
+
 def usuario_existe(usuario_id: int):
     usuario = db_auth.usuario_existe(usuario_id)
     return usuario, None if usuario else USUARIO_NO_EXISTE_GLOBAL
-

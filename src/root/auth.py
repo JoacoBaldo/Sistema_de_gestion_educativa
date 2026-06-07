@@ -3,16 +3,17 @@ from src.funciones.errores import (
     EMAIL_REQUERIDO,
     LINK_INVALIDO,
     PASSWORD_REQUERIDO,
-    USER_ID_NO_COINCIDE,)
+)
 from werkzeug.security import generate_password_hash
 from src.funciones.auth import (
     datos_completos,
     buscar_token,
     usuario_existe,
     actualizar_contrasenia as actualizar_contrasenia_func,
-    crear_token, 
-    login_con_link, 
-    validar_credenciales)
+    crear_token,
+    login_con_link,
+    validar_credenciales,
+)
 from .utils import responder_error
 
 
@@ -41,7 +42,7 @@ def login_join():
 
     return jsonify(resultado), 200
 
-    
+
 @auth_bp.route("/api/v1/users/<int:user_id>", methods=["GET"])
 def login(user_id: int):
     body = request.get_json(silent=True) or {}
@@ -73,7 +74,8 @@ def login(user_id: int):
         200,
     )
 
-@auth_bp.route('/api/auth/actualizar-contrasenia', methods=['POST'])
+
+@auth_bp.route("/api/auth/actualizar-contrasenia", methods=["POST"])
 def actualizar_contrasenia_route():
 
     token, nueva_contrasenia, error = datos_completos()
