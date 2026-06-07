@@ -242,6 +242,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
         for fila in resultados
     ]
 
+
 def obtener_evaluaciones(classroom_id: int) -> list:
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -265,7 +266,7 @@ def obtener_evaluaciones(classroom_id: int) -> list:
             }
         )
     return evaluaciones
-    
+
 
 def obtener_alumnos(classroom_id: int) -> list:
     engine = obtener_conexion()

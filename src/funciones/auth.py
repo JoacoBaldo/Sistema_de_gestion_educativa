@@ -35,6 +35,8 @@ def datos_completos():
     if not token or not nueva_contraseña:
         return token, nueva_contraseña, FALTAN_DATOS
     return token, nueva_contraseña, None
+
+
 def login_con_link(email: str, password: str, join_token: str) -> tuple:
     usuario, error = validar_credenciales(email, password)
     if error:
@@ -67,7 +69,6 @@ def validar_credenciales(email: str, password: str) -> tuple:
     }, None
 
 
-
 def buscar_token(token: str):
     return db_auth.buscar_token(token), TOKEN_INVALIDO
 
@@ -79,4 +80,3 @@ def usuario_existe(usuario_id: int):
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):
     db_auth.actualizar_contrasenia(id_usuario, hash_generado)
     return {"message": "Contraseña actualizada exitosamente"}
- 

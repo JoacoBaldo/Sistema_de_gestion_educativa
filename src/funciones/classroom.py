@@ -89,7 +89,8 @@ def obtener_evaluaciones_classroom(classroom_id: int, usuario_id: int) -> tuple:
 
     evaluaciones = db_classroom.obtener_evaluaciones(classroom_id)
     return evaluaciones, None
-    
+
+
 def obtener_alumnos_classroom(classroom_id: int) -> tuple:
     alumnos = db_classroom.obtener_alumnos(classroom_id)
     return alumnos, None

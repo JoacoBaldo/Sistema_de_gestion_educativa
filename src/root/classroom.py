@@ -160,6 +160,8 @@ def listar_evaluaciones(classroom_id):
         return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
+
+
 @classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/alumnos", methods=["GET"])
 def listar_alumnos_paginados(classroom_id):
     token = extraer_token()
