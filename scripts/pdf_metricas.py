@@ -28,7 +28,11 @@ from src.funciones.errores import (
 
 FILTROS_VALIDOS = {"students", "students_passed", "teams", "colaborators"}
 
-NOMBRE_ROL = {PROFESOR: "Profesor", AYUDANTE: "Ayudante", ADMINISTRADOR: "Administrador"}
+NOMBRE_ROL = {
+    PROFESOR: "Profesor",
+    AYUDANTE: "Ayudante",
+    ADMINISTRADOR: "Administrador",
+}
 
 COLOR_HEADER = colors.HexColor("#1a3557")
 COLOR_FILA_PAR = colors.HexColor("#eaf0f8")
@@ -36,6 +40,7 @@ COLOR_BORDE = colors.HexColor("#a0b4cc")
 
 
 # ── Punto de entrada público ──────────────────────────────────────────────────
+
 
 def generar_pdf_metricas(
     classroom_id: int,
@@ -65,7 +70,9 @@ def generar_pdf_metricas(
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, NO_ES_ADMIN
 
-    tabla_extra, titulo_extra, columnas_extra = _obtener_datos_filtro(classroom_id, filtro)
+    tabla_extra, titulo_extra, columnas_extra = _obtener_datos_filtro(
+        classroom_id, filtro
+    )
 
     pdf_bytes = _construir_pdf(
         classroom_id=classroom_id,
@@ -79,6 +86,7 @@ def generar_pdf_metricas(
 
 # ── Resolución de datos por filtro ────────────────────────────────────────────
 
+
 def _obtener_datos_filtro(
     classroom_id: int,
     filtro: str | None,
@@ -90,7 +98,10 @@ def _obtener_datos_filtro(
         filas = db_classroom.obtener_alumnos_classroom(classroom_id)
         filas_filtradas = [f for f in filas if f.get("status_type_id") == STATUS_ACTIVO]
         return (
-            [[f["id"], f["username"], f["email"], _fmt_fecha(f.get("created_at"))] for f in filas_filtradas],
+            [
+                [f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])]
+                for f in filas
+            ],
             "Alumnos Activos",
             ["ID", "Usuario", "Email", "Ingresó"],
         )
@@ -98,7 +109,10 @@ def _obtener_datos_filtro(
     if filtro == "students_passed":
         filas = db_metrics.obtener_alumnos_aprobados_activos(classroom_id)
         return (
-            [[f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])] for f in filas],
+            [
+                [f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])]
+                for f in filas
+            ],
             "Alumnos Activos y Aprobados",
             ["ID", "Usuario", "Email", "Ingresó"],
         )
@@ -141,6 +155,7 @@ def _obtener_datos_filtro(
 
 
 # ── Builder PDF ───────────────────────────────────────────────────────────────
+
 
 def _construir_pdf(
     classroom_id: int,
@@ -192,7 +207,10 @@ def _construir_pdf(
     elementos.append(Paragraph("Reporte de Métricas", estilo_titulo))
     elementos.append(Paragraph(f"Classroom ID: {classroom_id}", estilo_subtitulo))
     elementos.append(
-        Paragraph(f"Fecha de generación: {date.today().strftime('%d/%m/%Y')}", estilo_subtitulo)
+        Paragraph(
+            f"Fecha de generación: {date.today().strftime('%d/%m/%Y')}",
+            estilo_subtitulo,
+        )
     )
     elementos.append(Spacer(1, 0.5 * cm))
 
@@ -217,7 +235,9 @@ def _construir_pdf(
         ]
         elementos.append(_construir_tabla(filas_ingresos, col_widths=[8 * cm, 8 * cm]))
     else:
-        elementos.append(Paragraph("Sin datos de ingresos registrados.", estilos["Normal"]))
+        elementos.append(
+            Paragraph("Sin datos de ingresos registrados.", estilos["Normal"])
+        )
     elementos.append(Spacer(1, 0.4 * cm))
 
     # Tabla filtrada (opcional)
@@ -227,10 +247,14 @@ def _construir_pdf(
             ancho_col = (17 * cm) / len(columnas_extra)
             filas_extra = [columnas_extra] + tabla_extra
             elementos.append(
-                _construir_tabla(filas_extra, col_widths=[ancho_col] * len(columnas_extra))
+                _construir_tabla(
+                    filas_extra, col_widths=[ancho_col] * len(columnas_extra)
+                )
             )
         else:
-            elementos.append(Paragraph("No hay registros para mostrar.", estilos["Normal"]))
+            elementos.append(
+                Paragraph("No hay registros para mostrar.", estilos["Normal"])
+            )
 
     doc.build(elementos)
     return buffer.getvalue()

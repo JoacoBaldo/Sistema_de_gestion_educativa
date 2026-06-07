@@ -237,7 +237,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     ]
 
 
-def obtener_alumnos_classroom(classroom_id: int) -> list[dict]:
+def obtener_alumnos(classroom_id: int) -> list:
     engine = obtener_conexion()
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
