@@ -1,6 +1,7 @@
 from .conexion import obtener_conexion
 from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR, STATUS_ACTIVO, STATUS_ABANDONO
 
+
 def obtener_promedio_aprobados(classroom_id: int) -> list[dict]:
     """Retorna lista de user_id con sus scores para procesamiento en Python"""
     engine = obtener_conexion()
@@ -34,6 +35,7 @@ def obtener_ingresos_por_año(classroom_id: int) -> list[dict]:
             (classroom_id, ESTUDIANTE),
         ).fetchall()
     return [{"created_at": f[0]} for f in resultados]
+
 
 def obtener_conteos_estudiantes(classroom_id: int) -> dict:
     engine = obtener_conexion()
