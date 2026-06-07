@@ -1,35 +1,46 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 from flask import Blueprint, jsonify, request
-
-from src.funciones.auth import crear_token, validar_credenciales
 from src.funciones.errores import (
     EMAIL_REQUERIDO,
+    LINK_INVALIDO,
     PASSWORD_REQUERIDO,
-    USER_ID_NO_COINCIDE,
-=======
-from flask import Blueprint, jsonify
+    USER_ID_NO_COINCIDE,)
 from werkzeug.security import generate_password_hash
 from src.funciones.auth import (
     datos_completos,
     buscar_token,
     usuario_existe,
     actualizar_contrasenia,
->>>>>>> 0e64132 (Agrega funciones para actualizar la contrasenia de un usuario. Ademas añade auth.bp al main)
-)
+    crear_token, 
+    login_con_link, 
+    validar_credenciales)
 from .utils import responder_error
-=======
-from flask import Blueprint, jsonify
->>>>>>> b7459c5 (style: auto-formateo de código con Ruff 🎨)
 from werkzeug.security import generate_password_hash
-from src.funciones.auth import (
-    datos_completos,
-    buscar_token,
-    usuario_existe,
-    actualizar_contrasenia_db,
-)
+
 
 auth_bp = Blueprint("auth", __name__)
+
+
+@auth_bp.route("/api/v1/login/join", methods=["POST"])
+def login_join():
+    join_token = request.args.get("token")
+    if not join_token:
+        return responder_error(LINK_INVALIDO)
+
+    body = request.get_json(silent=True) or {}
+    email = body.get("email")
+    password = body.get("password")
+
+    if not email:
+        return responder_error(EMAIL_REQUERIDO)
+
+    if not password:
+        return responder_error(PASSWORD_REQUERIDO)
+
+    resultado, error = login_con_link(email, password, join_token)
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
 
 
 @auth_bp.route("/api/v1/users/<int:user_id>", methods=["POST"])
@@ -49,9 +60,6 @@ def login(user_id: int):
     if error:
         return responder_error(error)
 
-    if usuario["id"] != user_id:
-        return responder_error(USER_ID_NO_COINCIDE)
-
     token = crear_token(usuario["id"], usuario["username"], usuario["email"])
 
     return (
@@ -60,7 +68,6 @@ def login(user_id: int):
                 "id": usuario["id"],
                 "username": usuario["username"],
                 "email": usuario["email"],
-                "role_id": usuario["role_id"],
                 "token": token,
             }
         ),
@@ -89,12 +96,4 @@ def actualizar_contrasenia():
 
     resultado = actualizar_contrasenia(id_usuario, hash_generado)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     return jsonify({resultado}), 200
-=======
-    return jsonify{resultado}, 200
->>>>>>> 0e64132 (Agrega funciones para actualizar la contrasenia de un usuario. Ademas añade auth.bp al main)
-=======
-    return jsonify({resultado}), 200
->>>>>>> f7c4006 (Arregla errores de sintaxis)

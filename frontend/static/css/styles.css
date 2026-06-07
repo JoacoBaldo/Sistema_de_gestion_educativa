@@ -1,0 +1,306 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* ─── Design tokens ─── */
+:root {
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+
+  --color-text: #0f172a;
+  --color-text-body: #334155;
+  --color-text-muted: #64748b;
+  --color-icon: #333333;
+  --color-icon-muted: #9aa3af;
+  --color-bg: #f8f9fa;
+  --color-panel: #ffffff;
+
+  --gradient-logo: linear-gradient(135deg, #7c3aed 0%, #6d28d9 45%, #5b21b6 100%);
+  --gradient-primary: linear-gradient(90deg, #7b61ff 0%, #3b82f6 100%);
+  --gradient-primary-hover: linear-gradient(90deg, #6d52f5 0%, #2563eb 100%);
+  --gradient-nav-active: linear-gradient(90deg, #7c3aed 0%, #6366f1 55%, #3b82f6 100%);
+
+  --shadow-logo: 0 4px 16px rgba(109, 40, 217, 0.4);
+  --shadow-primary-btn: 0 8px 20px rgba(59, 130, 246, 0.35);
+  --shadow-primary-btn-hover: 0 10px 24px rgba(59, 130, 246, 0.4);
+  --shadow-card: 0 10px 25px rgba(15, 23, 42, 0.06);
+  --shadow-panel: 0 18px 55px rgba(15, 23, 42, 0.1);
+
+  --radius-pill: 999px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+
+  --icon-size-nav: 20px;
+  --icon-box-nav: 24px;
+  --focus-ring: 0 0 0 4px rgba(123, 97, 255, 0.22);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-text-body);
+}
+
+main {
+  min-height: 100vh;
+}
+
+/* ─── Logo (todas las vistas) ─── */
+.auth-logo,
+.cm-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--gradient-logo);
+  box-shadow: var(--shadow-logo);
+}
+
+.auth-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+}
+
+.auth-card .auth-logo {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 1rem;
+  border-radius: var(--radius-md);
+}
+
+.cm-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+}
+
+.auth-logo-icon,
+.cm-logo-icon {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+/* ─── Botones primarios violeta (todas las vistas) ─── */
+.btn-gradient,
+.um-primary-btn,
+.btn-crear,
+.st-btn-primary,
+.btn-add-horario,
+.auth-tab.active {
+  font-family: inherit;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--gradient-primary);
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-primary-btn);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease,
+    background 0.2s ease;
+}
+
+.btn-gradient:hover,
+.um-primary-btn:hover,
+.btn-crear:hover,
+.st-btn-primary:hover,
+.btn-add-horario:hover {
+  opacity: 0.95;
+  box-shadow: var(--shadow-primary-btn-hover);
+}
+
+.btn-gradient:active,
+.um-primary-btn:active,
+.btn-crear:active,
+.st-btn-primary:active,
+.btn-add-horario:active,
+.btn-token:active {
+  transform: scale(0.98);
+}
+
+.btn-gradient:focus-visible,
+.um-primary-btn:focus-visible,
+.btn-crear:focus-visible,
+.st-btn-primary:focus-visible,
+.btn-add-horario:focus-visible,
+.btn-token:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-primary-btn-hover), var(--focus-ring);
+}
+
+/* Tamaños por contexto */
+.btn-gradient {
+  width: 100%;
+  padding: 0.95rem 1.25rem;
+  font-size: 1rem;
+}
+
+.um-primary-btn {
+  height: 2.6rem;
+  padding: 0 1.1rem;
+  font-size: 0.84rem;
+}
+
+.btn-crear {
+  flex: 1;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.95rem;
+}
+
+.st-btn-primary {
+  padding: 11px 16px;
+  font-size: 0.95rem;
+}
+
+.btn-add-horario {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+}
+
+.auth-tab.active {
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-token {
+  font-family: inherit;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+/* ─── Iconos ─── */
+
+/* Nav lateral: iconos solos (~80% negro) */
+.cm-nav-icon {
+  width: var(--icon-box-nav);
+  height: var(--icon-box-nav);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-icon);
+}
+
+.cm-nav-icon svg {
+  width: var(--icon-size-nav);
+  height: var(--icon-size-nav);
+  display: block;
+}
+
+.cm-nav-item.is-active .cm-nav-icon {
+  color: #ffffff;
+}
+
+/* Iconos junto a texto: heredan color y escala del texto padre */
+.cm-footer-icon,
+.um-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  font-size: inherit;
+  color: currentColor;
+}
+
+.cm-footer-icon svg,
+.um-ico svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+/* Navbar superior: iconos sueltos en botón */
+.um-icon-btn:not(.icon--danger) {
+  color: var(--color-icon);
+}
+
+.um-icon-btn svg {
+  width: var(--icon-size-nav);
+  height: var(--icon-size-nav);
+  display: block;
+}
+
+/* Toolbar / acciones de tabla */
+.st-search-icon,
+.st-ghost-icon {
+  color: var(--color-text-muted);
+  width: 1.15em;
+  height: 1.15em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: inherit;
+}
+
+.st-search-icon svg,
+.st-ghost-icon svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+.st-icon-btn:not(.danger) {
+  color: var(--color-icon);
+}
+
+.st-icon-btn svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+/* Iconos rojos (cerrar sesión) */
+.cm-footer-icon.icon--danger,
+.um-icon-btn.icon--danger {
+  color: #fd4444 !important;
+}
+
+.cm-footer-icon.icon--danger svg,
+.um-icon-btn.icon--danger svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+/* ─── Paneles sólidos (bloques modernos sin borde) ─── */
+.cm-panel,
+.st-table-card,
+.st-import,
+.st-search,
+.st-select select {
+  background: rgba(255, 255, 255, 0.78);
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.cm-panel {
+  padding: 18px;
+}
+
+.text-danger {
+  color: #ff4b4b !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  white-space: nowrap;
+}
