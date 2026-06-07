@@ -8,6 +8,7 @@ const editMiembrosList = document.getElementById('edit-miembros-list');
 window.abrirModalEditarEquipo = function (teamId, teamName, members = []) {
     document.getElementById('edit_team_id').value = teamId;
     document.getElementById('edit_nombre_equipo').value = teamName;
+    document.getElementById('edit_token').value = localStorage.getItem("token") || "";
 
     editMiembrosList.innerHTML = '';
 
@@ -59,9 +60,7 @@ editMiembrosList.addEventListener('click', (e) => {
     }
 });
 
-formEditarEquipo.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+formEditarEquipo.addEventListener('submit', (e) => {
     const teamId = document.getElementById('edit_team_id').value;
     const teamName = document.getElementById('edit_nombre_equipo').value.trim();
 
@@ -70,41 +69,19 @@ formEditarEquipo.addEventListener('submit', async (e) => {
 
     if (!teamName) {
         alert('El nombre del equipo es requerido');
+        e.preventDefault();
         return;
     }
 
     if (miembros.length === 0) {
         alert('Al menos un miembro es requerido');
+        e.preventDefault();
         return;
     }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", "/api/v1/teams", true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                alert('Equipo actualizado exitosamente');
-                cerrarModalEditarEquipo();
-                if (window.cargarEquipos) window.cargarEquipos();
-            } else {
-                let errorMsg = "No se pudo actualizar el equipo";
-                try {
-                    const res = JSON.parse(xhr.responseText);
-                    errorMsg = res.error || errorMsg;
-                } catch (e) { }
-                alert(`Error: ${errorMsg}`);
-            }
-        }
-    };
-
-    xhr.send(JSON.stringify({
-        id: parseInt(teamId),
-        name: teamName,
-        member_ids: miembros
-    }));
+    // Actualizar el action del formulario para apuntar a la ruta correcta
+    formEditarEquipo.action = `/equipos/${teamId}/actualizar`;
+    // El formulario se enviará normalmente con POST
 });
 
 editTeamModal.addEventListener('click', (e) => {

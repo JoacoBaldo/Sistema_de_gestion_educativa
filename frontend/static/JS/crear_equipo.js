@@ -67,6 +67,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!miembrosList) return;
     miembrosList.innerHTML = "";
     miembrosList.appendChild(createMemberRow());
+    
+    // Agregar classroom_id como campo hidden si es necesario
+    const classroomId = getQueryParam("id") || getQueryParam("classroom_id");
+    let classroomInput = form.querySelector('input[name="classroom_id"]');
+    if (!classroomInput && classroomId) {
+      classroomInput = document.createElement("input");
+      classroomInput.type = "hidden";
+      classroomInput.name = "classroom_id";
+      classroomInput.value = classroomId;
+      form.appendChild(classroomInput);
+    } else if (classroomInput && classroomId) {
+      classroomInput.value = classroomId;
+    }
   }
 
   btnAddMember?.addEventListener("click", () => {
@@ -90,8 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
     const nombreEquipo = document.getElementById("nombre_equipo")?.value.trim();
     const miembros = Array.from(form.querySelectorAll("input[name='miembros']"))
       .map((input) => input.value.trim())
@@ -100,69 +111,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!nombreEquipo) {
       showToast("El nombre del equipo es obligatorio.");
       document.getElementById("nombre_equipo")?.focus();
+      event.preventDefault();
       return;
     }
 
     if (miembros.length === 0) {
       showToast("Agrega al menos un miembro al equipo.");
       miembrosList?.querySelector("input")?.focus();
+      event.preventDefault();
       return;
     }
 
-    if (btnGuardar) {
-      btnGuardar.textContent = "Creando...";
-      btnGuardar.disabled = true;
-    }
-
-    const classroomId = getQueryParam("id") || getQueryParam("classroom_id");
-
-    const payload = {
-      classroom_id: classroomId ? parseInt(classroomId) : null,
-      nombre: nombreEquipo,
-      miembros: miembros
-    };
-
-    const xhr = new XMLHttpRequest();
-    // Apuntamos al proxy de Flask en el frontend
-    xhr.open("POST", "/api/v1/teams/", true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-
-    // Si tu API requiere token de autenticación (JWT)
+    // Agregar token al formulario si es necesario
     const token = localStorage.getItem("token");
     if (token) {
-      xhr.setRequestHeader("Authorization", "Bearer " + token);
+      const tokenInput = document.createElement("input");
+      tokenInput.type = "hidden";
+      tokenInput.name = "token";
+      tokenInput.value = token;
+      form.appendChild(tokenInput);
     }
 
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        // Restaurar el botón al finalizar la petición
-        if (btnGuardar) {
-          btnGuardar.textContent = "Crear Equipo";
-          btnGuardar.disabled = false;
-        }
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-          showToast("Equipo creado exitosamente.");
-          closeModal();
-          // Recargamos la grilla después de 1 segundo para ver el nuevo equipo
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } else {
-          // Manejo de errores devueltos por el backend
-          let msjError = "Ocurrió un error al crear el equipo.";
-          try {
-            const respuesta = JSON.parse(xhr.responseText);
-            if (respuesta.error) msjError = respuesta.error;
-            if (respuesta.message) msjError = respuesta.message;
-          } catch (ex) {
-            console.error("Error parseando la respuesta:", ex);
-          }
-          showToast(msjError);
-        }
-      }
-    };
-
-    xhr.send(JSON.stringify(payload));
+    // El formulario se enviará normalmente con POST a /equipos
   });
 });
+

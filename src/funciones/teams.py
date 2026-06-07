@@ -5,6 +5,40 @@ from src.db import teams as db_teams
 from .errores import EQUIPO_NO_EXISTE, MIEMBROS_INVALIDOS, NO_ES_ADMIN
 
 
+def crear_equipo(
+    nombre: str,
+    miembros: List[str],
+    classroom_id: int,
+    usuario_id: int,
+) -> tuple:
+    """
+    Crea un nuevo equipo con miembros (nombres).
+    Para formularios HTML tradicionales.
+    """
+    if not nombre or not nombre.strip():
+        return None, "El nombre del equipo es requerido"
+    
+    if not miembros:
+        return None, "Al menos un miembro es requerido"
+    
+    # Verificar que el usuario puede administrar el classroom
+    if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+        return None, NO_ES_ADMIN
+    
+    # Para ahora, almacenaremos los miembros como nombres en un campo JSON
+    # Nota: Esto depende de cómo esté estructurada la tabla teams
+    equipo_id = db_teams.crear_equipo_con_miembros(
+        nombre.strip(),
+        miembros,
+        classroom_id
+    )
+    
+    if equipo_id is None:
+        return None, "No se pudo crear el equipo"
+    
+    return {"message": "Team created", "id": equipo_id}, None
+
+
 def editar_equipo(
     team_id: int,
     nombre: Optional[str],

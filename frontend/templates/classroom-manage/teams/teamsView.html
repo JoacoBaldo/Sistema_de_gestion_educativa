@@ -38,9 +38,10 @@
           </div>
           <p class="subtitle">Modifica el nombre del equipo y los miembros asignados.</p>
 
-          <form id="formEditarEquipo" novalidate>
+          <form id="formEditarEquipo" method="POST" action="" novalidate>
               <!-- Campo oculto para ID del equipo -->
               <input type="hidden" id="edit_team_id" name="team_id" value="">
+               <input type="hidden" name="token" id="edit_token" value="">
 
               <div class="mb-3">
                   <label class="form-label" for="edit_nombre_equipo">Nombre del Equipo <span class="text-danger">*</span></label>

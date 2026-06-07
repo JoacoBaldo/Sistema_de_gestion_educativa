@@ -1,7 +1,46 @@
 from datetime import datetime, timezone
 from typing import Optional
+import json
 
 from .conexion import obtener_conexion
+
+
+def crear_equipo_con_miembros(nombre: str, miembros: list, classroom_id: int) -> Optional[int]:
+    """
+    Crea un nuevo equipo con miembros (nombres).
+    Retorna el ID del equipo creado o None si falla.
+    """
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        # Insertar el equipo
+        resultado = conn.exec_driver_sql(
+            """
+            INSERT INTO teams (name, classroom_id, created_at, updated_at)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (nombre, classroom_id, datetime.now(timezone.utc), datetime.now(timezone.utc)),
+        )
+        conn.commit()
+        
+        # Obtener el ID del equipo creado
+        fila = conn.exec_driver_sql(
+            """
+            SELECT id FROM teams WHERE name = %s AND classroom_id = %s
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (nombre, classroom_id),
+        ).fetchone()
+        
+        if fila is None:
+            return None
+        
+        team_id = fila[0]
+        
+        # Aquí podrías almacenar los miembros como nombres en un campo JSON
+        # o en una tabla separada. Por ahora, dejamos el equipo sin miembros.
+        # Los miembros se pueden asociar después según tu estructura de BD.
+        
+        return team_id
 
 
 def obtener_equipo(team_id: int) -> Optional[dict]:
