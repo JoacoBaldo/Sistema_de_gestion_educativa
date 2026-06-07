@@ -80,11 +80,13 @@ def datos_completos():
 
 
 def buscar_token(token: str):
-    return db_auth.buscar_token(token), TOKEN_INVALIDO
+    token_obj = db_auth.buscar_token(token)
+    return token_obj, None if token_obj else TOKEN_INVALIDO
 
 
 def usuario_existe(usuario_id: int):
-    return db_auth.usuario_existe(usuario_id), USUARIO_NO_EXISTE_GLOBAL
+    usuario = db_auth.usuario_existe(usuario_id)
+    return usuario, None if usuario else USUARIO_NO_EXISTE_GLOBAL
 
 
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):

@@ -9,12 +9,11 @@ from src.funciones.auth import (
     datos_completos,
     buscar_token,
     usuario_existe,
-    actualizar_contrasenia,
+    actualizar_contrasenia as actualizar_contrasenia_func,
     crear_token, 
     login_con_link, 
     validar_credenciales)
 from .utils import responder_error
-from werkzeug.security import generate_password_hash
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -75,7 +74,7 @@ def login(user_id: int):
     )
 
 @auth_bp.route('/api/auth/actualizar-contrasenia', methods=['POST'])
-def actualizar_contrasenia():
+def actualizar_contrasenia_route():
 
     token, nueva_contrasenia, error = datos_completos()
 
@@ -94,6 +93,6 @@ def actualizar_contrasenia():
 
     hash_generado = generate_password_hash(nueva_contrasenia)
 
-    resultado = actualizar_contrasenia(id_usuario, hash_generado)
+    resultado = actualizar_contrasenia_func(id_usuario, hash_generado)
 
-    return jsonify({resultado}), 200
+    return jsonify(resultado), 200
