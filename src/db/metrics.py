@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .constantes import ESTUDIANTE, STATUS_ACTIVO, STATUS_ABANDONO
+from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR, STATUS_ACTIVO, STATUS_ABANDONO
 
 def obtener_promedio_aprobados(classroom_id: int) -> list[dict]:
     """Retorna lista de user_id con sus scores para procesamiento en Python"""
@@ -54,3 +54,102 @@ def obtener_conteos_estudiantes(classroom_id: int) -> dict:
         "total_activos": sum(1 for s in status if s == STATUS_ACTIVO),
         "total_abandonaron": sum(1 for s in status if s == STATUS_ABANDONO),
     }
+
+
+def obtener_alumnos_activos(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT u.id, u.username, u.email, cu.created_at
+            FROM classroom_users cu
+            JOIN users u ON cu.user_id = u.id
+            WHERE cu.classroom_id = %s
+              AND cu.role_id = %s
+              AND cu.status_type_id = %s
+            ORDER BY u.username
+            """,
+            (classroom_id, ESTUDIANTE, STATUS_ACTIVO),
+        ).fetchall()
+    return [
+        {"id": f[0], "username": f[1], "email": f[2], "created_at": f[3]}
+        for f in resultados
+    ]
+
+
+def obtener_alumnos_aprobados_activos(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT u.id, u.username, u.email, cu.created_at
+            FROM classroom_users cu
+            JOIN users u ON cu.user_id = u.id
+            JOIN grades g
+                ON g.user_id = cu.user_id
+            JOIN evaluations e
+                ON e.id = g.evaluation_id
+                AND e.classroom_id = cu.classroom_id
+            WHERE cu.classroom_id = %s
+              AND cu.role_id = %s
+              AND cu.status_type_id = %s
+            GROUP BY u.id, u.username, u.email, cu.created_at
+            HAVING AVG(g.score) >= 4
+            ORDER BY u.username
+            """,
+            (classroom_id, ESTUDIANTE, STATUS_ACTIVO),
+        ).fetchall()
+    return [
+        {"id": f[0], "username": f[1], "email": f[2], "created_at": f[3]}
+        for f in resultados
+    ]
+
+
+def obtener_equipos(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT id, name, classroom_id, created_at, updated_at
+            FROM teams
+            WHERE classroom_id = %s
+            ORDER BY name
+            """,
+            (classroom_id,),
+        ).fetchall()
+    return [
+        {
+            "id": f[0],
+            "name": f[1],
+            "classroom_id": f[2],
+            "created_at": f[3],
+            "updated_at": f[4],
+        }
+        for f in resultados
+    ]
+
+
+def obtener_colaboradores(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT u.id, u.username, u.email, cu.role_id, cu.created_at
+            FROM classroom_users cu
+            JOIN users u ON cu.user_id = u.id
+            WHERE cu.classroom_id = %s
+              AND cu.role_id IN (%s, %s, %s)
+            ORDER BY cu.role_id, u.username
+            """,
+            (classroom_id, ADMINISTRADOR, PROFESOR, AYUDANTE),
+        ).fetchall()
+    return [
+        {
+            "id": f[0],
+            "username": f[1],
+            "email": f[2],
+            "role_id": f[3],
+            "created_at": f[4],
+        }
+        for f in resultados
+    ]

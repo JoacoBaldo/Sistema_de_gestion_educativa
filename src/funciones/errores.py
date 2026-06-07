@@ -84,3 +84,11 @@ USUARIO_YA_EN_CLASSROOM = {
     "error": "El usuario ya pertenece al classroom",
     "status": 409,
 }
+FILTRO_INVALIDO = {
+    "error": "Filtro inválido. Valores permitidos: students, students_passed, teams, colaborators",
+    "status": 400,
+}
+BODY_INVALIDO = {
+    "error": "El body debe ser el JSON de respuesta del endpoint de métricas",
+    "status": 400,
+}
