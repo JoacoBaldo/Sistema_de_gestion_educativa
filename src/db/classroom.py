@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .constantes import ADMINISTRADOR, ESTUDIANTE, PROFESOR
+from .constantes import ADMINISTRADOR, ESTUDIANTE, PROFESOR, AYUDANTE
 
 
 def obtener_profesores(classroom_id: int) -> list:
@@ -10,9 +10,9 @@ def obtener_profesores(classroom_id: int) -> list:
             SELECT u.id, u.username, u.email, cu.role_id
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
-            WHERE cu.classroom_id = %s AND cu.role_id IN (%s, %s)
+            WHERE cu.classroom_id = %s AND cu.role_id IN (%s, %s, %s)
             """,
-            (classroom_id, PROFESOR, ADMINISTRADOR),
+            (classroom_id, PROFESOR, AYUDANTE,ADMINISTRADOR),
         ).fetchall()
 
     return [
