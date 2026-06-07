@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .roles import ESTUDIANTE
+from .constantes import ESTUDIANTE
 
 
 def contar_eventos_classroom(classroom_id: int) -> int:

@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .roles import ADMINISTRADOR, ESTUDIANTE, PROFESOR
+from .constantes import ADMINISTRADOR, ESTUDIANTE, PROFESOR, AYUDANTE
 
 
 def obtener_profesores(classroom_id: int) -> list:
@@ -7,16 +7,23 @@ def obtener_profesores(classroom_id: int) -> list:
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT u.id, u.username, u.email, cu.role_id
+            SELECT u.id, u.username, u.email, cu.role_id, cu.created_at
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
-            WHERE cu.classroom_id = %s AND cu.role_id IN (%s, %s)
+            WHERE cu.classroom_id = %s AND cu.role_id IN (%s, %s, %s)
+            ORDER BY cu.role_id, u.username
             """,
-            (classroom_id, PROFESOR, ADMINISTRADOR),
+            (classroom_id, PROFESOR, AYUDANTE, ADMINISTRADOR),
         ).fetchall()
 
     return [
-        {"id": f[0], "username": f[1], "email": f[2], "role_id": f[3]}
+        {
+            "id": f[0],
+            "username": f[1],
+            "email": f[2],
+            "role_id": f[3],
+            "created_at": f[4],
+        }
         for f in resultados
     ]
 
@@ -241,15 +248,22 @@ def obtener_alumnos(classroom_id: int) -> list:
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT u.id, u.username, u.email, cu.role_id
+            SELECT u.id, u.username, u.email, cu.status_type_id, cu.created_at
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
             WHERE cu.classroom_id = %s AND cu.role_id = %s
+            ORDER BY u.username
             """,
             (classroom_id, ESTUDIANTE),
         ).fetchall()
 
     return [
-        {"id": f[0], "username": f[1], "email": f[2], "role_id": f[3]}
+        {
+            "id": f[0],
+            "username": f[1],
+            "email": f[2],
+            "status_type_id": f[3],
+            "created_at": f[4],
+        }
         for f in resultados
     ]

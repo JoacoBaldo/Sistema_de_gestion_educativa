@@ -8,7 +8,8 @@ from email.mime.text import MIMEText
 
 from jose import jwt
 
-from src.db.user import crear_usuario_db, email_existe, obtener_id_por_email
+from src.db.auth import obtener_usuario_por_email
+from src.db.user import crear_usuario_db, email_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
@@ -46,9 +47,10 @@ def send_password_mail(destinatario: str) -> tuple:
     if remitente is None or password_env is None:
         return None, ERROR_ENVIO_MAIL
 
-    id_usuario = obtener_id_por_email(destinatario)
-    if id_usuario is None:
+    usuario = obtener_usuario_por_email(destinatario)
+    if usuario is None:
         return None, EMAIL_NO_EXISTE
+    id_usuario = usuario["id"]
 
     token = crear_token_reset_password(id_usuario, destinatario)
 

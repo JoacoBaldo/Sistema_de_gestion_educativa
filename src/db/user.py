@@ -20,15 +20,3 @@ def email_existe(email: str) -> bool:
             (email,),
         ).fetchone()
     return resultado is not None
-
-
-def obtener_id_por_email(email: str) -> int | None:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultado = conn.exec_driver_sql(
-            "SELECT id FROM users WHERE email = %s",
-            (email,),
-        ).fetchone()
-    if not resultado:
-        return None
-    return resultado[0]
