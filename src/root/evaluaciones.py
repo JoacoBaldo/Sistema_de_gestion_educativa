@@ -24,7 +24,9 @@ def crear_evaluacion_root(classroom_id: int):
 
     evaluation_type_raw = body.get("evaluation_type_id")
     try:
-        evaluation_type_id = int(evaluation_type_raw) if evaluation_type_raw is not None else 0
+        evaluation_type_id = (
+            int(evaluation_type_raw) if evaluation_type_raw is not None else 0
+        )
     except (TypeError, ValueError):
         evaluation_type_id = 0
 
