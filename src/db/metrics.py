@@ -1,5 +1,12 @@
 from .conexion import obtener_conexion
-from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR, STATUS_ACTIVO, STATUS_ABANDONO
+from .constantes import (
+    ADMINISTRADOR,
+    AYUDANTE,
+    ESTUDIANTE,
+    PROFESOR,
+    STATUS_ACTIVO,
+    STATUS_ABANDONO,
+)
 
 
 def obtener_promedio_aprobados(classroom_id: int) -> list[dict]:

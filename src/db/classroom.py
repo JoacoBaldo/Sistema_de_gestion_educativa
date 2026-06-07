@@ -12,7 +12,7 @@ def obtener_profesores(classroom_id: int) -> list:
             JOIN users u ON cu.user_id = u.id
             WHERE cu.classroom_id = %s AND cu.role_id IN (%s, %s, %s)
             """,
-            (classroom_id, PROFESOR, AYUDANTE,ADMINISTRADOR),
+            (classroom_id, PROFESOR, AYUDANTE, ADMINISTRADOR),
         ).fetchall()
 
     return [
