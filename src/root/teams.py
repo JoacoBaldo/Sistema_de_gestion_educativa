@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, redirect, url_for, session
+from flask import Blueprint, flash, jsonify, redirect, request, session, url_for
 
 from src.funciones.auth import verificar_token
 from src.funciones.errores import (
@@ -12,6 +12,31 @@ from src.funciones.teams import editar_equipo, eliminar_equipo, crear_equipo
 from .utils import extraer_token, responder_error
 
 teams_bp = Blueprint("teams", __name__)
+
+
+def _obtener_token_formulario():
+    return (
+        request.form.get("token")
+        or request.cookies.get("token")
+        or session.get("token")
+    )
+
+
+def _redirigir_equipos(classroom_id=None):
+    if classroom_id:
+        return redirect(
+            url_for(
+                "classroom_manage",
+                classroom_id=classroom_id,
+                vista="teams",
+            )
+        )
+    return redirect(request.referrer or url_for("classrooms"))
+
+
+def _parsear_miembros_formulario():
+    miembros = request.form.getlist("miembros")
+    return [m.strip() for m in miembros if m and str(m).strip()]
 
 
 @teams_bp.route("/api/v1/teams", methods=["PUT"])
@@ -50,7 +75,6 @@ def actualizar_equipo():
     return jsonify(resultado), 200
 
 
-
 @teams_bp.route("/api/v1/teams", methods=["DELETE"])
 def borrar_equipo():
     token = extraer_token()
@@ -71,109 +95,107 @@ def borrar_equipo():
     return jsonify(resultado), 200
 
 
-# === NUEVAS RUTAS PARA FORMULARIOS HTML TRADICIONALES ===
-
-
 @teams_bp.route("/equipos/<int:team_id>/actualizar", methods=["POST"])
 def actualizar_equipo_formulario(team_id):
-    """
-    Ruta para actualizar equipo via formulario HTML tradicional.
-    Lee datos de request.form y redirige tras procesamiento.
-    """
-    token = request.form.get("token") or request.cookies.get("token")
+    token = _obtener_token_formulario()
     if not token:
-        return redirect(url_for("error_page") or "/")
-    
+        flash("Sesión inválida. Vuelve a iniciar sesión.", "error")
+        return redirect(url_for("login"))
+
     usuario, error = verificar_token(token)
     if error:
-        return redirect(url_for("error_page") or "/")
+        flash(error.get("error", "Sesión inválida"), "error")
+        return redirect(url_for("login"))
 
     nombre = request.form.get("nombre_equipo", "").strip()
-    miembros = request.form.getlist("miembros")
-    miembros = [m.strip() for m in miembros if m.strip()]
+    miembros = _parsear_miembros_formulario()
+    classroom_id = request.form.get("classroom_id")
 
     if not nombre:
-        session["error"] = "El nombre del equipo es requerido"
-        return redirect(request.referrer or "/")
+        flash("El nombre del equipo es requerido", "error")
+        return _redirigir_equipos(classroom_id)
 
     if not miembros:
-        session["error"] = "Al menos un miembro es requerido"
-        return redirect(request.referrer or "/")
+        flash("Al menos un miembro es requerido", "error")
+        return _redirigir_equipos(classroom_id)
 
-    resultado, error = editar_equipo(int(team_id), nombre, None, usuario["id"])
+    try:
+        member_ids = [int(miembro) for miembro in miembros]
+    except (TypeError, ValueError):
+        flash("Los miembros deben ser estudiantes válidos del aula", "error")
+        return _redirigir_equipos(classroom_id)
+
+    _, error = editar_equipo(int(team_id), nombre, member_ids, usuario["id"])
     if error:
-        session["error"] = str(error)
-        return redirect(request.referrer or "/")
+        mensaje = error.get("error") if isinstance(error, dict) else str(error)
+        flash(mensaje, "error")
+        return _redirigir_equipos(classroom_id)
 
-    session["success"] = "Equipo actualizado exitosamente"
-    return redirect(request.referrer or "/")
+    flash("Equipo actualizado exitosamente", "success")
+    return _redirigir_equipos(classroom_id)
 
 
 @teams_bp.route("/equipos/<int:team_id>/eliminar", methods=["POST"])
 def eliminar_equipo_formulario(team_id):
-    """
-    Ruta para eliminar equipo via formulario HTML tradicional.
-    Lee token de formulario y redirige tras procesamiento.
-    """
-    token = request.form.get("token") or request.cookies.get("token")
+    token = _obtener_token_formulario()
     if not token:
-        return redirect(url_for("error_page") or "/")
-    
+        flash("Sesión inválida. Vuelve a iniciar sesión.", "error")
+        return redirect(url_for("login"))
+
     usuario, error = verificar_token(token)
     if error:
-        return redirect(url_for("error_page") or "/")
+        flash(error.get("error", "Sesión inválida"), "error")
+        return redirect(url_for("login"))
 
-    resultado, error = eliminar_equipo(int(team_id), usuario["id"])
+    classroom_id = request.form.get("classroom_id")
+    _, error = eliminar_equipo(int(team_id), usuario["id"])
     if error:
-        session["error"] = str(error)
-        return redirect(request.referrer or "/")
+        mensaje = error.get("error") if isinstance(error, dict) else str(error)
+        flash(mensaje, "error")
+        return _redirigir_equipos(classroom_id)
 
-    session["success"] = "Equipo eliminado exitosamente"
-    return redirect(request.referrer or "/")
+    flash("Equipo eliminado exitosamente", "success")
+    return _redirigir_equipos(classroom_id)
 
 
 @teams_bp.route("/equipos", methods=["POST"])
 def crear_equipo_formulario():
-    """
-    Ruta para crear equipo via formulario HTML tradicional.
-    Lee datos de request.form y redirige tras procesamiento.
-    """
-    token = request.form.get("token") or request.cookies.get("token")
+    token = _obtener_token_formulario()
     if not token:
-        return redirect(url_for("error_page") or "/")
-    
+        flash("Sesión inválida. Vuelve a iniciar sesión.", "error")
+        return redirect(url_for("login"))
+
     usuario, error = verificar_token(token)
     if error:
-        return redirect(url_for("error_page") or "/")
+        flash(error.get("error", "Sesión inválida"), "error")
+        return redirect(url_for("login"))
 
     nombre = request.form.get("nombre_equipo", "").strip()
-    miembros = request.form.getlist("miembros")
-    miembros = [m.strip() for m in miembros if m.strip()]
-    
-    # Obtener classroom_id de la query string o del formulario
+    miembros = _parsear_miembros_formulario()
     classroom_id_str = request.args.get("classroom_id") or request.form.get("classroom_id")
-    
+
     try:
         classroom_id = int(classroom_id_str) if classroom_id_str else None
     except (ValueError, TypeError):
         classroom_id = None
 
     if not nombre:
-        session["error"] = "El nombre del equipo es requerido"
-        return redirect(request.referrer or "/")
+        flash("El nombre del equipo es requerido", "error")
+        return _redirigir_equipos(classroom_id)
 
     if not miembros:
-        session["error"] = "Al menos un miembro es requerido"
-        return redirect(request.referrer or "/")
+        flash("Al menos un miembro es requerido", "error")
+        return _redirigir_equipos(classroom_id)
 
     if not classroom_id:
-        session["error"] = "Classroom no especificado"
-        return redirect(request.referrer or "/")
+        flash("Classroom no especificado", "error")
+        return _redirigir_equipos()
 
-    resultado, error = crear_equipo(nombre, miembros, classroom_id, usuario["id"])
+    _, error = crear_equipo(nombre, miembros, classroom_id, usuario["id"])
     if error:
-        session["error"] = str(error)
-        return redirect(request.referrer or "/")
+        mensaje = error.get("error") if isinstance(error, dict) else str(error)
+        flash(mensaje, "error")
+        return _redirigir_equipos(classroom_id)
 
-    session["success"] = "Equipo creado exitosamente"
-    return redirect(request.referrer or "/")
+    flash("Equipo creado exitosamente", "success")
+    return _redirigir_equipos(classroom_id)

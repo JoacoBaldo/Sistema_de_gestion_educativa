@@ -3,6 +3,7 @@ from src.db.evaluaciones import (
     existe_evaluation_type,
     existe_evaluacion_en_classroom,
     obtener_evaluacion_por_id,
+    obtener_evaluaciones_classroom,
     actualizar_evaluacion_db,
 )
 from src.db.classroom import existe_classroom
@@ -14,7 +15,13 @@ from .errores import (
     TIPO_EVALUACION_INVALIDO,
 )
 
-EVALUATION_TYPE_RECUPERATORIO = 3
+EVALUATION_TYPE_RECUPERATORIO = 2
+
+
+def obtener_evaluaciones(classroom_id: int) -> tuple:
+    if not existe_classroom(classroom_id):
+        return None, CLASSROOM_NO_EXISTE
+    return obtener_evaluaciones_classroom(classroom_id), None
 
 
 def crear_evaluacion(

@@ -1,9 +1,4 @@
-import { createCmrToast, escapeHtml } from "./common/ui.js";
-import { requireAuth } from "./common/auth.js";
-
 (function () {
-  requireAuth();
-  const showToast = createCmrToast();
   const grid = document.getElementById("lb-grid");
   const emptyMsg = document.getElementById("lb-empty");
   const searchInput = document.getElementById("lb-search");
@@ -13,59 +8,33 @@ import { requireAuth } from "./common/auth.js";
   const modalClose = document.getElementById("lb-modal-close");
   const modalCancel = document.getElementById("lb-modal-cancel");
   const form = document.getElementById("lb-recurso-form");
-  const editId = document.getElementById("lb-edit-id");
   const inputNombre = document.getElementById("lb-nombre");
-  const inputTipo = document.getElementById("lb-tipo");
-  const inputLink = document.getElementById("lb-link");
-  const modalTitle = document.getElementById("lb-modal-title");
-  const modalSubtitle = document.getElementById("lb-modal-subtitle");
-  const modalSubmit = document.getElementById("lb-modal-submit");
 
   let activeType = "all";
-  let resources = [];
 
   function render() {
     if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll(".lb-card"));
     const q = (searchInput?.value || "").trim().toLowerCase();
-    const list = resources.filter((r) => {
-      if (activeType !== "all" && r.type !== activeType) return false;
-      if (q && !r.title.toLowerCase().includes(q)) return false;
-      return true;
+    let visible = 0;
+
+    cards.forEach((card) => {
+      const type = card.dataset.type || "all";
+      const title = (card.dataset.title || "").toLowerCase();
+      const show =
+        (activeType === "all" || type === activeType) && (!q || title.includes(q));
+      card.style.display = show ? "" : "none";
+      if (show) visible += 1;
     });
 
-    if (!list.length) {
-      grid.innerHTML = "";
-      if (emptyMsg) {
-        emptyMsg.hidden = false;
-        emptyMsg.textContent =
-          "No hay recursos. El listado y carga de archivos requiere endpoints de biblioteca en el backend.";
-      }
-      return;
+    if (emptyMsg) {
+      emptyMsg.hidden = visible > 0 || cards.length > 0;
+      if (!cards.length) emptyMsg.textContent = "No hay recursos cargados (sin endpoint de biblioteca).";
     }
-
-    if (emptyMsg) emptyMsg.hidden = true;
-    grid.innerHTML = list
-      .map((r) => {
-        const safeUrl = escapeHtml(r.url);
-        const safeTitle = escapeHtml(r.title);
-        return `<article class="lb-card cm-panel" data-id="${r.id}">
-          <a class="lb-card__link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">
-            <h3 class="lb-card__title">${safeTitle}</h3>
-          </a>
-        </article>`;
-      })
-      .join("");
   }
 
-  function openModal(mode) {
+  function openModal() {
     if (!modal) return;
-    if (mode === "create") {
-      if (editId) editId.value = "";
-      form?.reset();
-      if (modalTitle) modalTitle.textContent = "Subir recurso";
-      if (modalSubtitle) modalSubtitle.textContent = "Requiere POST /classrooms/{id}/resources/upload";
-      if (modalSubmit) modalSubmit.textContent = "Publicar";
-    }
     modal.classList.remove("hidden");
     inputNombre?.focus();
   }
@@ -73,10 +42,9 @@ import { requireAuth } from "./common/auth.js";
   function closeModal() {
     modal?.classList.add("hidden");
     form?.reset();
-    if (editId) editId.value = "";
   }
 
-  uploadBtn?.addEventListener("click", () => openModal("create"));
+  uploadBtn?.addEventListener("click", () => openModal());
   modalClose?.addEventListener("click", closeModal);
   modalCancel?.addEventListener("click", closeModal);
   modal?.addEventListener("click", (e) => {
@@ -85,8 +53,7 @@ import { requireAuth } from "./common/auth.js";
 
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
-    showToast("Subida de recursos no disponible (endpoint no implementado en la API).");
-    closeModal();
+    alert("La biblioteca no tiene endpoint en el backend. No se puede subir recursos.");
   });
 
   searchInput?.addEventListener("input", render);

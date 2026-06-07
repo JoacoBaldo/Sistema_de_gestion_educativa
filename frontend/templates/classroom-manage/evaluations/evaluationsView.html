@@ -42,16 +42,79 @@
                 <span class="sr-only">Ordenar por fecha</span>
                 <select id="ev-date-sort" aria-label="Ordenar por fecha">
                     <option value="asc">Fecha: más antigua primero</option>
-                    <option value="desc">Fecha: más reciente primero</option>
+                    <option value="desc" selected>Fecha: más reciente primero</option>
                 </select>
             </label>
         </div>
     </div>
 
-    <div class="ev-grid" id="ev-grid" aria-live="polite"></div>
+    <div class="ev-grid" id="ev-grid" aria-live="polite">
+        {% for ev in evaluaciones or [] %}
+        <article class="ev-card"
+            data-id="ev-{{ ev.id }}"
+            data-evaluation-id="{{ ev.id }}"
+            data-type="{{ ev.tipo_slug }}"
+            data-date="{{ ev.fecha }}"
+            data-nombre="{{ ev.name }}"
+            data-individual="{{ 'true' if ev.individual else 'false' }}">
+            <div class="ev-card__top">
+                <span class="ev-badge ev-badge--{{ ev.tipo_slug }}">{{ ev.tipo_nombre }}</span>
+                <time class="ev-card__date">{{ ev.fecha or '—' }}</time>
+            </div>
+            <div class="ev-card__body">
+                <h2 class="ev-card__title">{{ ev.name }}</h2>
+            </div>
+            <footer class="ev-card__footer">
+                <button type="button" class="ev-card__edit-btn" aria-label="Editar evaluación"
+                    data-id="{{ ev.id }}"
+                    data-nombre="{{ ev.name }}"
+                    data-tipo="{{ ev.tipo_slug }}"
+                    data-individual="{{ '1' if ev.individual else '0' }}">
+                    Editar
+                </button>
+                <p class="ev-card__progress">{% if ev.individual %}Individual{% else %}Grupal{% endif %}</p>
+            </footer>
+        </article>
+        {% endfor %}
+    </div>
 
     {% include 'classroom-manage/evaluations/forms/crear_evaluation.html' %}
 
-    <p class="ev-empty" id="ev-empty">No hay evaluaciones cargadas. Usá «Nueva Evaluación» para registrar una vía API.</p>
+    <div id="ev-edit-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ev-edit-modal-title">
+        <div class="glass-card">
+            <div class="glass-header">
+                <h3 id="ev-edit-modal-title">Editar Evaluación</h3>
+                <button type="button" class="btn-close-custom" id="ev-edit-close" aria-label="Cerrar">✕</button>
+            </div>
+            <form id="ev-edit-form" method="POST" action="" novalidate>
+                <div class="mb-3">
+                    <label class="form-label" for="ev-edit-name">Nombre</label>
+                    <input type="text" id="ev-edit-name" name="nombre" class="glass-input" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="ev-edit-type">Tipo</label>
+                    <select id="ev-edit-type" name="tipo" class="glass-input" required>
+                        <option value="parcial">Parcial</option>
+                        <option value="tp">TP</option>
+                        <option value="parcialito">Parcialito</option>
+                        <option value="recuperatorio">Recuperatorio</option>
+                    </select>
+                </div>
+                <div class="glass-form-row--toggle mb-3">
+                    <label class="form-label mb-0" for="ev-edit-individual">Individual</label>
+                    <input type="checkbox" id="ev-edit-individual" name="individual">
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="btn-cancelar" id="ev-edit-cancel">Cancelar</button>
+                    <button type="submit" class="btn-crear">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
+    {% if not evaluaciones %}
+    <p class="ev-empty" id="ev-empty">No hay evaluaciones cargadas. Usá «Nueva Evaluación» para registrar una.</p>
+    {% else %}
+    <p class="ev-empty hidden" id="ev-empty">No hay evaluaciones que coincidan con los filtros.</p>
+    {% endif %}
 </section>

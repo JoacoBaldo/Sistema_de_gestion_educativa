@@ -1,35 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("tm-grid");
-  if (!grid) return;
+  const searchInput = document.getElementById("tm-search-input");
+  const emptyMsg = document.getElementById("tm-empty");
 
-  grid.addEventListener("click", (event) => {
-    const deleteBtn = event.target.closest(".tm-delete-btn");
-    if (!deleteBtn) return;
-    event.preventDefault();
+  function applySearch() {
+    if (!grid) return;
+    const q = (searchInput?.value || "").trim().toLowerCase();
+    let visible = 0;
 
-    const teamId = deleteBtn.dataset.id;
-    const nombre = deleteBtn.dataset.nombre || "este equipo";
-    if (!teamId) return;
-    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+    Array.from(grid.querySelectorAll(".tm-card")).forEach((card) => {
+      const nombre = (card.dataset.nombre || "").toLowerCase();
+      const show = !q || nombre.includes(q);
+      card.style.display = show ? "" : "none";
+      if (show) visible += 1;
+    });
 
-    // Crear y enviar un formulario POST tradicional para eliminar
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = `/equipos/${teamId}/eliminar`;
-    
-    // Agregar token si existe
-    const token = localStorage.getItem("token");
-    if (token) {
-      const tokenInput = document.createElement("input");
-      tokenInput.type = "hidden";
-      tokenInput.name = "token";
-      tokenInput.value = token;
-      form.appendChild(tokenInput);
+    if (emptyMsg) {
+      const hasCards = grid.querySelectorAll(".tm-card").length > 0;
+      emptyMsg.classList.toggle("hidden", !hasCards || visible > 0);
     }
-    
-    // Enviar el formulario
-    document.body.appendChild(form);
-    form.submit();
-    // El servidor redirigirá automáticamente
-  });
+  }
+
+  searchInput?.addEventListener("input", applySearch);
+  applySearch();
 });

@@ -21,10 +21,10 @@ def obtener_inasistencias_por_alumno(classroom_id: int) -> list[dict]:
         resultados = conn.exec_driver_sql(
             """
             SELECT
-                u.id        AS student_id,
-                u.username  AS username,
-                u.email     AS email,
-                a.absense   AS inasistencias
+                u.id AS student_id,
+                u.username AS username,
+                u.email AS email,
+                COALESCE(SUM(a.absence), 0) AS inasistencias
             FROM classroom_users cu
             JOIN users u ON u.id = cu.user_id
             LEFT JOIN attendance_events ae
@@ -43,7 +43,7 @@ def obtener_inasistencias_por_alumno(classroom_id: int) -> list[dict]:
             "student_id": f[0],
             "username": f[1],
             "email": f[2],
-            "inasistencias": int(f[3]),
+            "inasistencias": int(f[3] or 0),
         }
         for f in resultados
     ]

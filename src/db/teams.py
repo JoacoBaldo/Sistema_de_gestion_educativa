@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
-import json
+import time
 
 from .conexion import obtener_conexion
 
@@ -18,7 +18,12 @@ def crear_equipo_con_miembros(nombre: str, miembros: list, classroom_id: int) ->
             INSERT INTO teams (name, classroom_id, created_at, updated_at)
             VALUES (%s, %s, %s, %s)
             """,
-            (nombre, classroom_id, datetime.now(timezone.utc), datetime.now(timezone.utc)),
+            (
+                nombre,
+                classroom_id,
+                int(time.time()),
+                datetime.now(timezone.utc),
+            ),
         )
         conn.commit()
         
@@ -41,6 +46,56 @@ def crear_equipo_con_miembros(nombre: str, miembros: list, classroom_id: int) ->
         # Los miembros se pueden asociar después según tu estructura de BD.
         
         return team_id
+
+
+def listar_equipos_classroom(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT id, name, classroom_id, created_at, updated_at
+            FROM teams
+            WHERE classroom_id = %s
+            ORDER BY name
+            """,
+            (classroom_id,),
+        ).fetchall()
+
+    equipos = []
+    for fila in resultados:
+        team_id = fila[0]
+        miembros = obtener_miembros_equipo(team_id)
+        equipos.append(
+            {
+                "id": team_id,
+                "name": fila[1],
+                "classroom_id": fila[2],
+                "created_at": fila[3],
+                "updated_at": fila[4],
+                "miembros": miembros,
+            }
+        )
+    return equipos
+
+
+def obtener_miembros_equipo(team_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT u.id, u.username, u.email
+            FROM team_members tm
+            JOIN users u ON u.id = tm.user_id
+            WHERE tm.team_id = %s
+            ORDER BY u.username
+            """,
+            (team_id,),
+        ).fetchall()
+
+    return [
+        {"id": fila[0], "username": fila[1], "email": fila[2]}
+        for fila in resultados
+    ]
 
 
 def obtener_equipo(team_id: int) -> Optional[dict]:

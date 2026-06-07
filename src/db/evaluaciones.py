@@ -1,6 +1,51 @@
 from .conexion import obtener_conexion
 
 
+EVALUATION_TYPE_LABELS = {
+    0: ("parcial", "Parcial"),
+    1: ("tp", "TP"),
+    2: ("recuperatorio", "Recuperatorio"),
+    3: ("parcialito", "Parcialito"),
+}
+
+
+def obtener_evaluaciones_classroom(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT id, name, evaluation_type_id, referenced_eval_id, individual, created_at
+            FROM evaluations
+            WHERE classroom_id = %s
+            ORDER BY created_at DESC, id DESC
+            """,
+            (classroom_id,),
+        ).fetchall()
+
+    evaluaciones = []
+    for fila in resultados:
+        tipo_id = fila[2]
+        tipo_slug, tipo_nombre = EVALUATION_TYPE_LABELS.get(
+            tipo_id, ("otro", f"Tipo {tipo_id}")
+        )
+        created_at = fila[5]
+        fecha = str(created_at)[:10] if created_at else ""
+        evaluaciones.append(
+            {
+                "id": fila[0],
+                "name": fila[1],
+                "evaluation_type_id": tipo_id,
+                "tipo_slug": tipo_slug,
+                "tipo_nombre": tipo_nombre,
+                "referenced_eval_id": fila[3],
+                "individual": bool(fila[4]),
+                "created_at": created_at,
+                "fecha": fecha,
+            }
+        )
+    return evaluaciones
+
+
 def crear_evaluacion_db(
     classroom_id: int,
     name: str,
@@ -10,14 +55,16 @@ def crear_evaluacion_db(
 ) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
-        resultado = conn.exec_driver_sql(
-            "INSERT INTO evaluations (classroom_id, name, evaluation_type_id, referenced_eval_id, individual) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+        cursor = conn.exec_driver_sql(
+            """
+            INSERT INTO evaluations (
+                classroom_id, name, evaluation_type_id, referenced_eval_id, individual
+            ) VALUES (%s, %s, %s, %s, %s)
+            """,
             (classroom_id, name, evaluation_type_id, referenced_eval_id, individual),
         )
-        inserted = resultado.fetchone()
         conn.commit()
-
-    evaluation_id = inserted[0] if inserted else None
+        evaluation_id = cursor.lastrowid
     return {
         "message": "Evaluacion creada exitosamente",
         "status": 201,
