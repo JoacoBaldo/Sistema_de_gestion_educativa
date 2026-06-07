@@ -1,0 +1,34 @@
+<section class="cmr-page st-page" aria-label="Biblioteca pública de recursos" id="lb-page">
+    <header class="st-header">
+        <div>
+            <h1 class="st-title">Biblioteca de recursos públicos</h1>
+            <p class="st-subtitle">Materiales de curso visibles para todos los estudiantes</p>
+        </div>
+        <div class="st-actions">
+            <button class="st-btn st-btn-primary" type="button" id="lb-upload-btn">
+                <span class="st-btn-icon" aria-hidden="true">+</span>
+                Subir recurso
+            </button>
+        </div>
+    </header>
+
+    <div class="st-toolbar" role="region" aria-label="Búsqueda y filtros">
+        <div class="st-search">
+            <span class="st-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </span>
+            <input id="lb-search" type="search" placeholder="Buscar por título..." aria-label="Buscar recursos">
+        </div>
+        <div class="cmr-pill-filters" role="group" aria-label="Filtrar por tipo">
+            <button type="button" class="cmr-pill is-active" data-type="all">Todos</button>
+            <button type="button" class="cmr-pill" data-type="pdf">PDF</button>
+            <button type="button" class="cmr-pill" data-type="video">Video</button>
+            <button type="button" class="cmr-pill" data-type="link">Enlace</button>
+        </div>
+    </div>
+
+    <div class="lb-grid" id="lb-grid" aria-live="polite"></div>
+    <p class="cmr-empty" id="lb-empty" hidden>No se encontraron recursos.</p>
+</section>
+
+{% include "classroom-manage/library/forms/subir_recurso.html" %}

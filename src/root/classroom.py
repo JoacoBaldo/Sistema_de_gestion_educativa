@@ -9,10 +9,12 @@ from src.funciones.classroom import (
     obtener_evaluaciones_classroom,
     obtener_periodos_academicos,
     obtener_profesores_classroom,
+    obtener_alumnos_classroom,
 )
 from src.funciones.errores import (
     DATOS_INVALIDOS,
     ROLE_ID_REQUERIDO,
+    SCHEDULE_REQUERIDO,
     USER_ID_NO_COINCIDE,
 )
 from .utils import extraer_token, responder_error
@@ -115,12 +117,26 @@ def crear_aula():
     name = body.get("name")
     department = body.get("department")
     university = body.get("university")
+    class_day = body.get("class_day")
+    class_start = body.get("class_start")
+    class_end = body.get("class_end")
+    academic_period_id = body.get("academic_period_id")
 
     if not name or not department or not university:
         return responder_error(DATOS_INVALIDOS)
 
+    if class_day is None or not class_start or not class_end or not academic_period_id:
+        return responder_error(SCHEDULE_REQUERIDO)
+
     resultado, error = crear_nueva_classroom(
-        name, department, university, usuario["id"]
+        name,
+        department,
+        university,
+        usuario["id"],
+        int(class_day),
+        class_start,
+        class_end,
+        int(academic_period_id),
     )
     if error:
         return responder_error(error)
@@ -144,3 +160,35 @@ def listar_evaluaciones(classroom_id):
         return jsonify({"error": error["error"]}), error["status"]
 
     return jsonify(resultado), 200
+@classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/alumnos", methods=["GET"])
+def listar_alumnos_paginados(classroom_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    pagina = request.args.get("pagina", default=1, type=int)
+    cantidad = request.args.get("cantidad", default=10, type=int)
+
+    if pagina < 1 or cantidad < 1:
+        return jsonify(
+            {"error": "Los parámetros de paginación deben ser mayores a 0"}
+        ), 400
+
+    todos_los_alumnos, error = obtener_alumnos_classroom(classroom_id)
+    if error:
+        return responder_error(error)
+
+    inicio = (pagina - 1) * cantidad
+    fin = inicio + cantidad
+
+    alumnos_paginados = todos_los_alumnos[inicio:fin]
+
+    return jsonify(
+        {
+            "pagina_actual": pagina,
+            "cantidad_por_pagina": cantidad,
+            "total_alumnos_curso": len(todos_los_alumnos),
+            "datos": alumnos_paginados,
+        }
+    ), 200
