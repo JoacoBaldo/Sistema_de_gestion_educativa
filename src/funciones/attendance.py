@@ -14,8 +14,8 @@ def obtener_inasistencias_classroom(classroom_id: int, usuario_id: int) -> tuple
     alumnos = db_attendance.obtener_inasistencias_por_alumno(classroom_id)
 
     if total_eventos == 0 or not alumnos:
-        porcentaje_asistencia = FULL_ASISTENCIA
-        inasistencias_promedio = FULL_INASISTENCIA
+        porcentaje_asistencia: float = FULL_ASISTENCIA
+        inasistencias_promedio: float = FULL_INASISTENCIA
     else:
         inasistencias_promedio = sum(a["inasistencias"] for a in alumnos) / len(alumnos)
         porcentaje_asistencia = round(

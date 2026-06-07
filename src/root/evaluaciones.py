@@ -24,7 +24,9 @@ def crear_evaluacion_root(classroom_id: int):
 
     evaluation_type_raw = body.get("evaluation_type_id")
     try:
-        evaluation_type_id = int(evaluation_type_raw)
+        evaluation_type_id = (
+            int(evaluation_type_raw) if evaluation_type_raw is not None else 0
+        )
     except (TypeError, ValueError):
         evaluation_type_id = 0
 
@@ -67,8 +69,8 @@ def actualizar_evaluacion_root(evaluation_id: int):
 
     resultado, error = actualizar_evaluacion(
         classroom_id,
-        name,
-        evaluation_type_id,
+        name,  # type: ignore[arg-type]
+        evaluation_type_id,  # type: ignore[arg-type]
         referenced_eval_id,
         individual,
         evaluation_id,
