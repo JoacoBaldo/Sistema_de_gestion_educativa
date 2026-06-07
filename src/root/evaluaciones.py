@@ -24,8 +24,8 @@ def crear_evaluacion_root(classroom_id: int):
 
     resultado, error = crear_evaluacion(
         classroom_id,
-        name,
-        evaluation_type_id,
+        name,  # type: ignore[arg-type]
+        evaluation_type_id,  # type: ignore[arg-type]
         referenced_eval_id,
         individual,  # type: ignore[arg-type]
     )
