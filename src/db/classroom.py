@@ -17,7 +17,13 @@ def obtener_profesores(classroom_id: int) -> list:
         ).fetchall()
 
     return [
-        {"id": f[0], "username": f[1], "email": f[2], "role_id": f[3], "created_at": f[4]}
+        {
+            "id": f[0],
+            "username": f[1],
+            "email": f[2],
+            "role_id": f[3],
+            "created_at": f[4],
+        }
         for f in resultados
     ]
 
