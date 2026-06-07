@@ -52,27 +52,13 @@ def login_con_link(email: str, password: str, join_token: str) -> tuple:
     token = crear_token(usuario["id"], usuario["username"], usuario["email"])
     return {**usuario, "role_id": role_id, "token": token}, None
 
-
-def datos_completos():
-    body = request.get_json()
-    token = body.get("token")
-    nueva_contraseña = body.get("nueva_contraseña")
-    if not token or not nueva_contraseña:
-        return token, nueva_contraseña, FALTAN_DATOS
-    return token, nueva_contraseña, None
-
-
 def buscar_token(token: str):
     return db_auth.buscar_token(token), TOKEN_INVALIDO
-
-
-def usuario_existe(usuario_id: int):
-    return db_auth.usuario_existe(usuario_id), USUARIO_NO_EXISTE_GLOBAL
-
 
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):
     db_auth.actualizar_contrasenia(id_usuario, hash_generado)
     return {"message": "Contraseña actualizada exitosamente"}
+
 def validar_credenciales(email: str, password: str) -> tuple:
     usuario = db_auth.obtener_usuario_por_email(email)
     if not usuario:
@@ -82,12 +68,12 @@ def validar_credenciales(email: str, password: str) -> tuple:
         password.encode("utf-8"), usuario["password"].encode("utf-8")
     ):
         return None, CREDENCIALES_INVALIDAS
-
     return {
         "id": usuario["id"],
         "username": usuario["username"],
         "email": usuario["email"],
     }, None
+    
 def datos_completos():
     body = request.get_json()
     token = body.get("token")
@@ -96,17 +82,7 @@ def datos_completos():
         return token, nueva_contraseña, FALTAN_DATOS
     return token, nueva_contraseña, None
 
-
-def buscar_token(token: str):
-    token_obj = db_auth.buscar_token(token)
-    return token_obj, None if token_obj else TOKEN_INVALIDO
-
-
 def usuario_existe(usuario_id: int):
     usuario = db_auth.usuario_existe(usuario_id)
     return usuario, None if usuario else USUARIO_NO_EXISTE_GLOBAL
 
-
-def actualizar_contrasenia(id_usuario: int, hash_generado: str):
-    db_auth.actualizar_contrasenia(id_usuario, hash_generado)
-    return {"message": "Contraseña actualizada exitosamente"}
