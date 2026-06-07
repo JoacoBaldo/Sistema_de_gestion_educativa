@@ -9,8 +9,10 @@ def subir_contenido_classroom(
         return None, SIN_ACCESO
 
     try:
-        nuevo_id = db_classroom.guardar_contenido_classroom(classroom_id, titulo, url, usuario_id)
-    
+        nuevo_id = db_classroom.guardar_contenido_classroom(
+            classroom_id, titulo, url, usuario_id
+        )
+
     except AttributeError:
         nuevo_id = 101
 
@@ -22,7 +24,7 @@ def subir_contenido_classroom(
         "uploaded_by": usuario_id,
         "message": "Contenido de Drive registrado exitosamente",
     }
-    
+
     return resultado, None
 
 
@@ -31,7 +33,7 @@ def eliminar_contenido_classroom(
 ) -> tuple:
     if not db_classroom.usuario_en_classroom(classroom_id, usuario_id):
         return None, SIN_ACCESO
-    
+
     try:
         db_classroom.eliminar_contenido_classroom(contenido_id)
 
