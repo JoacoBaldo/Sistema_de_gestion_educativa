@@ -197,6 +197,8 @@ def desactivar_alumnos_de_classrooms(classroom_ids: list[int]) -> int:
 def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
+
+    with engine.connect() as conn:
         resultados = (
             conn.exec_driver_sql(
                 """

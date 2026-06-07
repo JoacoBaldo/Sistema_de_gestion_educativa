@@ -41,8 +41,8 @@ def login_join():
 
     return jsonify(resultado), 200
 
-
-@auth_bp.route("/api/v1/users/<int:user_id>", methods=["POST"])
+    
+@auth_bp.route("/api/v1/users/<int:user_id>", methods=["GET"])
 def login(user_id: int):
     body = request.get_json(silent=True) or {}
     email = body.get("email")

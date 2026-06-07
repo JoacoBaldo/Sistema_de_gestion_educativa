@@ -2,6 +2,7 @@ TOKEN_INVALIDO = {"error": "Token inválido o expirado", "status": 401}
 SIN_ACCESO = {"error": "No tiene acceso a este classroom", "status": 403}
 NO_ES_ADMIN = {"error": "Se requiere rol Admin", "status": 403}
 USUARIO_NO_EXISTE = {"error": "Usuario no existe en el classroom", "status": 404}
+USUARIO_NO_EXISTE_GLOBAL = {"error": "Usuario no existe", "status": 404}
 EMAIL_NO_EXISTE = {
     "error": "El email ingresado no esta en la base de datos",
     "status": 404,
@@ -28,6 +29,7 @@ AULA_NO_VALIDA = {
 }
 CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
 
+FALTAN_DATOS = {"error": "Faltan datos obligatorios", "status": 400}
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {
     "error": "Uno o más miembros no pertenecen al aula",
@@ -41,6 +43,7 @@ CREDENCIALES_INVALIDAS = {"error": "Credenciales inválidas", "status": 401}
 EMAIL_REQUERIDO = {"error": "email es requerido", "status": 400}
 PASSWORD_REQUERIDO = {"error": "password es requerido", "status": 400}
 USER_ID_NO_COINCIDE = {"error": "user_id no coincide", "status": 400}
+FALTAN_DATOS = {"error": "Faltan datos obligatorios", "status": 400}
 
 ROLE_ID_REQUERIDO = {"error": "role_id es requerido", "status": 400}
 ID_REQUERIDO = {"error": "id es requerido", "status": 400}
