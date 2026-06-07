@@ -100,7 +100,7 @@ def _obtener_datos_filtro(
         return (
             [
                 [f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])]
-                for f in filas
+                for f in filas_filtradas
             ],
             "Alumnos Activos",
             ["ID", "Usuario", "Email", "Ingresó"],
