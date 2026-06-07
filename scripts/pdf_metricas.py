@@ -15,7 +15,7 @@ from reportlab.platypus import (
 
 from src.db import classroom as db_classroom
 from src.db import metrics as db_metrics
-from src.db.constantes import ADMINISTRADOR, AYUDANTE, PROFESOR
+from src.db.constantes import ADMINISTRADOR, AYUDANTE, PROFESOR, STATUS_ACTIVO
 from src.funciones.errores import (
     BODY_INVALIDO,
     CLASSROOM_NO_EXISTE,
@@ -87,9 +87,10 @@ def _obtener_datos_filtro(
         return None, None, None
 
     if filtro == "students":
-        filas = db_metrics.obtener_alumnos_activos(classroom_id)
+        filas = db_classroom.obtener_alumnos_classroom(classroom_id)
+        filas_filtradas = [f for f in filas if f.get("status_type_id") == STATUS_ACTIVO]
         return (
-            [[f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])] for f in filas],
+            [[f["id"], f["username"], f["email"], _fmt_fecha(f.get("created_at"))] for f in filas_filtradas],
             "Alumnos Activos",
             ["ID", "Usuario", "Email", "Ingresó"],
         )
@@ -120,7 +121,7 @@ def _obtener_datos_filtro(
         )
 
     if filtro == "colaborators":
-        filas = db_metrics.obtener_colaboradores(classroom_id)
+        filas = db_classroom.obtener_profesores(classroom_id)
         return (
             [
                 [

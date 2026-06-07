@@ -58,27 +58,6 @@ def obtener_conteos_estudiantes(classroom_id: int) -> dict:
     }
 
 
-def obtener_alumnos_activos(classroom_id: int) -> list[dict]:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
-            """
-            SELECT u.id, u.username, u.email, cu.created_at
-            FROM classroom_users cu
-            JOIN users u ON cu.user_id = u.id
-            WHERE cu.classroom_id = %s
-              AND cu.role_id = %s
-              AND cu.status_type_id = %s
-            ORDER BY u.username
-            """,
-            (classroom_id, ESTUDIANTE, STATUS_ACTIVO),
-        ).fetchall()
-    return [
-        {"id": f[0], "username": f[1], "email": f[2], "created_at": f[3]}
-        for f in resultados
-    ]
-
-
 def obtener_alumnos_aprobados_activos(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -126,32 +105,6 @@ def obtener_equipos(classroom_id: int) -> list[dict]:
             "classroom_id": f[2],
             "created_at": f[3],
             "updated_at": f[4],
-        }
-        for f in resultados
-    ]
-
-
-def obtener_colaboradores(classroom_id: int) -> list[dict]:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
-            """
-            SELECT u.id, u.username, u.email, cu.role_id, cu.created_at
-            FROM classroom_users cu
-            JOIN users u ON cu.user_id = u.id
-            WHERE cu.classroom_id = %s
-              AND cu.role_id IN (%s, %s, %s)
-            ORDER BY cu.role_id, u.username
-            """,
-            (classroom_id, ADMINISTRADOR, PROFESOR, AYUDANTE),
-        ).fetchall()
-    return [
-        {
-            "id": f[0],
-            "username": f[1],
-            "email": f[2],
-            "role_id": f[3],
-            "created_at": f[4],
         }
         for f in resultados
     ]
