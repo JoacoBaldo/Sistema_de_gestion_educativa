@@ -3,9 +3,9 @@ from src.funciones.errores import (
     EMAIL_REQUERIDO,
     LINK_INVALIDO,
     PASSWORD_REQUERIDO,
-     FALTAN_DATOS,
+    FALTAN_DATOS,
     TOKEN_INVALIDO,
-    USUARIO_NO_EXISTE
+    USUARIO_NO_EXISTE,
 )
 from werkzeug.security import generate_password_hash
 from src.funciones.auth import (
@@ -83,7 +83,7 @@ def actualizar_contrasenia_route():
     token, nueva_contrasenia, error = datos_completos()
 
     if error:
-        return  responder_error(FALTAN_DATOS)
+        return responder_error(FALTAN_DATOS)
 
     token_activo, error = buscar_token(token)
 
