@@ -7,7 +7,6 @@ import { requireAuth } from "./common/auth.js";
   const layout = document.querySelector(".cm-layout");
   const classroomId = layout?.getAttribute("data-classroom-id") || "0";
 
-  // Selectores del DOM
   const qrContainer = document.getElementById("at-qrcode");
   const codeText = document.getElementById("at-code-text");
   const sessionDateEl = document.getElementById("at-session-date");
@@ -23,7 +22,6 @@ import { requireAuth } from "./common/auth.js";
   let currentToken = "";
   let refreshInterval = null;
 
-  // --- Funciones Auxiliares ---
   function todayIso() {
     return new Date().toISOString().slice(0, 10);
   }
@@ -39,7 +37,6 @@ import { requireAuth } from "./common/auth.js";
     });
   }
 
-  // --- Búsqueda de Alumnos en la Tabla ---
   function applySearch() {
     if (!recordsTbody || !searchInput) return;
     const q = searchInput.value.trim().toLowerCase();
@@ -52,34 +49,28 @@ import { requireAuth } from "./common/auth.js";
 
   searchInput?.addEventListener("input", applySearch);
 
-  // --- Lógica del Código QR ---
   function generateQR() {
     if (!qrContainer || !QRCodeLib) {
       console.warn("Librería QRCode no encontrada o contenedor faltante.");
       return;
     }
 
-    // Limpiar el QR anterior
     qrContainer.innerHTML = "";
 
-    // Generar un token único (ej: ATT-123-A4B9F) o pedirlo a un endpoint tuyo
     const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
     currentToken = `ATT-${classroomId}-${randomHash}`;
 
-    // La URL o texto que se abrirá al escanear
     const qrContent = `${window.location.origin}/asistencia/registrar?aula=${classroomId}&token=${currentToken}`;
 
-    // Dibujar el nuevo QR
     new QRCodeLib(qrContainer, {
       text: qrContent,
       width: 220,
       height: 220,
-      colorDark: "#0f172a", // Gris oscuro para que combine con el diseño
+      colorDark: "#0f172a",
       colorLight: "#ffffff",
       correctLevel: QRCodeLib.CorrectLevel.H
     });
 
-    // Actualizar la interfaz con el nuevo código
     if (codeText) codeText.textContent = currentToken;
     if (sessionDateEl) sessionDateEl.textContent = formatSessionDate();
     if (emailPreview) emailPreview.textContent = currentToken;
@@ -90,25 +81,22 @@ import { requireAuth } from "./common/auth.js";
     if (autoRefreshCheck?.checked) {
       refreshInterval = setInterval(() => {
         generateQR();
-      }, 30000); // Regenerar cada 30 segundos
+      }, 30000);
     }
   }
 
-  // --- Inicialización del QR ---
   generateQR();
   setupAutoRefresh();
 
-  // --- Eventos del panel del QR ---
   autoRefreshCheck?.addEventListener("change", setupAutoRefresh);
 
   document.getElementById("at-generate")?.addEventListener("click", () => {
     generateQR();
     showToast("Nuevo código QR generado con éxito.");
-    setupAutoRefresh(); // Reiniciar el temporizador al generar manual
+    setupAutoRefresh();
   });
 
   document.getElementById("at-download-png")?.addEventListener("click", () => {
-    // Buscar el canvas generado por la librería QRCode
     const canvas = qrContainer?.querySelector("canvas");
     if (canvas) {
       const link = document.createElement("a");
@@ -121,7 +109,6 @@ import { requireAuth } from "./common/auth.js";
     }
   });
 
-  // --- Modal de Email ---
   function openEmailModal() {
     emailModal?.classList.remove("hidden");
   }
@@ -143,7 +130,6 @@ import { requireAuth } from "./common/auth.js";
     const to = emailTo?.value?.trim();
     if (!to) return;
     
-    // Aquí puedes enlazar tu llamada fetch() POST hacia Flask
     console.log(`Petición de envío de token ${currentToken} a ${to}`);
     
     closeEmailModal();

@@ -9,7 +9,6 @@ import {
     const form = document.getElementById("formEstudiante");
     const toast = document.getElementById("st-student-toast");
     
-    // El botón "+ Añadir estudiante" de tu tabla
     const newBtn = document.getElementById("st-add-btn");
     const cancelBtn = document.getElementById("st-student-cancel-btn");
     const closeBtn = document.getElementById("st-student-close");
@@ -30,7 +29,6 @@ import {
       form.reset();
     }
   
-    // Escuchamos el clic para abrir el modal de Glass
     newBtn?.addEventListener("click", (event) => {
       event.preventDefault();
       resetForm();
