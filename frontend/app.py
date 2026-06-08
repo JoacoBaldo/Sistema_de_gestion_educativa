@@ -42,6 +42,10 @@ from src.funciones.evaluaciones import (
 from src.funciones.metrics import obtener_metricas_classroom
 from src.funciones.teams import obtener_equipos_classroom
 from src.funciones.user import create_user, send_password_mail
+
+from src.funciones.resources import listar_recursos, subir_contenido_classroom
+from src.root.resources import resources_bp 
+
 from src.root.teams import teams_bp
 
 from src.db.students import obtener_o_crear_carrera, crear_student_profile, obtener_user_id_por_email
@@ -51,7 +55,9 @@ from src.funciones.students import cargar_estudiantes_csv
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
+
 app.register_blueprint(teams_bp)
+app.register_blueprint(resources_bp) 
 
 TOKEN_SESSION_KEY = "token"
 USER_SESSION_KEY = "user"
@@ -226,6 +232,15 @@ def datos_vista_gestion(classroom_id, usuario, vista):
             datos["evaluaciones"] = []
         else:
             datos["evaluaciones"] = evaluaciones or []
+
+    # --- NUEVA VISTA: BIBLIOTECA DE RECURSOS ---
+    elif vista == "library":
+        recursos, error_r = listar_recursos(classroom_id, usuario["id"])
+        if error_r:
+            flash("No se pudieron cargar los recursos públicos de la biblioteca.", "error")
+            datos["recursos"] = []
+        else:
+            datos["recursos"] = recursos or []
 
     return datos
 
@@ -428,40 +443,6 @@ def eliminar_usuario_aula(classroom_id, user_id):
 
     vista = request.form.get("vista", "dashboard")
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista=vista))
-    usuario, redireccion = requiere_login()
-    if redireccion:
-        return redireccion
-
-    archivo = request.files.get("archivo") or request.files.get("csv_file")
-    if not archivo or archivo.filename == "":
-        flash("Selecciona un archivo CSV.", "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
-
-    try:
-        contenido = archivo.read().decode("utf-8")
-        lineas = contenido.split("\n")
-        titulos = lineas[0].strip().split(",")
-        guardados = 0
-        for linea in lineas[1:]:
-            linea_limpia = linea.strip()
-            if not linea_limpia:
-                continue
-            valores = linea_limpia.split(",")
-            datos_usuario = dict(zip(titulos, valores))
-            _, error = create_user(
-                {
-                    "username": datos_usuario.get("username"),
-                    "email": datos_usuario.get("email"),
-                    "password": datos_usuario.get("password"),
-                }
-            )
-            if not error:
-                guardados += 1
-        flash(f"CSV procesado: {guardados} usuario(s) creado(s).", "success")
-    except Exception as exc:
-        flash(f"Error al procesar el archivo: {exc}", "error")
-
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
 
 
 @app.route("/aulas/<int:classroom_id>/gestionar/evaluaciones/crear", methods=["POST"])
@@ -556,7 +537,7 @@ def descargar_metricas_pdf(classroom_id):
         classroom_id=classroom_id,
         usuario_id=usuario["id"],
         datos_metricas=metricas or {},
-        filtro=request.form.get("filter"),
+        filter=request.form.get("filter"),
     )
     if error_pdf:
         flash(error_pdf.get("error", "No se pudo generar el PDF"), "error")
@@ -568,6 +549,7 @@ def descargar_metricas_pdf(classroom_id):
         as_attachment=True,
         download_name=f"metricas_classroom_{classroom_id}.pdf",
     )
+
 
 @app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/crear", methods=["POST"])
 def procesar_crear_estudiante(classroom_id):
@@ -592,7 +574,7 @@ def procesar_crear_estudiante(classroom_id):
     else:
         try:
             user_id = obtener_user_id_por_email(email)
-            career_id = obtener_o_crear_carrera("Ingeniería") # O la carrera por defecto
+            career_id = obtener_o_crear_carrera("Ingeniería")
             
             crear_student_profile(user_id, padron, career_id)
             
@@ -625,6 +607,50 @@ def cargar_csv_estudiantes(classroom_id):
         flash(f"CSV procesado: {resultado['cantidad_creados']} creados, {resultado['cantidad_asociados']} asociados al aula.", "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+
+
+@app.route("/aulas/<int:classroom_id>/gestionar/biblioteca/subir", methods=["POST"])
+def subir_recurso_biblioteca(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    titulo = request.form.get("titulo")
+    url = request.form.get("url")
+    tipo = request.form.get("tipo") or "link"  # Capturamos el tipo del select
+
+    if not titulo or not url:
+        flash("El título y el link del recurso son obligatorios.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+
+    # Pasamos el tipo al backend
+    _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"], tipo)
+    
+    if error:
+        flash("No se pudo publicar el recurso en la base de datos.", "error")
+    else:
+        flash("Recurso publicado con éxito en la biblioteca.", "success")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    titulo = request.form.get("titulo")
+    url = request.form.get("url")
+
+    if not titulo or not url:
+        flash("El título y el link del recurso son obligatorios.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+
+    _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"])
+    
+    if error:
+        flash("No se pudo publicar el recurso en la base de datos.", "error")
+    else:
+        flash("Recurso publicado con éxito en la biblioteca.", "success")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
 
 
 if __name__ == "__main__":

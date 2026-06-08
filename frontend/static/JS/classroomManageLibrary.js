@@ -9,6 +9,7 @@
   const modalCancel = document.getElementById("lb-modal-cancel");
   const form = document.getElementById("lb-recurso-form");
   const inputNombre = document.getElementById("lb-nombre");
+  const inputLink = document.getElementById("lb-link");
 
   let activeType = "all";
 
@@ -59,8 +60,16 @@
   });
 
   form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    alert("La biblioteca no tiene el endpoint para añadir recursos en el backend todavía.");
+    const nombre = inputNombre?.value.trim();
+    const link = inputLink?.value.trim();
+
+    if (!nombre || !link) {
+      e.preventDefault();
+      alert("Por favor, completa todos los campos obligatorios.");
+      return;
+    }
+    
+
   });
 
   searchInput?.addEventListener("input", render);
