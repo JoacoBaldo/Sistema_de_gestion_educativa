@@ -1,6 +1,6 @@
 from src.db import resources as db_resources
 from src.db import classroom as db_classroom
-from .errores import SIN_ACCESO
+
 
 def listar_recursos(classroom_id: int, usuario_id: int) -> tuple:
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
