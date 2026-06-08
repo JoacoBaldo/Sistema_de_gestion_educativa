@@ -3,6 +3,9 @@ from src.funciones.errores import (
     EMAIL_REQUERIDO,
     LINK_INVALIDO,
     PASSWORD_REQUERIDO,
+     FALTAN_DATOS,
+    TOKEN_INVALIDO,
+    USUARIO_NO_EXISTE
 )
 from werkzeug.security import generate_password_hash
 from src.funciones.auth import (
@@ -13,14 +16,8 @@ from src.funciones.auth import (
     login_con_link,
     validar_credenciales,
 )
+from src.funciones.user import usuario_existe
 from .utils import responder_error
-from src.funcinones.user import usuario_existe
-from src.funciones.errores import (
-    FALTAN_DATOS,
-    TOKEN_INVALIDO,
-    USUARIO_NO_EXISTE
-)
-
 
 auth_bp = Blueprint("auth", __name__)
 

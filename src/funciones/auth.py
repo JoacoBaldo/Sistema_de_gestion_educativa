@@ -52,7 +52,8 @@ def login_con_link(email: str, password: str, join_token: str) -> tuple:
 
 
 def buscar_token(token: str):
-    return db_auth.buscar_token(token), TOKEN_INVALIDO
+    token_activo = db_auth.buscar_token(token)
+    return token_activo, None if token_activo else TOKEN_INVALIDO
 
 
 def actualizar_contrasenia(id_usuario: int, hash_generado: str):

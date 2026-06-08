@@ -22,7 +22,7 @@ def email_existe(email: str) -> bool:
     return resultado is not None
 
 
-def usuario_existe(usuario_id: int):
+def usuario_existe_db(usuario_id: int):
     engine = obtener_conexion()
     with engine.connect() as conn:
         usuario = conn.exec_driver_sql(
