@@ -8,8 +8,8 @@ from email.mime.text import MIMEText
 
 from jose import jwt
 
-from src.db.auth import obtener_usuario_por_email
-from src.db.user import crear_usuario_db, email_existe
+from src.db.auth import obtener_usuario_por_email, 
+from src.db.user import crear_usuario_db, email_existe, usuario_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
@@ -86,5 +86,5 @@ def create_user(user: dict) -> tuple:
     return resultado, None
     
 def usuario_existe(usuario_id: int):
-    usuario = db_auth.usuario_existe(usuario_id)
-    return usuario, None if usuario else USUARIO_NO_EXISTE_GLOBAL
+    usuario = db_user.usuario_existe(usuario_id)
+    return usuario, None if usuario else USUARIO_NO_EXISTE
