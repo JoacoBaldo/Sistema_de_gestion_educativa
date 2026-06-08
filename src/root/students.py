@@ -9,7 +9,9 @@ from .utils import extraer_token, responder_error
 students_bp = Blueprint("students", __name__)
 
 
-@students_bp.route("/api/v1/classrooms/<int:classroom_id>/students/import", methods=["POST"])
+@students_bp.route(
+    "/api/v1/classrooms/<int:classroom_id>/students/import", methods=["POST"]
+)
 def cargar_usuarios_csv(classroom_id):
     token = extraer_token()
     _, error = verificar_token(token)

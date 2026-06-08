@@ -72,7 +72,7 @@ def actualizar_evaluacion_root(evaluation_id: int):
 
     classroom_id = body.get("classroom_id")
     name = body.get("name") or body.get("nombre")
-    
+
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
         evaluation_type_id = (

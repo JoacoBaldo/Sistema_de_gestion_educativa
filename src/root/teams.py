@@ -151,7 +151,9 @@ def crear_equipo_formulario():
 
     nombre = request.form.get("nombre_equipo", "").strip()
     miembros = _parsear_miembros_formulario()
-    classroom_id_str = request.args.get("classroom_id") or request.form.get("classroom_id")
+    classroom_id_str = request.args.get("classroom_id") or request.form.get(
+        "classroom_id"
+    )
 
     try:
         classroom_id = int(classroom_id_str) if classroom_id_str else None

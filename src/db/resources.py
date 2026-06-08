@@ -1,13 +1,14 @@
-
 from src.db.conexion import obtener_conexion
 
 SIN_ACCESO = {"error": "No tienes acceso a esta aula"}
 
+
 def obtener_recursos_por_aula(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
-            """
+        resultados = (
+            conn.exec_driver_sql(
+                """
             SELECT 
                 r.id, 
                 r.Title AS name, 
@@ -19,8 +20,11 @@ def obtener_recursos_por_aula(classroom_id: int) -> list[dict]:
             WHERE r.classroom_id = %s
             ORDER BY r.created_at DESC
             """,
-            (classroom_id,)
-        ).mappings().all()
+                (classroom_id,),
+            )
+            .mappings()
+            .all()
+        )
         return [dict(row) for row in resultados]
 
 
@@ -39,7 +43,7 @@ def guardar_contenido_classroom(
         )
         nuevo_id = cursor.fetchone()[0]
         conn.commit()
-        
+
     return nuevo_id
 
 

@@ -108,5 +108,3 @@ def crear_aula():
         return responder_error(error)
 
     return jsonify(resultado), 201
-
-

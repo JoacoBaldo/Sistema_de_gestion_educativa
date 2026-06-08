@@ -71,7 +71,9 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
                 asociados += 1
         except Exception as e:
             logging.error("Error al procesar el estudiante %s: %s", email, e)
-            errores.append({"usuario": email, "error": "Error al procesar el estudiante"})
+            errores.append(
+                {"usuario": email, "error": "Error al procesar el estudiante"}
+            )
 
     return {
         "status": "ok",

@@ -8,6 +8,7 @@ EVALUATION_TYPE_LABELS = {
     4: ("parcialito", "Parcialito"),
 }
 
+
 def obtener_evaluaciones_classroom(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:

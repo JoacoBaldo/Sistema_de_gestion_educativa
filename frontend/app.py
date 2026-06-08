@@ -13,7 +13,6 @@ from flask import (
     send_file,
     session,
     url_for,
-    jsonify
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -44,11 +43,15 @@ from src.funciones.teams import obtener_equipos_classroom
 from src.funciones.user import create_user, send_password_mail
 
 from src.funciones.resources import listar_recursos, subir_contenido_classroom
-from src.root.resources import resources_bp 
+from src.root.resources import resources_bp
 
 from src.root.teams import teams_bp
 
-from src.db.students import obtener_o_crear_carrera, crear_student_profile, obtener_user_id_por_email
+from src.db.students import (
+    obtener_o_crear_carrera,
+    crear_student_profile,
+    obtener_user_id_por_email,
+)
 from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
 from src.db.constantes import ESTUDIANTE
 from src.funciones.students import cargar_estudiantes_csv
@@ -57,7 +60,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
 
 app.register_blueprint(teams_bp)
-app.register_blueprint(resources_bp) 
+app.register_blueprint(resources_bp)
 
 TOKEN_SESSION_KEY = "token"
 USER_SESSION_KEY = "user"
@@ -137,8 +140,10 @@ def formatear_horarios_classroom(aula):
     filas = []
     horario = aula.get("schedule")
     if horario and horario.get("class_day") is not None:
-        dia = DIAS_NOMBRE[horario["class_day"]] if horario["class_day"] < len(DIAS_NOMBRE) else str(
-            horario["class_day"]
+        dia = (
+            DIAS_NOMBRE[horario["class_day"]]
+            if horario["class_day"] < len(DIAS_NOMBRE)
+            else str(horario["class_day"])
         )
         inicio = horario.get("class_start") or ""
         fin = horario.get("class_end") or ""
@@ -237,7 +242,9 @@ def datos_vista_gestion(classroom_id, usuario, vista):
     elif vista == "library":
         recursos, error_r = listar_recursos(classroom_id, usuario["id"])
         if error_r:
-            flash("No se pudieron cargar los recursos públicos de la biblioteca.", "error")
+            flash(
+                "No se pudieron cargar los recursos públicos de la biblioteca.", "error"
+            )
             datos["recursos"] = []
         else:
             datos["recursos"] = recursos or []
@@ -287,7 +294,9 @@ def login():
         if error:
             flash(error.get("error", "No se pudo enviar el correo"), "error")
         else:
-            flash(resultado.get("message", "Revisa tu correo para el token."), "success")
+            flash(
+                resultado.get("message", "Revisa tu correo para el token."), "success"
+            )
         return redirect(url_for("login"))
 
     email = (request.form.get("email") or "").strip()
@@ -355,7 +364,9 @@ def crear_aula():
         return redirect(url_for("classrooms"))
 
     periodos, _ = obtener_periodos_academicos()
-    academic_period_id = resolver_periodo_academico(fecha_inicio, fecha_fin, periodos or [])
+    academic_period_id = resolver_periodo_academico(
+        fecha_inicio, fecha_fin, periodos or []
+    )
     if not academic_period_id:
         flash("No hay períodos académicos configurados.", "error")
         return redirect(url_for("classrooms"))
@@ -423,7 +434,9 @@ def classroom_manage(classroom_id):
 
 @app.route("/aulas/<int:classroom_id>/gestionar/estudiantes")
 def classroom_manage_students(classroom_id):
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+    )
 
 
 @app.route(
@@ -453,22 +466,26 @@ def crear_evaluacion_aula(classroom_id):
 
     nombre = (request.form.get("name") or "").strip()
     tipo_str = request.form.get("evaluation_type_id") or ""
-    
+
     evaluation_type_id = EVALUATION_TYPE_IDS.get(tipo_str, None)
     individual = 1 if request.form.get("individual") else 0
 
-    print(f"DEBUG FRONTEND -> nombre: '{nombre}', tipo: '{tipo_str}', tipo_id: {evaluation_type_id}")
+    print(
+        f"DEBUG FRONTEND -> nombre: '{nombre}', tipo: '{tipo_str}', tipo_id: {evaluation_type_id}"
+    )
 
     _, error = crear_evaluacion(
         classroom_id, nombre, evaluation_type_id, None, individual
     )
-    
+
     if error:
         flash(error.get("error", "No se pudo crear la evaluación"), "error")
     else:
         flash("Evaluación creada correctamente.", "success")
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+    )
 
 
 @app.route(
@@ -498,7 +515,9 @@ def actualizar_evaluacion_aula(classroom_id, evaluation_id):
     else:
         flash("Evaluación actualizada.", "success")
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+    )
 
 
 @app.route("/aulas/<int:classroom_id>/gestionar/asistencia/registrar", methods=["POST"])
@@ -519,7 +538,9 @@ def registrar_asistencia_aula(classroom_id):
     else:
         flash("Evento de asistencia registrado.", "success")
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="asistance"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="asistance")
+    )
 
 
 @app.route("/aulas/<int:classroom_id>/gestionar/metricas/pdf", methods=["POST"])
@@ -531,7 +552,9 @@ def descargar_metricas_pdf(classroom_id):
     metricas, error = obtener_metricas_classroom(classroom_id, usuario["id"])
     if error:
         flash(error.get("error", "No se pudieron generar las métricas"), "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard"))
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard")
+        )
 
     pdf_bytes, error_pdf = generar_pdf_metricas(
         classroom_id=classroom_id,
@@ -541,7 +564,9 @@ def descargar_metricas_pdf(classroom_id):
     )
     if error_pdf:
         flash(error_pdf.get("error", "No se pudo generar el PDF"), "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard"))
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard")
+        )
 
     return send_file(
         io.BytesIO(pdf_bytes),
@@ -554,30 +579,33 @@ def descargar_metricas_pdf(classroom_id):
 @app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/crear", methods=["POST"])
 def procesar_crear_estudiante(classroom_id):
     usuario, redireccion = requiere_login()
-    if redireccion: return redireccion
+    if redireccion:
+        return redireccion
 
     nombre = request.form.get("nombre")
     apellido = request.form.get("apellido")
     padron = request.form.get("padron")
     email = request.form.get("email")
-    
+
     username = f"{nombre} {apellido}".strip()
 
-    _, error = create_user({
-        "username": username,
-        "email": email,
-        "password": padron, 
-    })
+    _, error = create_user(
+        {
+            "username": username,
+            "email": email,
+            "password": padron,
+        }
+    )
 
-    if error and error != "EMAIL_YA_EXISTE": 
+    if error and error != "EMAIL_YA_EXISTE":
         flash(f"Error al crear usuario: {error}", "error")
     else:
         try:
             user_id = obtener_user_id_por_email(email)
             career_id = obtener_o_crear_carrera("Ingeniería")
-            
+
             crear_student_profile(user_id, padron, career_id)
-            
+
             if not usuario_en_classroom(classroom_id, user_id):
                 agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
                 flash("Estudiante creado y asignado con éxito.", "success")
@@ -586,27 +614,37 @@ def procesar_crear_estudiante(classroom_id):
         except Exception as e:
             flash(f"Error al vincular el estudiante: {str(e)}", "error")
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+    )
 
 
 @app.route("/aulas/<int:classroom_id>/gestionar/cargar-csv", methods=["POST"])
 def cargar_csv_estudiantes(classroom_id):
     usuario, redireccion = requiere_login()
-    if redireccion: return redireccion
+    if redireccion:
+        return redireccion
 
     archivo = request.files.get("archivo") or request.files.get("csv_file")
     if not archivo or archivo.filename == "":
         flash("Selecciona un archivo CSV.", "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+        )
 
     resultado, error = cargar_estudiantes_csv(archivo, classroom_id)
-    
+
     if error:
         flash(f"Error al procesar CSV: {error}", "error")
     else:
-        flash(f"CSV procesado: {resultado['cantidad_creados']} creados, {resultado['cantidad_asociados']} asociados al aula.", "success")
+        flash(
+            f"CSV procesado: {resultado['cantidad_creados']} creados, {resultado['cantidad_asociados']} asociados al aula.",
+            "success",
+        )
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+    )
 
 
 @app.route("/aulas/<int:classroom_id>/gestionar/biblioteca/subir", methods=["POST"])
@@ -621,17 +659,21 @@ def subir_recurso_biblioteca(classroom_id):
 
     if not titulo or not url:
         flash("El título y el link del recurso son obligatorios.", "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="library")
+        )
 
     # Pasamos el tipo al backend
     _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"], tipo)
-    
+
     if error:
         flash("No se pudo publicar el recurso en la base de datos.", "error")
     else:
         flash("Recurso publicado con éxito en la biblioteca.", "success")
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="library")
+    )
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
@@ -641,16 +683,20 @@ def subir_recurso_biblioteca(classroom_id):
 
     if not titulo or not url:
         flash("El título y el link del recurso son obligatorios.", "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="library")
+        )
 
     _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"])
-    
+
     if error:
         flash("No se pudo publicar el recurso en la base de datos.", "error")
     else:
         flash("Recurso publicado con éxito en la biblioteca.", "success")
 
-    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="library")
+    )
 
 
 if __name__ == "__main__":

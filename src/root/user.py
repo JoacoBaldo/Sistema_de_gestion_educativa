@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify
 
 from src.funciones.auth import verificar_token
-from src.funciones.classroom import eliminar_usuario_classroom, obtener_profesores_classroom
+from src.funciones.classroom import (
+    eliminar_usuario_classroom,
+    obtener_profesores_classroom,
+)
 from .utils import extraer_token, responder_error
 
 user_bp = Blueprint("user", __name__)

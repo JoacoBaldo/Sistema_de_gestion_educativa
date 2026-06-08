@@ -26,15 +26,17 @@ def obtener_recursos_aula(classroom_id):
 
     if error_recursos:
         return responder_error(error_recursos)
-        
+
     return render_template(
-        "classroom-manage/library/libraryView.html", 
-        recursos=resultado, 
-        classroom_id=classroom_id
+        "classroom-manage/library/libraryView.html",
+        recursos=resultado,
+        classroom_id=classroom_id,
     )
 
 
-@resources_bp.route("/api/v1/classrooms/<int:classroom_id>/contenidos", methods=["POST"])
+@resources_bp.route(
+    "/api/v1/classrooms/<int:classroom_id>/contenidos", methods=["POST"]
+)
 def subir_contenido(classroom_id):
     token = extraer_token()
     usuario, error = verificar_token(token)
