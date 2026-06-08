@@ -1,11 +1,11 @@
 import io
 from datetime import date
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import cm
-from reportlab.platypus import (
+from reportlab.lib import colors  # type: ignore[import-untyped]
+from reportlab.lib.pagesizes import A4  # type: ignore[import-untyped]
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # type: ignore[import-untyped]
+from reportlab.lib.units import cm  # type: ignore[import-untyped]
+from reportlab.platypus import (  # type: ignore[import-untyped]
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -95,7 +95,7 @@ def _obtener_datos_filtro(
         return None, None, None
 
     if filtro == "students":
-        filas = db_classroom.obtener_alumnos_classroom(classroom_id)
+        filas = db_classroom.obtener_alumnos(classroom_id)
         filas_filtradas = [f for f in filas if f.get("status_type_id") == STATUS_ACTIVO]
         return (
             [

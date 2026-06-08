@@ -221,8 +221,8 @@ def desactivar_alumnos_de_classrooms(classroom_ids: list[int]) -> int:
             UPDATE classroom_users
             SET status_type_id = 2
             WHERE classroom_id IN ({placeholders})
-              AND role_id = %s
-              AND status_type_id = 1
+                AND role_id = %s
+                AND status_type_id = 1
             """,
             (*classroom_ids, ESTUDIANTE),
         )

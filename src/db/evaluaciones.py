@@ -117,7 +117,7 @@ def actualizar_evaluacion_db(
     engine = obtener_conexion()
     with engine.connect() as conn:
         query = "UPDATE evaluations SET "
-        params = []
+        params: list[str | int | None] = []
         if classroom_id is not None:
             query += "classroom_id = %s, "
             params.append(classroom_id)

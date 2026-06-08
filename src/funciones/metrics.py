@@ -53,7 +53,7 @@ def _calcular_promedio_aprobados(scores_data: list[dict]) -> float | None:
 
 
 def _agrupar_ingresos_por_año(ingresos_data: list[dict]) -> list[dict]:
-    ingresos_por_año = defaultdict(int)
+    ingresos_por_año: dict[int, int] = defaultdict(int)
 
     for item in ingresos_data:
         año = item["created_at"].year
