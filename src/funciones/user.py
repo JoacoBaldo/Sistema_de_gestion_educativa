@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 
 from jose import jwt
 
-from src.db.auth import obtener_usuario_por_email, 
+from src.db.auth import obtener_usuario_por_email
 from src.db.user import crear_usuario_db, email_existe, usuario_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
