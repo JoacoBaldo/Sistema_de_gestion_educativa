@@ -9,6 +9,7 @@ from src.root.metrics import metrics_bp
 from src.root.teams import teams_bp
 from src.root.user import user_bp
 from src.root.resources import resources_bp
+from src.root.content import content_bp
 
 load_dotenv()
 
@@ -21,6 +22,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(attendance_bp)
 app.register_blueprint(metrics_bp)
 app.register_blueprint(resources_bp)
+app.register_blueprint(content_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
