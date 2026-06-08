@@ -5,9 +5,8 @@
             <p class="st-subtitle">Administra registros, estado y matrícula de estudiantes</p>
         </div>
         <div class="st-actions">
-            <button class="st-btn st-btn-primary" type="button" id="st-add-student-btn" disabled title="Sin endpoint de alta individual">
-                <span class="st-btn-icon" aria-hidden="true">+</span>
-                Añadir estudiante
+            <button class="st-btn st-btn-primary" type="button" id="st-add-btn">
+                + Añadir estudiante
             </button>
         </div>
     </header>
@@ -116,5 +115,7 @@
             </tbody>
         </table>
     </section>
-    {% include 'classroom-manage/students/studentform.html' %}
+    {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
+
+    <script type="module" src="{{ url_for('static', filename='js/studentsModal.js') }}"></script>
 </section>

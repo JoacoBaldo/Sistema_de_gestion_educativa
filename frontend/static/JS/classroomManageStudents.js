@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilter = document.getElementById("st-status-filter");
   const teamFilter = document.getElementById("st-team-filter");
   const tbody = document.getElementById("st-tbody");
+  
+  // 1. CAPTURAMOS EL BOTÓN DE AÑADIR (Asegurate de que el ID coincida con tu HTML)
+  const addBtn = document.getElementById("st-add-btn") || document.getElementById("add-btn");
 
   function applyFilters() {
     if (!tbody) return;

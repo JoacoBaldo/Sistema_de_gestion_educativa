@@ -13,6 +13,7 @@ from flask import (
     send_file,
     session,
     url_for,
+    jsonify
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -42,6 +43,11 @@ from src.funciones.metrics import obtener_metricas_classroom
 from src.funciones.teams import obtener_equipos_classroom
 from src.funciones.user import create_user, send_password_mail
 from src.root.teams import teams_bp
+
+from src.db.students import obtener_o_crear_carrera, crear_student_profile, obtener_user_id_por_email
+from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
+from src.db.constantes import ESTUDIANTE
+from src.funciones.students import cargar_estudiantes_csv
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
@@ -422,10 +428,6 @@ def eliminar_usuario_aula(classroom_id, user_id):
 
     vista = request.form.get("vista", "dashboard")
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista=vista))
-
-
-@app.route("/aulas/<int:classroom_id>/gestionar/cargar-csv", methods=["POST"])
-def cargar_csv_estudiantes(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
@@ -566,6 +568,63 @@ def descargar_metricas_pdf(classroom_id):
         as_attachment=True,
         download_name=f"metricas_classroom_{classroom_id}.pdf",
     )
+
+@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/crear", methods=["POST"])
+def procesar_crear_estudiante(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    nombre = request.form.get("nombre")
+    apellido = request.form.get("apellido")
+    padron = request.form.get("padron")
+    email = request.form.get("email")
+    
+    username = f"{nombre} {apellido}".strip()
+
+    _, error = create_user({
+        "username": username,
+        "email": email,
+        "password": padron, 
+    })
+
+    if error and error != "EMAIL_YA_EXISTE": 
+        flash(f"Error al crear usuario: {error}", "error")
+    else:
+        try:
+            user_id = obtener_user_id_por_email(email)
+            career_id = obtener_o_crear_carrera("Ingeniería") # O la carrera por defecto
+            
+            crear_student_profile(user_id, padron, career_id)
+            
+            if not usuario_en_classroom(classroom_id, user_id):
+                agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
+                flash("Estudiante creado y asignado con éxito.", "success")
+            else:
+                flash("El estudiante ya estaba en el aula.", "warning")
+        except Exception as e:
+            flash(f"Error al vincular el estudiante: {str(e)}", "error")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+
+
+@app.route("/aulas/<int:classroom_id>/gestionar/cargar-csv", methods=["POST"])
+def cargar_csv_estudiantes(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    archivo = request.files.get("archivo") or request.files.get("csv_file")
+    if not archivo or archivo.filename == "":
+        flash("Selecciona un archivo CSV.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+
+    resultado, error = cargar_estudiantes_csv(archivo, classroom_id)
+    
+    if error:
+        flash(f"Error al procesar CSV: {error}", "error")
+    else:
+        flash(f"CSV procesado: {resultado['cantidad_creados']} creados, {resultado['cantidad_asociados']} asociados al aula.", "success")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, render_template
 from src.funciones.resources import listar_recursos
 from src.funciones.auth import verificar_token
 from .utils import extraer_token, responder_error
@@ -18,4 +18,8 @@ def obtener_recursos_aula(classroom_id):
 
     if error_recursos:
         return responder_error(error_recursos)
-    return jsonify(resultado), 200
+    return render_template(
+        "classroom-manage/library/libraryView.html", 
+        recursos=resultado, 
+        classroom_id=classroom_id
+    )
