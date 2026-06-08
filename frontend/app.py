@@ -41,13 +41,11 @@ from src.funciones.evaluaciones import (
 from src.funciones.metrics import obtener_metricas_classroom
 from src.funciones.teams import obtener_equipos_classroom
 from src.funciones.user import create_user, send_password_mail
-from src.root.asistencia_root import asistencia_bp
 from src.root.teams import teams_bp
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
 app.register_blueprint(teams_bp)
-app.register_blueprint(asistencia_bp)
 
 TOKEN_SESSION_KEY = "token"
 USER_SESSION_KEY = "user"
@@ -88,6 +86,7 @@ def obtener_usuario_sesion():
         return None
     usuario, error = verificar_token(token)
     if error:
+        limpiar_sesion()
         return None
     return usuario
 
@@ -277,7 +276,7 @@ def login():
         flash(error.get("error", "Credenciales inválidas"), "error")
         return redirect(url_for("login"))
 
-    token = crear_token(usuario["id"], usuario["username"], usuario["email"])
+    token = crear_token(usuario)
     guardar_sesion(usuario, token)
     return redirect(url_for("classrooms"))
 
