@@ -88,6 +88,8 @@ def actualizar_evaluacion_root(evaluation_id: int):
         classroom_id,
         name,  # type: ignore[arg-type]
         evaluation_type_id,  # type: ignore[arg-type]
+        name,  # type: ignore[arg-type]
+        evaluation_type_id,  # type: ignore[arg-type]
         referenced_eval_id,
         individual,
         evaluation_id,
