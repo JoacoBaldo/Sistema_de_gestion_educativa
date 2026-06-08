@@ -47,9 +47,10 @@
                   data-miembros="{{ equipo.miembros | map(attribute='id') | join(',') }}">
                   Editar
               </button>
-              <form method="POST" action="{{ url_for('teams.eliminar_equipo_formulario', team_id=equipo.id) }}" style="display:inline;">
+              <form method="POST" action="{{ url_for('teams.procesar_equipo', team_id=equipo.id) }}" style="display:inline;">
                   <input type="hidden" name="token" value="{{ token }}">
                   <input type="hidden" name="classroom_id" value="{{ classroom_id }}">
+                  <input type="hidden" name="_action" value="eliminar">
                   <button type="submit" class="st-btn st-btn-ghost tm-delete-btn"
                       data-id="{{ equipo.id }}" data-nombre="{{ equipo.name }}"
                       onclick="return confirm('¿Eliminar {{ equipo.name }}?');">

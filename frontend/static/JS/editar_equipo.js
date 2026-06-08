@@ -25,7 +25,7 @@ function crearFilaMiembro(selectedId = "") {
 window.abrirModalEditarEquipo = function (teamId, teamName, members = []) {
   document.getElementById("edit_team_id").value = teamId;
   document.getElementById("edit_nombre_equipo").value = teamName;
-  formEditarEquipo.action = `/equipos/${teamId}/actualizar`;
+  formEditarEquipo.action = `/api/v1/teams/${teamId}`;
 
   editMiembrosList.innerHTML = "";
   if (members && members.length) {

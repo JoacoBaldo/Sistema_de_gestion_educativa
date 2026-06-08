@@ -282,9 +282,12 @@ def obtener_alumnos(classroom_id: int) -> list:
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT u.id, u.username, u.email, cu.status_type_id, cu.created_at
+            SELECT u.id, u.username, u.email, cu.status_type_id, cu.created_at,
+                   sp.document, c.name AS career_name
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            LEFT JOIN careers c ON c.id = sp.career_id
             WHERE cu.classroom_id = %s AND cu.role_id = %s
             ORDER BY u.username
             """,
@@ -298,6 +301,8 @@ def obtener_alumnos(classroom_id: int) -> list:
             "email": f[2],
             "status_type_id": f[3],
             "created_at": f[4],
+            "document": f[5],
+            "career": f[6],
         }
         for f in resultados
     ]

@@ -1,5 +1,13 @@
 import logging
 
+from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
+from src.db.constantes import ESTUDIANTE
+from src.db.students import (
+    crear_student_profile,
+    obtener_o_crear_carrera,
+    obtener_user_id_por_email,
+)
+from src.funciones.errores import EMAIL_YA_EXISTE
 from src.funciones.user import create_user
 
 
@@ -18,7 +26,7 @@ def parsear_csv(contenido_texto: str) -> list[dict]:
     return filas
 
 
-def cargar_estudiantes_csv(archivo) -> tuple:
+def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
     try:
         contenido_texto = archivo.read().decode("utf-8")
     except Exception as e:
@@ -30,25 +38,46 @@ def cargar_estudiantes_csv(archivo) -> tuple:
     usuarios = parsear_csv(contenido_texto)
 
     guardados = 0
+    asociados = 0
     errores = []
 
     for u in usuarios:
-        resultado, error = create_user(
+        email = u.get("email")
+        document = u.get("document", "").strip()
+        career_name = u.get("career", "").strip()
+
+        _, error = create_user(
             {
                 "username": u.get("username"),
-                "email": u.get("email"),
-                "password": u.get("password"),
+                "email": email,
+                "password": document,
             }
         )
-        if error:
-            errores.append({"usuario": u.get("email"), "error": error})
-        else:
-            guardados += 1
+        usuario_nuevo = error is None
+        if error and error != EMAIL_YA_EXISTE:
+            errores.append({"usuario": email, "error": error})
+            continue
+
+        try:
+            user_id = obtener_user_id_por_email(email)
+
+            if usuario_nuevo:
+                career_id = obtener_o_crear_carrera(career_name)
+                crear_student_profile(user_id, document, career_id)
+                guardados += 1
+
+            if not usuario_en_classroom(classroom_id, user_id):
+                agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
+                asociados += 1
+        except Exception as e:
+            logging.error("Error al procesar el estudiante %s: %s", email, e)
+            errores.append({"usuario": email, "error": "Error al procesar el estudiante"})
 
     return {
         "status": "ok",
         "mensaje": "Proceso de CSV finalizado",
         "cantidad_procesados": len(usuarios),
-        "cantidad_guardados_ok": guardados,
+        "cantidad_creados": guardados,
+        "cantidad_asociados": classroom_id and asociados,
         "errores": errores,
     }, None
