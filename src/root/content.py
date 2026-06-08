@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, request
 
-from src.funciones.content import (eliminar_contenido_classroom, subir_contenido_classroom)
+from src.funciones.content import (
+    eliminar_contenido_classroom,
+    subir_contenido_classroom,
+)
 
 from src.root.classroom import (
     DATOS_INVALIDOS,
@@ -12,9 +15,7 @@ from src.root.classroom import (
 content_bp = Blueprint("content", __name__)
 
 
-@content_bp.route(
-    "/api/v1/classrooms/<int:classroom_id>/contenidos", methods=["POST"]
-)
+@content_bp.route("/api/v1/classrooms/<int:classroom_id>/contenidos", methods=["POST"])
 def subir_contenido(classroom_id):
     token = extraer_token()
     usuario, error = verificar_token(token)
@@ -38,7 +39,8 @@ def subir_contenido(classroom_id):
 
 
 @content_bp.route(
-    "/api/v1/classrooms/<int:classroom_id>/contenidos/<int:contenido_id>",methods=["DELETE"]
+    "/api/v1/classrooms/<int:classroom_id>/contenidos/<int:contenido_id>",
+    methods=["DELETE"],
 )
 def eliminar_contenido(classroom_id, contenido_id):
     token = extraer_token()
