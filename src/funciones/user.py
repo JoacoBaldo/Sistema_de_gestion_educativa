@@ -17,7 +17,7 @@ from .errores import (
     EMAIL_NO_VALIDO,
     EMAIL_YA_EXISTE,
     ERROR_ENVIO_MAIL,
-    USUARIO_NO_EXISTE
+    USUARIO_NO_EXISTE,
 )
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
@@ -85,7 +85,8 @@ def create_user(user: dict) -> tuple:
     ).decode("utf-8")
     resultado = crear_usuario_db({**user, "password": password_hasheada})
     return resultado, None
-    
+
+
 def usuario_existe(usuario_id: int):
     usuario = usuario_existe_db(usuario_id)
     return usuario, None if usuario else USUARIO_NO_EXISTE
