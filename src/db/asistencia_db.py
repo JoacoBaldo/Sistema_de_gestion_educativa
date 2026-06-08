@@ -6,7 +6,7 @@ def crear_evento_asistencia(classroom_id, qr_code, fecha):
     with engine.connect() as conn:
         cursor = conn.exec_driver_sql(
             """
-            INSERT INTO attendace_events (classroom_id, qr_code, created_at)
+            INSERT INTO attendance_events (classroom_id, qr_code, created_at)
             VALUES (%s, %s, %s)
             """,
             (classroom_id, qr_code, fecha),
@@ -30,15 +30,15 @@ def obtener_estudiantes_classroom(classroom_id):
     return resultados_devolver
 
 
-def inasistencia_db(student_id, attendece_event_id, fecha):
+def inasistencia_db(student_id, attendance_event_id, fecha):
     engine = obtener_conexion()
     with engine.connect() as conn:
         conn.exec_driver_sql(
             """
-            UPDATE attendace
-            SET student_id = %s, attendece_event_id = %s, absence = absence + 1, updated_at = %s
+            UPDATE attendance
+            SET student_id = %s, attendance_event_id = %s, absence = absence + 1, updated_at = %s
             """,
-            (student_id, attendece_event_id, fecha),
+            (student_id, attendance_event_id, fecha),
         )
         conn.commit()
         conn.close()

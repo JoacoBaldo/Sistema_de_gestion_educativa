@@ -43,18 +43,63 @@
   gap: 14px;
 }
 
-.ev-search {
-  flex: 1;
-  max-width: 420px;
+.ev-search input[type="text"], 
+.ev-search input {
+  background: linear-gradient(145deg, rgba(251, 252, 254, 0.85), rgba(241, 245, 250, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 14px; /* Un radio moderno para inputs */
+  box-shadow: 0 4px 14px rgba(160, 175, 195, 0.1);
+  color: var(--color-text);
+  backdrop-filter: blur(8px); /* Agrega un extra de desenfoque de vidrio */
+  outline: none;
+  transition: box-shadow 140ms ease, border-color 140ms ease;
 }
 
-.ev-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+/* Enfoque del input de búsqueda */
+.ev-search input[type="text"]:focus,
+.ev-search input:focus {
+  border-color: rgba(92, 103, 245, 0.5); /* Destello sutil azul/violeta al hacer clic */
+  box-shadow: 0 0 0 3px rgba(92, 103, 245, 0.15), 0 4px 14px rgba(160, 175, 195, 0.1);
+}.ev-search input[type="text"], 
+.ev-search input {
+  background: linear-gradient(145deg, rgba(251, 252, 254, 0.85), rgba(241, 245, 250, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 14px; /* Un radio moderno para inputs */
+  box-shadow: 0 4px 14px rgba(160, 175, 195, 0.1);
+  color: var(--color-text);
+  backdrop-filter: blur(8px); /* Agrega un extra de desenfoque de vidrio */
+  outline: none;
+  transition: box-shadow 140ms ease, border-color 140ms ease;
 }
 
+/* Enfoque del input de búsqueda */
+.ev-search input[type="text"]:focus,
+.ev-search input:focus {
+  border-color: rgba(92, 103, 245, 0.5); /* Destello sutil azul/violeta al hacer clic */
+  box-shadow: 0 0 0 3px rgba(92, 103, 245, 0.15), 0 4px 14px rgba(160, 175, 195, 0.1);
+}
+
+.ev-toolbar-right .st-btn,
+.ev-toolbar-right button,
+.ev-toolbar-right select {
+  background: linear-gradient(145deg, #fbfcfe, #f1f5fa);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(160, 175, 195, 0.1);
+  color: var(--color-text);
+  font-weight: 600;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 140ms ease;
+}
+
+/* Efecto hover para los botones de ordenar */
+.ev-toolbar-right .st-btn:hover,
+.ev-toolbar-right button:hover,
+.ev-toolbar-right select:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(160, 175, 195, 0.18);
+}
 .ev-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -63,10 +108,12 @@
 
 .ev-card {
   position: relative;
-  background: #ffffff;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+  /* Clonamos el efecto vidrio (Glassmorphic) de equipos */
+  background: linear-gradient(145deg, #fbfcfe, #f1f5fa);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 28px; /* Bordes más redondeados y modernos */
+  box-shadow: 0 10px 30px rgba(160, 175, 195, 0.15);
+  
   padding: 18px 18px 16px;
   display: flex;
   flex-direction: column;
@@ -76,8 +123,9 @@
 }
 
 .ev-card:hover {
+  /* Elevación y sombra más profunda al pasar el mouse */
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 16px 36px rgba(160, 175, 195, 0.25);
 }
 
 .ev-card__top {
@@ -96,11 +144,6 @@
   transition: opacity 160ms ease, visibility 160ms ease;
 }
 
-.ev-card:hover .ev-card__date,
-.ev-card:focus-within .ev-card__date {
-  opacity: 0;
-  visibility: hidden;
-}
 
 .ev-card__body {
   flex: 1;
@@ -131,9 +174,14 @@
 }
 
 .ev-icon-btn {
-  width: 30px;
-  height: 30px;
+  min-width: 30px;         /* Cambiamos width por min-width */
+  height: 36px;            /* Un poquito más alto para que quede cómodo */
+  padding: 0 14px;         /* Le damos margen interno a los costados del texto */
+  border-radius: 16px;     /* Bordes redondeados sutiles (estilo pastilla) */
   text-decoration: none;
+  display: inline-flex;    /* Centramos el texto adentro del botón */
+  align-items: center;
+  justify-content: center;
 }
 
 .ev-badge {
@@ -186,9 +234,9 @@
 .ev-card__footer {
   margin-top: auto;
   padding-top: 14px;
-  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  border-top: none; 
   display: flex;
-  align-items: center;
+  align-items: center;     /* Centra verticalmente el botón y el texto */
   justify-content: space-between;
   gap: 12px;
 }

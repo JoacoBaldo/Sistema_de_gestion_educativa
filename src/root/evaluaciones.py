@@ -16,19 +16,24 @@ def crear_evaluacion_root(classroom_id: int):
     if error:
         return responder_error(error)
 
-    body = request.get_json(silent=True) or {}
+    # SOPORTE DUAL: Lee tanto de JSON (fetch) como de Formulario Nativo HTML
+    if request.is_json:
+        body = request.get_json(silent=True) or {}
+    else:
+        body = request.form or {}
 
-    name = body.get("name")
+    name = body.get("name") or body.get("nombre")
     if not isinstance(name, str):
         name = ""
 
-    evaluation_type_raw = body.get("evaluation_type_id")
+    evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
+        # Validamos estrictamente que no sea None para permitir el 0 (Parcial)
         evaluation_type_id = (
-            int(evaluation_type_raw) if evaluation_type_raw is not None else 0
+            int(evaluation_type_raw) if evaluation_type_raw is not None else None
         )
     except (TypeError, ValueError):
-        evaluation_type_id = 0
+        evaluation_type_id = None
 
     referenced_eval_raw = body.get("referenced_eval_id")
     try:
@@ -60,10 +65,22 @@ def actualizar_evaluacion_root(evaluation_id: int):
     if error:
         return responder_error(error)
 
-    body = request.get_json(silent=True) or {}
+    if request.is_json:
+        body = request.get_json(silent=True) or {}
+    else:
+        body = request.form or {}
+
     classroom_id = body.get("classroom_id")
-    name = body.get("name")
-    evaluation_type_id = body.get("evaluation_type_id")
+    name = body.get("name") or body.get("nombre")
+    
+    evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
+    try:
+        evaluation_type_id = (
+            int(evaluation_type_raw) if evaluation_type_raw is not None else None
+        )
+    except (TypeError, ValueError):
+        evaluation_type_id = None
+
     referenced_eval_id = body.get("referenced_eval_id")
     individual = body.get("individual")
 

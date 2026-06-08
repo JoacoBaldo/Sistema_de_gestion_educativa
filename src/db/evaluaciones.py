@@ -2,12 +2,11 @@ from .conexion import obtener_conexion
 
 
 EVALUATION_TYPE_LABELS = {
-    0: ("parcial", "Parcial"),
-    1: ("tp", "TP"),
-    2: ("recuperatorio", "Recuperatorio"),
-    3: ("parcialito", "Parcialito"),
+    1: ("parcial", "Parcial"),
+    2: ("tp", "TP"),
+    3: ("recuperatorio", "Recuperatorio"),
+    4: ("parcialito", "Parcialito"),
 }
-
 
 def obtener_evaluaciones_classroom(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
@@ -73,13 +72,7 @@ def crear_evaluacion_db(
 
 
 def existe_evaluation_type(evaluation_type_id: int) -> bool:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultado = conn.exec_driver_sql(
-            "SELECT 1 FROM evaluation_types WHERE id = %s LIMIT 1",
-            (evaluation_type_id,),
-        ).fetchone()
-    return resultado is not None
+    return evaluation_type_id in EVALUATION_TYPE_LABELS
 
 
 def existe_evaluacion_en_classroom(evaluation_id: int, classroom_id: int) -> bool:

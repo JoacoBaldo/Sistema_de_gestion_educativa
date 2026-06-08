@@ -15,7 +15,7 @@ from .errores import (
     TIPO_EVALUACION_INVALIDO,
 )
 
-EVALUATION_TYPE_RECUPERATORIO = 2
+EVALUATION_TYPE_RECUPERATORIO = 3
 
 
 def obtener_evaluaciones(classroom_id: int) -> tuple:

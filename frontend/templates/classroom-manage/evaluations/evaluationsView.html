@@ -6,8 +6,7 @@
         </div>
         <div class="ev-actions">
             <a class="st-btn st-btn-primary ev-btn-new" href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
-                <span class="st-btn-icon" aria-hidden="true">+</span>
-                Nueva Evaluación
+                + Nueva Evaluación
             </a>
         </div>
     </header>
@@ -65,7 +64,7 @@
                 <h2 class="ev-card__title">{{ ev.name }}</h2>
             </div>
             <footer class="ev-card__footer">
-                <button type="button" class="ev-card__edit-btn" aria-label="Editar evaluación"
+                <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn" aria-label="Editar evaluación"
                     data-id="{{ ev.id }}"
                     data-nombre="{{ ev.name }}"
                     data-tipo="{{ ev.tipo_slug }}"

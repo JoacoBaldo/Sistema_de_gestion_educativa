@@ -21,7 +21,7 @@ def crear_equipo_con_miembros(nombre: str, miembros: list, classroom_id: int) ->
             (
                 nombre,
                 classroom_id,
-                int(time.time()),
+                datetime.now(timezone.utc),
                 datetime.now(timezone.utc),
             ),
         )

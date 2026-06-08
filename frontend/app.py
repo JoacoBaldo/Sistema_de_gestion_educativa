@@ -71,10 +71,10 @@ DIAS_A_NUMERO = {
 DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
 EVALUATION_TYPE_IDS = {
-    "parcial": 0,
-    "tp": 1,
-    "recuperatorio": 2,
-    "parcialito": 3,
+    "parcial": 1,
+    "tp": 2,
+    "recuperatorio": 3,
+    "parcialito": 4,
 }
 
 ROLE_LABELS = {1: "Profesor", 2: "Ayudante", 7: "Administrador"}
@@ -468,14 +468,18 @@ def crear_evaluacion_aula(classroom_id):
     if redireccion:
         return redireccion
 
-    nombre = (request.form.get("nombre") or "").strip()
-    tipo = request.form.get("tipo") or ""
-    evaluation_type_id = EVALUATION_TYPE_IDS.get(tipo, 0)
+    nombre = (request.form.get("name") or "").strip()
+    tipo_str = request.form.get("evaluation_type_id") or ""
+    
+    evaluation_type_id = EVALUATION_TYPE_IDS.get(tipo_str, None)
     individual = 1 if request.form.get("individual") else 0
+
+    print(f"DEBUG FRONTEND -> nombre: '{nombre}', tipo: '{tipo_str}', tipo_id: {evaluation_type_id}")
 
     _, error = crear_evaluacion(
         classroom_id, nombre, evaluation_type_id, None, individual
     )
+    
     if error:
         flash(error.get("error", "No se pudo crear la evaluación"), "error")
     else:

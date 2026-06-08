@@ -52,46 +52,14 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal();
   }
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
+  form.addEventListener("submit", (event) => {
     const nombre = nameInput?.value.trim();
     const tipo = typeSelect?.value;
     
     if (!nombre || !tipo) {
+      event.preventDefault();
       showToast("Completa nombre y tipo antes de guardar.");
       return;
-    }
-
-    const payload = {
-      name: nombre,
-      evaluation_type_id: parseInt(tipo, 10),
-      individual: individualInput?.checked ? 1 : 0
-    };
-
-    const classroomId = getQueryParam("classroom_id") || "1"; 
-
-    try {
-      const response = await fetch(`/api/v1/classroom/${classroomId}/evaluaciones`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        showToast(data.error || "Ocurrió un error al guardar.");
-      } else {
-        showToast("Evaluación guardada con éxito.");
-        closeModal();
-        window.location.reload(); 
-      }
-    } catch (error) {
-      console.error(error);
-      showToast("Error de conexión con el servidor.");
     }
   });
 });

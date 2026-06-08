@@ -33,12 +33,15 @@
           <div class="tm-card__body">
               <p class="tm-card__members-label">Miembros</p>
               <ul class="tm-card__members">
-                  {% for miembro in equipo.miembros %}
-                  <li>{{ miembro.username }} ({{ miembro.email }})</li>
-                  {% else %}
-                  <li>Sin miembros asignados</li>
-                  {% endfor %}
-              </ul>
+                {% for miembro in equipo.miembros %}
+                <li class="tm-card__member-item">
+                    <span class="tm-card__member-name">{{ miembro.username }}</span>
+                    <span class="tm-card__member-email">{{ miembro.email }}</span>
+                </li>
+                {% else %}
+                <li class="tm-empty-members">Sin miembros asignados</li>
+                {% endfor %}
+            </ul>
           </div>
           <footer class="tm-card__footer">
               <button type="button" class="st-btn st-btn-ghost tm-edit-btn"
