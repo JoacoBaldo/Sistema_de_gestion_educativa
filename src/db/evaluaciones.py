@@ -1,23 +1,36 @@
 from .conexion import obtener_conexion
 
 
-def crear_evaluacion_db(classroom_id: int, fecha: str, aulas: tuple) -> dict:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
-            "INSERT INTO evaluaciones (classroom_id, fecha, aula) VALUES (%s, %s, %s)",
-            (classroom_id, fecha, aulas),
-        )
-        conn.commit()
-    return {"message": "Evaluacion creada exitosamente", "status": 201}
-
-
-def existe_classroom(classroom_id: int) -> bool:
+def crear_evaluacion_db(
+    classroom_id: int,
+    name: str,
+    evaluation_type_id: int,
+    referenced_eval_id: int | None,
+    individual: int,
+) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
-            "SELECT 1 FROM classrooms WHERE id = %s LIMIT 1",
-            (classroom_id,),
+            "INSERT INTO evaluations (classroom_id, name, evaluation_type_id, referenced_eval_id, individual) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+            (classroom_id, name, evaluation_type_id, referenced_eval_id, individual),
+        )
+        inserted = resultado.fetchone()
+        conn.commit()
+
+    evaluation_id = inserted[0] if inserted else None
+    return {
+        "message": "Evaluacion creada exitosamente",
+        "status": 201,
+        "id": evaluation_id,
+    }
+
+
+def existe_evaluation_type(evaluation_type_id: int) -> bool:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            "SELECT 1 FROM evaluation_types WHERE id = %s LIMIT 1",
+            (evaluation_type_id,),
         ).fetchone()
     return resultado is not None
 

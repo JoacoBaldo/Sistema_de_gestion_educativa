@@ -1,62 +1,66 @@
+import { requestJson } from "./common/http.js";
+import { apiUrl, apiErrorMessage } from "./common/api.js";
+import {
+  authHeaders,
+  clearSession,
+  getUser,
+  requireAuth,
+  userInitials,
+} from "./common/auth.js";
 import { escapeHtml, emitAppEvent, APP_EVENTS } from "./common/ui.js";
+
+const THEMES = [
+  "theme-violet",
+  "theme-aqua",
+  "theme-emerald",
+  "theme-coral",
+  "theme-electric",
+  "theme-orange",
+];
 
 (() => {
   const gridEl = document.getElementById("classroomsGrid");
   if (!gridEl) return;
 
-  const mockClassrooms = [
-    {
-      id: 1,
-      name: "Sistemas Operativos",
-      chair: "Cátedra G",
-      students: 45,
-      schedules: ["Lunes 14:00-16:00", "Miércoles 14:00-16:00"],
-      theme: "theme-violet",
-    },
-    {
-      id: 2,
-      name: "Algoritmos y\nEstructuras de Datos",
-      chair: "Cátedra A",
-      students: 52,
-      schedules: ["Martes 10:00-12:00", "Jueves 10:00-12:00"],
-      theme: "theme-aqua",
-    },
-    {
-      id: 3,
-      name: "Bases de Datos",
-      chair: "Cátedra B",
-      students: 38,
-      schedules: ["Miércoles 16:00-18:00", "Viernes 16:00-18:00"],
-      theme: "theme-emerald",
-    },
-    {
-      id: 4,
-      name: "Ingeniería de Software",
-      chair: "Cátedra C",
-      students: 41,
-      schedules: ["Lunes 10:00-13:00"],
-      theme: "theme-coral",
-    },
-    {
-      id: 5,
-      name: "Redes y Comunicaciones",
-      chair: "Cátedra D",
-      students: 36,
-      schedules: ["Jueves 14:00-17:00"],
-      theme: "theme-electric",
-    },
-    {
-      id: 6,
-      name: "Inteligencia Artificial",
-      chair: "Cátedra E",
-      students: 29,
-      schedules: ["Viernes 10:00-13:00"],
-      theme: "theme-orange",
-    },
-  ];
+  if (!requireAuth()) return;
 
-  function renderMock() {
-    gridEl.innerHTML = mockClassrooms.map(classroomCardTemplate).join("");
+  const user = getUser();
+  const avatarEl = document.querySelector(".um-avatar");
+  const nameEl = document.querySelector(".um-user__name");
+  if (avatarEl && user) avatarEl.textContent = userInitials(user.username);
+  if (nameEl && user) nameEl.textContent = user.username || user.email || "Usuario";
+
+  document.querySelector(".um-icon-btn.icon--danger")?.addEventListener("click", () => {
+    clearSession();
+    location.href = "/auth";
+  });
+
+  function formatSchedules(classroom) {
+    const rows = [];
+    if (classroom.class_day && classroom.class_start && classroom.class_end) {
+      rows.push(`${classroom.class_day} ${classroom.class_start}-${classroom.class_end}`);
+    }
+    if (Array.isArray(classroom.academic_periods)) {
+      classroom.academic_periods.forEach((p) => {
+        if (p?.name && p?.period_start && p?.period_end) {
+          rows.push(`${p.name}: ${p.period_start} — ${p.period_end}`);
+        } else if (p?.name) {
+          rows.push(p.name);
+        }
+      });
+    }
+    return rows;
+  }
+
+  function mapClassroom(raw, index) {
+    return {
+      id: raw.id,
+      name: raw.name ?? "",
+      chair: raw.department ?? "",
+      students: raw.total_students ?? 0,
+      schedules: formatSchedules(raw),
+      theme: THEMES[index % THEMES.length],
+    };
   }
 
   function classroomCardTemplate(model) {
@@ -68,9 +72,10 @@ import { escapeHtml, emitAppEvent, APP_EVENTS } from "./common/ui.js";
     const shareName = escapeHtml(String(model?.name ?? "").replace(/\n/g, " "));
     const schedules = Array.isArray(model?.schedules) ? model.schedules : [];
 
-    const scheduleHtml = schedules
-      .map((s) => {
-        return `
+    const scheduleHtml = schedules.length
+      ? schedules
+          .map((s) => {
+            return `
           <div class="um-schedule__row">
             <span class="um-ico um-ico--clock" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -80,8 +85,9 @@ import { escapeHtml, emitAppEvent, APP_EVENTS } from "./common/ui.js";
             <span>${escapeHtml(s)}</span>
           </div>
         `;
-      })
-      .join("");
+          })
+          .join("")
+      : `<div class="um-schedule__row"><span>Sin horario cargado</span></div>`;
 
     return `
       <article class="um-card ${theme}">
@@ -121,6 +127,29 @@ import { escapeHtml, emitAppEvent, APP_EVENTS } from "./common/ui.js";
     `;
   }
 
+  async function loadClassrooms() {
+    gridEl.innerHTML = `<p class="um-loading">Cargando aulas...</p>`;
+    try {
+      const response = await requestJson(
+        apiUrl(`/api/v1/classrooms/${user.id}`),
+        { headers: authHeaders() }
+      );
+      const body = response.json();
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(body, "No se pudieron cargar las aulas"));
+      }
+      const list = Array.isArray(body) ? body : [];
+      if (!list.length) {
+        gridEl.innerHTML = `<p class="um-empty">No tenés aulas asignadas. Creá una con el botón superior.</p>`;
+        return;
+      }
+      gridEl.innerHTML = list.map((c, i) => classroomCardTemplate(mapClassroom(c, i))).join("");
+    } catch (err) {
+      console.error(err);
+      gridEl.innerHTML = `<p class="um-empty">${escapeHtml(err.message || "Error al cargar aulas")}</p>`;
+    }
+  }
+
   gridEl.addEventListener("click", (event) => {
     const shareLink = event.target.closest('[data-action="share"]');
     if (!shareLink) return;
@@ -132,5 +161,5 @@ import { escapeHtml, emitAppEvent, APP_EVENTS } from "./common/ui.js";
     });
   });
 
-  renderMock();
+  loadClassrooms();
 })();

@@ -1,4 +1,6 @@
-import { submitForm } from "./common/http.js";
+import { requestJson } from "./common/http.js";
+import { apiUrl, apiErrorMessage } from "./common/api.js";
+import { authHeaders, requireAuth } from "./common/auth.js";
 import {
   APP_EVENTS,
   bindModalButtons,
@@ -7,6 +9,7 @@ import {
   getQueryParam,
   goTo,
   onAppEvent,
+  reloadPage,
 } from "./common/ui.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -58,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openFromQuery() {
+    if (!requireAuth()) return;
     resetForm();
     openModal();
   }
@@ -76,10 +80,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!requireAuth()) return;
+
+    const name = document.getElementById("nombre")?.value.trim() ?? "";
+    const department = document.getElementById("catedra")?.value.trim() ?? "";
+    const university = document.getElementById("universidad")?.value.trim() ?? "";
 
     const fechaInicio = document.getElementById("fecha_inicio")?.value ?? "";
     const fechaFin = document.getElementById("fecha_fin")?.value ?? "";
     const horarioRows = form.querySelectorAll(".glass-list-row--schedule");
+
+    if (!name || !department || !university) {
+      showToast("Completa nombre, cátedra y universidad.");
+      return;
+    }
 
     if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
       showToast("La fecha de inicio debe ser anterior a la fecha de fin.");
@@ -101,17 +115,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await submitForm(form.action, new FormData(form));
-      if (!response.ok) throw new Error("Error al crear el aula");
+      const response = await requestJson(apiUrl("/api/v1/classrooms"), {
+        method: "POST",
+        headers: authHeaders(),
+        body: { name, department, university },
+      });
+      const body = response.json();
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(body, "Error al crear el aula"));
+      }
 
       showToast("Aula creada correctamente.");
       setTimeout(() => {
         closeModal();
-        goTo("/");
+        reloadPage();
       }, 600);
     } catch (error) {
       console.error(error);
-      showToast("No se pudo crear el aula. Intenta nuevamente.");
+      showToast(error.message || "No se pudo crear el aula. Intenta nuevamente.");
       if (btnGuardar) {
         btnGuardar.textContent = "Crear Aula";
         btnGuardar.disabled = false;

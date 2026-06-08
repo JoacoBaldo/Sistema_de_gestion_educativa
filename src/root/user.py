@@ -5,7 +5,6 @@ from src.funciones.errores import DATOS_USUARIO_REQUERIDOS, EMAIL_REQUERIDO
 from src.funciones.user import create_user, send_password_mail, actualizar_alumno_db, crear_alumno_db
 from .utils import extraer_token, responder_error
 
-
 user_bp = Blueprint("user", __name__)
 
 

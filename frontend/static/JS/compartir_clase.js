@@ -1,4 +1,6 @@
-import { submitForm } from "./common/http.js";
+import { requestJson } from "./common/http.js";
+import { apiUrl, apiErrorMessage } from "./common/api.js";
+import { authHeaders, requireAuth } from "./common/auth.js";
 import {
   APP_EVENTS,
   bindModalButtons,
@@ -7,6 +9,11 @@ import {
   getQueryParam,
   onAppEvent,
 } from "./common/ui.js";
+
+const ROLE_MAP = {
+  Lector: 2,
+  Editor: 1,
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("cc-share-modal");
@@ -17,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelBtn = document.getElementById("cc-share-cancel-btn");
   const closeBtn = document.getElementById("cc-share-close");
   const btnCompartir = document.getElementById("btnCompartir");
+  const linkResult = document.getElementById("cc-share-link-result");
 
   if (!modal || !form) return;
 
@@ -26,6 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (classIdEl) classIdEl.value = classId;
     if (titleEl) {
       titleEl.textContent = className ? `Compartir: ${className}` : "Compartir Clase";
+    }
+    if (linkResult) {
+      linkResult.hidden = true;
+      linkResult.textContent = "";
     }
     modal.classList.remove("hidden");
   }
@@ -38,9 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
     form.reset();
     if (classIdEl) classIdEl.value = "";
     if (titleEl) titleEl.textContent = "Compartir Clase";
+    if (linkResult) {
+      linkResult.hidden = true;
+      linkResult.textContent = "";
+    }
   }
 
   function openShareModal({ classId = "", className = "" } = {}) {
+    if (!requireAuth()) return;
     resetForm();
     openModal(classId, className);
   }
@@ -50,34 +67,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!requireAuth()) return;
 
-    const email = document.getElementById("shareEmail")?.value.trim() ?? "";
-    if (!email) {
-      showToast("Ingresa un email válido.");
+    const classroomId = classIdEl?.value.trim() ?? "";
+    const rolLabel = document.getElementById("shareRol")?.value ?? "Editor";
+    const roleId = ROLE_MAP[rolLabel] ?? 1;
+
+    if (!classroomId) {
+      showToast("Selecciona un aula desde la grilla.");
       return;
     }
 
     if (btnCompartir) {
       btnCompartir.disabled = true;
-      btnCompartir.textContent = "Enviando...";
+      btnCompartir.textContent = "Generando enlace...";
     }
 
     try {
-      const response = await submitForm(form.action, new FormData(form));
-      if (!response.ok) throw new Error("Error al compartir");
+      const response = await requestJson(
+        apiUrl(`/api/v1/classrooms/${encodeURIComponent(classroomId)}/link?role_id=${roleId}`),
+        { headers: authHeaders() }
+      );
+      const body = response.json();
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(body, "No se pudo generar el enlace"));
+      }
 
-      showToast("Acceso concedido correctamente.");
-      setTimeout(() => {
-        closeModal();
-        resetForm();
-        if (btnCompartir) {
-          btnCompartir.disabled = false;
-          btnCompartir.textContent = "Conceder Acceso";
-        }
-      }, 900);
+      const joinLink = body.join_link || "";
+      if (linkResult) {
+        linkResult.hidden = false;
+        linkResult.textContent = joinLink;
+      }
+      try {
+        await navigator.clipboard.writeText(joinLink);
+        showToast("Enlace copiado al portapapeles.");
+      } catch {
+        showToast("Enlace generado. Copialo desde el cuadro de texto.");
+      }
     } catch (error) {
       console.error(error);
-      showToast("No se pudo compartir. Intenta nuevamente.");
+      showToast(error.message || "No se pudo compartir. Intenta nuevamente.");
+    } finally {
       if (btnCompartir) {
         btnCompartir.disabled = false;
         btnCompartir.textContent = "Conceder Acceso";

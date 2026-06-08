@@ -56,8 +56,20 @@ DATOS_USUARIO_REQUERIDOS = {
     "status": 400,
 }
 DATOS_EVALUACION_REQUERIDOS = {
-    "error": "classroom_id, fecha y aulas son requeridos",
+    "error": "name y evaluation_type_id son requeridos",
     "status": 400,
+}
+TIPO_EVALUACION_INVALIDO = {
+    "error": "El tipo de evaluación especificado no existe",
+    "status": 404,
+}
+REFERENCED_EVAL_REQUERIDO = {
+    "error": "referenced_eval_id es obligatorio para evaluaciones de tipo recuperatorio",
+    "status": 400,
+}
+REFERENCED_EVAL_NO_EXISTE = {
+    "error": "La evaluación referenciada no existe",
+    "status": 404,
 }
 ERROR_ENVIO_MAIL = {
     "error": "Hubo un problema interno al intentar enviar el correo",

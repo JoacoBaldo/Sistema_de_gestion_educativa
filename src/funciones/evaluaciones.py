@@ -1,48 +1,107 @@
-import csv
-import io
-from src.db.evaluaciones import eliminar_evaluacion_db, insertar_notas_csv_db
 from src.db.evaluaciones import crear_evaluacion_db, existe_classroom
 from .errores import (
-    ARCHIVO_INVALIDO,
     AULA_NO_VALIDA,
     CLASSROOM_NO_EXISTE,
     DATOS_EVALUACION_REQUERIDOS,
-    FECHA_NO_VALIDA,
+    REFERENCED_EVAL_NO_EXISTE,
+    REFERENCED_EVAL_REQUERIDO,
+    TIPO_EVALUACION_INVALIDO,
 )
 
-AULAS_VALIDAS = ("Aula 101", "Aula 102", "Aula 103")
+EVALUATION_TYPE_RECUPERATORIO = 3
 
 
-def crear_evaluacion(classroom_id: int, fecha: str, aulas: tuple) -> tuple:
-    if not classroom_id or not fecha or not aulas:
+def crear_evaluacion(
+    classroom_id: int,
+    name: str,
+    evaluation_type_id: int,
+    referenced_eval_id: int | None,
+    individual: int,
+) -> tuple:
+    if not name or not evaluation_type_id:
         return None, DATOS_EVALUACION_REQUERIDOS
     if not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
-    if not fecha_es_valida(fecha):
-        return None, FECHA_NO_VALIDA
-    if not aula_es_valida(aulas):
-        return None, AULA_NO_VALIDA
-    resultado = crear_evaluacion_db(classroom_id, fecha, aulas)
+    if not existe_evaluation_type(evaluation_type_id):
+        return None, TIPO_EVALUACION_INVALIDO
+    if evaluation_type_id == EVALUATION_TYPE_RECUPERATORIO:
+        if not referenced_eval_id:
+            return None, REFERENCED_EVAL_REQUERIDO
+        if not existe_evaluacion_en_classroom(referenced_eval_id, classroom_id):
+            return None, REFERENCED_EVAL_NO_EXISTE
+    else:
+        referenced_eval_id = None
+    resultado = crear_evaluacion_db(
+        classroom_id, name, evaluation_type_id, referenced_eval_id, individual
+    )
     return resultado, None
 
 
-def fecha_es_valida(fecha: str) -> bool:
-    if not isinstance(fecha, str):
-        return False
-    try:
-        from datetime import datetime
+def actualizar_evaluacion(
+    classroom_id: int | None,
+    name: str | None,
+    evaluation_type_id: int | None,
+    referenced_eval_id: int | None,
+    individual: int | None,
+    evaluation_id: int,
+):
+    if (
+        classroom_id is None
+        and name is None
+        and evaluation_type_id is None
+        and referenced_eval_id is None
+        and individual is None
+    ):
+        return None, DATOS_EVALUACION_REQUERIDOS
 
-        datetime.strptime(fecha, "%Y-%m-%d")
-        return True
-    except ValueError:
-        return False
+    evaluacion_actual = obtener_evaluacion_por_id(evaluation_id)
+    if evaluacion_actual is None:
+        return None, {
+            "error": "La evaluación especificada no existe",
+            "status": 404,
+        }
 
+    if classroom_id is not None and not existe_classroom(classroom_id):
+        return None, CLASSROOM_NO_EXISTE
 
-def aula_es_valida(aulas: tuple) -> bool:
-    for aula in aulas:
-        if aula not in AULAS_VALIDAS:
-            return False
-    return True
+    if evaluation_type_id is not None and not existe_evaluation_type(
+        evaluation_type_id
+    ):
+        return None, TIPO_EVALUACION_INVALIDO
+
+    new_classroom_id = (
+        classroom_id if classroom_id is not None else evaluacion_actual["classroom_id"]
+    )
+    new_evaluation_type_id = (
+        evaluation_type_id
+        if evaluation_type_id is not None
+        else evaluacion_actual["evaluation_type_id"]
+    )
+
+    if new_evaluation_type_id == EVALUATION_TYPE_RECUPERATORIO:
+        if referenced_eval_id is None:
+            if evaluacion_actual["evaluation_type_id"] != EVALUATION_TYPE_RECUPERATORIO:
+                return None, REFERENCED_EVAL_REQUERIDO
+            referenced_eval_id = evaluacion_actual["referenced_eval_id"]
+
+        if referenced_eval_id is not None:
+            if not existe_evaluacion_en_classroom(
+                referenced_eval_id,
+                new_classroom_id,
+            ):
+                return None, REFERENCED_EVAL_NO_EXISTE
+    else:
+        referenced_eval_id = None
+
+    resultado = actualizar_evaluacion_db(
+        classroom_id,
+        name,
+        evaluation_type_id,
+        referenced_eval_id,
+        individual,
+        evaluation_id,
+    )
+    return resultado, None
 
 
 def eliminar_evaluacion(eval_id: int) -> tuple:

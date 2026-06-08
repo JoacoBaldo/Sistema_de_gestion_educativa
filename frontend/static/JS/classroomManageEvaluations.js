@@ -1,9 +1,21 @@
+import { requireAuth } from "./common/auth.js";
+
 document.addEventListener("DOMContentLoaded", () => {
+  requireAuth();
+
   const grid = document.getElementById("ev-grid");
   const emptyState = document.getElementById("ev-empty");
   const searchInput = document.getElementById("ev-search-input");
   const typeFilter = document.getElementById("ev-type-filter");
   const dateSort = document.getElementById("ev-date-sort");
+
+  if (grid && !grid.querySelector(".ev-card")) {
+    if (emptyState) {
+      emptyState.hidden = false;
+      emptyState.textContent =
+        "No hay evaluaciones cargadas. Creá una con «Nueva Evaluación» (el listado por API no está disponible).";
+    }
+  }
 
   function getCards() {
     if (!grid) return [];
@@ -12,7 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function applyFiltersAndSort() {
     const cards = getCards();
-    if (!cards.length) return;
+    if (!cards.length) {
+      if (emptyState) emptyState.hidden = false;
+      return;
+    }
 
     const q = (searchInput?.value || "").trim().toLowerCase();
     const type = typeFilter?.value || "all";
@@ -51,9 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function handleDelete(btn) {
     const nombre = btn.dataset.nombre || "esta evaluación";
-    const id = btn.dataset.id || "";
     const confirmed = confirm(
-      `¿Eliminar "${nombre}"?\n\nEsta acción no se puede deshacer.`
+      `¿Eliminar "${nombre}"?\n\nSolo se quitará de la vista (sin endpoint DELETE en la API).`
     );
     if (!confirmed) return;
 
@@ -62,9 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
       card.remove();
       applyFiltersAndSort();
     }
-
-    // Placeholder hasta conectar con el backend
-    console.info(`Evaluación ${id} eliminada (pendiente de API).`);
   }
 
   grid?.addEventListener("click", (e) => {

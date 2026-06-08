@@ -6,7 +6,13 @@ from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from jose import jwt
+<<<<<<< HEAD
 from src.db.user import crear_usuario_db, email_existe, obtener_id_por_email, actualizar_alumno_db, crear_alumno_db
+=======
+
+from src.db.auth import obtener_usuario_por_email
+from src.db.user import crear_usuario_db, email_existe
+>>>>>>> c993e9837a372e3ef7a1798207ee12a6e43db778
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from src.db.roles import ESTUDIANTE
 from .errores import (
@@ -46,9 +52,10 @@ def send_password_mail(destinatario: str) -> tuple:
     if remitente is None or password_env is None:
         return None, ERROR_ENVIO_MAIL
 
-    id_usuario = obtener_id_por_email(destinatario)
-    if id_usuario is None:
+    usuario = obtener_usuario_por_email(destinatario)
+    if usuario is None:
         return None, EMAIL_NO_EXISTE
+    id_usuario = usuario["id"]
 
     token = crear_token_reset_password(id_usuario, destinatario)
 

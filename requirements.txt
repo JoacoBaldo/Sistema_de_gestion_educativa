@@ -26,3 +26,6 @@ mypy==1.8.0
 
 # Deployment
 gunicorn==21.2.0
+
+# PDF Generation
+reportlab==4.2.5
