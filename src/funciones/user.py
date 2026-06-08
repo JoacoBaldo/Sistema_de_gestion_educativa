@@ -84,3 +84,7 @@ def create_user(user: dict) -> tuple:
     ).decode("utf-8")
     resultado = crear_usuario_db({**user, "password": password_hasheada})
     return resultado, None
+    
+def usuario_existe(usuario_id: int):
+    usuario = db_auth.usuario_existe(usuario_id)
+    return usuario, None if usuario else USUARIO_NO_EXISTE_GLOBAL

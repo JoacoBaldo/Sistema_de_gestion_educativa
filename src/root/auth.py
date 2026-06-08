@@ -8,13 +8,18 @@ from werkzeug.security import generate_password_hash
 from src.funciones.auth import (
     datos_completos,
     buscar_token,
-    usuario_existe,
     actualizar_contrasenia as actualizar_contrasenia_func,
     crear_token,
     login_con_link,
     validar_credenciales,
 )
 from .utils import responder_error
+from src.funcinones.user import usuario_existe
+from src.funciones.errores import (
+    FALTAN_DATOS,
+    TOKEN_INVALIDO,
+    USUARIO_NO_EXISTE
+)
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -75,23 +80,23 @@ def login():
     )
 
 
-@auth_bp.route("/api/auth/actualizar-contrasenia", methods=["POST"])
+@auth_bp.route("/api/auth/password", methods=["POST"])
 def actualizar_contrasenia_route():
 
     token, nueva_contrasenia, error = datos_completos()
 
     if error:
-        return jsonify({"error": error["error"]}), error["status"]
+        return  responder_error(FALTAN_DATOS)
 
     token_activo, error = buscar_token(token)
 
     if error:
-        return jsonify({"error": error["error"]}), error["status"]
+        return responder_error(TOKEN_INVALIDO)
 
     id_usuario, error = usuario_existe(token_activo.usuario_id)
 
     if error:
-        return jsonify({"error": error["error"]}), error["status"]
+        return responder_error(USUARIO_NO_EXISTE)
 
     hash_generado = generate_password_hash(nueva_contrasenia)
 
