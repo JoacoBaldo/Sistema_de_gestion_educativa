@@ -20,7 +20,7 @@ def verificar_token(token: str) -> tuple:
     return usuario, None
 
 
-def crear_token(usuario_id: int, username: str, email: str) -> str:
+def crear_token(usuario_id: int) -> str:
     db_auth.eliminar_sesiones_usuario(usuario_id)
     token = db_auth.generar_token()
     expira_en = datetime.now() + timedelta(hours=TIEMPO_EXPIRACION_HORAS)

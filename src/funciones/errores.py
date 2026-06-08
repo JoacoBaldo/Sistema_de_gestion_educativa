@@ -92,3 +92,9 @@ BODY_INVALIDO = {
     "error": "El body debe ser el JSON de respuesta del endpoint de métricas",
     "status": 400,
 }
+ARCHIVO_NO_ENVIADO = {
+    "error": "No se envió ningún archivo con la clave 'archivo'",
+    "status": 400,
+}
+ARCHIVO_VACIO = {"error": "El nombre del archivo está vacío", "status": 400}
+ERROR_PROCESAMIENTO_CSV = {"error": "Error al procesar el archivo CSV", "status": 500}
