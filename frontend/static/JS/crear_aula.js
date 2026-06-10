@@ -2,6 +2,7 @@ import {
   APP_EVENTS,
   bindModalButtons,
   bindModalDismiss,
+  bindToast,
   getQueryParam,
   onAppEvent,
 } from "./common/ui.js";
@@ -10,10 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("ca-aula-modal");
   const form = document.getElementById("formAula");
   const horariosList = document.getElementById("horarios-list");
+  const fechaInicioInput = document.getElementById("fecha_inicio");
+  const fechaFinInput = document.getElementById("fecha_fin");
   const btnAddHorario = document.getElementById("btn-add-horario");
   const cancelBtn = document.getElementById("ca-aula-cancel-btn");
   const closeBtn = document.getElementById("ca-aula-close");
   const createBtn = document.getElementById("btnCrearAula");
+  const toast = document.getElementById("ca-aula-toast");
+  const showToast = bindToast(toast);
 
   if (!modal || !form) return;
 
@@ -54,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
     resetForm();
     openModal();
   }
-
   btnAddHorario?.addEventListener("click", () => {
     horariosList?.appendChild(createHorarioRow());
   });
@@ -62,6 +66,12 @@ document.addEventListener("DOMContentLoaded", () => {
   createBtn?.addEventListener("click", (event) => {
     event.preventDefault();
     openFromQuery();
+  });
+
+  form.addEventListener("submit", (event) => {
+    if (!validateForm()) {
+      event.preventDefault();
+    }
   });
 
   bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });

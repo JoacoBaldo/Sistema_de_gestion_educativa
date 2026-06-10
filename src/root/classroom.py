@@ -6,9 +6,11 @@ from src.funciones.classroom import (
     obtener_link_classroom,
     obtener_lista_classrooms,
     obtener_periodos_academicos,
+    datetime_valido
 )
 from src.funciones.errores import (
     DATOS_INVALIDOS,
+    FECHA_INVALIDA,
     ROLE_ID_REQUERIDO,
     SCHEDULE_REQUERIDO,
     USER_ID_NO_COINCIDE,
@@ -17,7 +19,6 @@ from src.funciones.errores import (
 from .utils import extraer_token, responder_error
 
 classroom_bp = Blueprint("classroom", __name__)
-
 
 @classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/link", methods=["GET"])
 def obtener_link(classroom_id):
@@ -94,6 +95,17 @@ def crear_aula():
 
     if class_day is None or not class_start or not class_end or not academic_period_id:
         return responder_error(SCHEDULE_REQUERIDO)
+
+    inicio_clase = datetime_valido(class_start)
+    fin_clase = datetime_valido(class_end)
+    if inicio_clase is None or fin_clase is None:
+        return responder_error(FECHA_INVALIDA)
+
+    if fin_clase <= inicio_clase:
+        return responder_error(FECHA_INVALIDA)
+
+    if _contains_full_date(class_end) and fin_clase < datetime.now():
+        return responder_error(FECHA_INVALIDA)
 
     resultado, error = crear_nueva_classroom(
         name,

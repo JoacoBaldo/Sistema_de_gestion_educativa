@@ -86,3 +86,17 @@ def obtener_lista_classrooms(usuario_id: int) -> tuple:
 def obtener_alumnos_classroom(classroom_id: int) -> tuple:
     alumnos = db_classroom.obtener_alumnos(classroom_id)
     return alumnos, None
+
+
+def datetime_valido(value: str) -> datetime | None:
+    if not value:
+        return None
+    texto = str(value).strip().replace("T", " ")
+    try:
+        return datetime.fromisoformat(texto)
+    except ValueError:
+        pass
+    try:
+        return datetime.fromisoformat(texto)
+    except ValueError:
+        return None

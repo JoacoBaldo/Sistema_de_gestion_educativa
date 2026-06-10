@@ -1,6 +1,7 @@
 import io
 import os
 import sys
+from datetime import date
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import (
@@ -369,6 +370,20 @@ def crear_aula():
     class_day = DIAS_A_NUMERO.get(dia, 0)
     class_start = inicios[0]
     class_end = fines[0]
+
+    if class_start >= class_end:
+        flash("La fecha de fin debe ser posterior a la fecha de inicio.", "error")
+        return redirect(url_for("classrooms"))
+
+    if fecha_fin:
+        try:
+            fin_fecha = date.fromisoformat(fecha_fin)
+            if fin_fecha < date.today():
+                flash("La fecha de fin no puede ser anterior a la fecha actual.", "error")
+                return redirect(url_for("classrooms"))
+        except ValueError:
+            flash("La fecha de fin no es válida.", "error")
+            return redirect(url_for("classrooms"))
 
     _, error = crear_nueva_classroom(
         name,

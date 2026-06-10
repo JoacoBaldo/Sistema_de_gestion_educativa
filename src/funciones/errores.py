@@ -98,3 +98,4 @@ ARCHIVO_NO_ENVIADO = {
 }
 ARCHIVO_VACIO = {"error": "El nombre del archivo está vacío", "status": 400}
 ERROR_PROCESAMIENTO_CSV = {"error": "Error al procesar el archivo CSV", "status": 500}
+FECHA_INVALIDA = {"error": "La fecha de fin debe ser posterior a la fecha de inicio", "status": 400}
