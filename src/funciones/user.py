@@ -42,10 +42,13 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 
 def send_password_mail(destinatario: str) -> tuple:
-    remitente = os.environ.get("EMAIL_SOPORTE")
-    password_env = os.environ.get("EMAIL_PASSWORD")
+    servidor_smtp = os.environ.get("SMTP_SERVER")
+    puerto_smtp = int(os.environ.get("SMTP_PORT", 587))
+    usuario_smtp = os.environ.get("SMTP_USER")
+    password_smtp = os.environ.get("SMTP_PASSWORD")
+    remitente = os.environ.get("EMAIL_REMITENTE")
 
-    if remitente is None or password_env is None:
+    if remitente is None or password_smtp is None:
         return None, ERROR_ENVIO_MAIL
 
     usuario = obtener_usuario_por_email(destinatario)
@@ -56,21 +59,22 @@ def send_password_mail(destinatario: str) -> tuple:
     token = crear_token_reset_password(id_usuario, destinatario)
 
     mensaje = MIMEMultipart()
-    mensaje["From"] = remitente
+    mensaje["From"] = f"uniManage Soporte <{remitente}>"
     mensaje["To"] = destinatario
     mensaje["Subject"] = "Recuperación de contraseña - uniManage"
     mensaje.attach(MIMEText(f"Token para recuperar contraseña: {token}", "plain"))
 
     try:
-        servidor = smtplib.SMTP("smtp.gmail.com", 587)
+        servidor = smtplib.SMTP(servidor_smtp, puerto_smtp)
         servidor.starttls()
-        servidor.login(remitente, password_env)
+        servidor.login(usuario_smtp, password_smtp)
         servidor.sendmail(remitente, destinatario, mensaje.as_string())
         servidor.quit()
-        return {"message": "Mail enviado"}, None
+        return True, None
+
     except Exception as e:
-        logging.error("Error al enviar el correo: %s", e)
-        return None, ERROR_ENVIO_MAIL
+        print(f"Error al enviar el correo: {e}")
+        return False, ERROR_ENVIO_MAIL
 
 
 def create_user(user: dict) -> tuple:
