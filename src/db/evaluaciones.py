@@ -1,6 +1,5 @@
 from .conexion import obtener_conexion
 
-
 EVALUATION_TYPE_LABELS = {
     1: ("parcial", "Parcial"),
     2: ("tp", "TP"),

@@ -8,6 +8,7 @@ from src.funciones.errores import (
     PASSWORD_REQUERIDO,
 )
 from src.funciones.user import create_user, send_password_mail
+
 from .utils import responder_error
 
 auth_bp = Blueprint("auth", __name__)

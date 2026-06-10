@@ -7,7 +7,8 @@ from src.funciones.errores import (
     NAME_O_MIEMBROS_REQUERIDO,
     NAME_VACIO,
 )
-from src.funciones.teams import editar_equipo, eliminar_equipo, crear_equipo
+from src.funciones.teams import crear_equipo, editar_equipo, eliminar_equipo
+
 from .utils import extraer_token, responder_error
 
 teams_bp = Blueprint("teams", __name__)

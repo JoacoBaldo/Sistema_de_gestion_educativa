@@ -1,10 +1,11 @@
 from datetime import datetime
-from src.db.classroom import existe_classroom
+
 from src.db.asistencia_db import (
     crear_evento_asistencia,
-    obtener_estudiantes_classroom,
     inasistencia_db,
+    obtener_estudiantes_classroom,
 )
+from src.db.classroom import existe_classroom
 
 
 def sumar_inasistencia(classroom_id: int, fecha: datetime | None = None):

@@ -1,7 +1,7 @@
-from src.db.classroom import usuario_en_classroom
-
-from src.db.conexion import obtener_conexion
+from src.db import classroom as db_classroom
 from src.db import resources as db_resources
+from src.db.classroom import usuario_en_classroom
+from src.db.conexion import obtener_conexion
 
 SIN_ACCESO = {"error": "No tienes acceso a esta aula"}
 

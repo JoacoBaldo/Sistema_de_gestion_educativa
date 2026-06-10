@@ -2,7 +2,6 @@ import io
 import os
 import sys
 from pathlib import Path
-
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -14,14 +13,14 @@ from flask import (
     session,
     url_for,
 )
-
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-load_dotenv(ROOT / ".env")
-
 from scripts.pdf_metricas import generar_pdf_metricas
+from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
+from src.db.constantes import ESTUDIANTE
+from src.db.students import (
+    crear_student_profile,
+    obtener_o_crear_carrera,
+    obtener_user_id_por_email,
+)
 from src.funciones.attendance import obtener_inasistencias_classroom
 from src.funciones.auth import crear_token, validar_credenciales, verificar_token
 from src.funciones.classroom import (
@@ -39,22 +38,18 @@ from src.funciones.evaluaciones import (
     obtener_evaluaciones,
 )
 from src.funciones.metrics import obtener_metricas_classroom
+from src.funciones.resources import listar_recursos, subir_contenido_classroom
+from src.funciones.students import cargar_estudiantes_csv
 from src.funciones.teams import obtener_equipos_classroom
 from src.funciones.user import create_user, send_password_mail
-
-from src.funciones.resources import listar_recursos, subir_contenido_classroom
 from src.root.resources import resources_bp
-
 from src.root.teams import teams_bp
 
-from src.db.students import (
-    obtener_o_crear_carrera,
-    crear_student_profile,
-    obtener_user_id_por_email,
-)
-from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
-from src.db.constantes import ESTUDIANTE
-from src.funciones.students import cargar_estudiantes_csv
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+load_dotenv(ROOT / ".env")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
@@ -238,7 +233,6 @@ def datos_vista_gestion(classroom_id, usuario, vista):
         else:
             datos["evaluaciones"] = evaluaciones or []
 
-    # --- NUEVA VISTA: BIBLIOTECA DE RECURSOS ---
     elif vista == "library":
         recursos, error_r = listar_recursos(classroom_id, usuario["id"])
         if error_r:
@@ -663,7 +657,6 @@ def subir_recurso_biblioteca(classroom_id):
             url_for("classroom_manage", classroom_id=classroom_id, vista="library")
         )
 
-    # Pasamos el tipo al backend
     _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"], tipo)
 
     if error:

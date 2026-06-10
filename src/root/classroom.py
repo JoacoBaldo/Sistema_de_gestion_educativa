@@ -13,6 +13,7 @@ from src.funciones.errores import (
     SCHEDULE_REQUERIDO,
     USER_ID_NO_COINCIDE,
 )
+
 from .utils import extraer_token, responder_error
 
 classroom_bp = Blueprint("classroom", __name__)

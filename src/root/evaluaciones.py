@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
-from src.funciones.evaluaciones import crear_evaluacion, actualizar_evaluacion
+from src.funciones.evaluaciones import actualizar_evaluacion, crear_evaluacion
+
 from .utils import extraer_token, responder_error
 
 evaluacion_bp = Blueprint("evaluacion", __name__)

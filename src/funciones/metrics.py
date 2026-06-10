@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from src.db import classroom as db_classroom
 from src.db import metrics as db_metrics
+
 from .constantes import MIN_APROBACION
 from .errores import CLASSROOM_NO_EXISTE, NO_ES_ADMIN, SIN_ACCESO
 

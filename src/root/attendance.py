@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify
 from src.funciones.asistencia import sumar_inasistencia
 from src.funciones.attendance import obtener_inasistencias_classroom
 from src.funciones.auth import verificar_token
+
 from .utils import extraer_token, responder_error
 
 attendance_bp = Blueprint("attendance", __name__)

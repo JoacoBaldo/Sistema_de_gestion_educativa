@@ -1,8 +1,8 @@
 from .conexion import obtener_conexion
 from .constantes import (
     ESTUDIANTE,
-    STATUS_ACTIVO,
     STATUS_ABANDONO,
+    STATUS_ACTIVO,
 )
 
 

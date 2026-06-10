@@ -2,9 +2,9 @@ from flask import Blueprint, jsonify, render_template, request
 
 from src.funciones.auth import verificar_token
 from src.funciones.resources import (
+    eliminar_contenido_classroom,
     listar_recursos,
     subir_contenido_classroom,
-    eliminar_contenido_classroom,
 )
 
 from .utils import extraer_token, responder_error

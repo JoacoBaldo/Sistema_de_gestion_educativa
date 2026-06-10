@@ -1,5 +1,6 @@
 from src.db import attendance as db_attendance
 from src.db import classroom as db_classroom
+
 from .errores import SIN_ACCESO
 
 FULL_ASISTENCIA = 100

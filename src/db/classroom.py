@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .constantes import ADMINISTRADOR, ESTUDIANTE, PROFESOR, AYUDANTE
+from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR
 
 
 def obtener_profesores(classroom_id: int) -> list:

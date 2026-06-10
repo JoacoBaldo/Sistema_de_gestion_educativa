@@ -1,9 +1,11 @@
-from flask import Blueprint, jsonify, request, send_file
 import io
+
+from flask import Blueprint, jsonify, request, send_file
 
 from scripts.pdf_metricas import generar_pdf_metricas
 from src.funciones.auth import verificar_token
 from src.funciones.metrics import obtener_metricas_classroom
+
 from .utils import extraer_token, responder_error
 
 metrics_bp = Blueprint("metrics", __name__)
