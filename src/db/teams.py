@@ -13,7 +13,6 @@ def crear_equipo_con_miembros(
     """
     engine = obtener_conexion()
     with engine.connect() as conn:
-        # Insertar el equipo
         conn.exec_driver_sql(
             """
             INSERT INTO teams (name, classroom_id, created_at, updated_at)
@@ -28,7 +27,6 @@ def crear_equipo_con_miembros(
         )
         conn.commit()
 
-        # Obtener el ID del equipo creado
         fila = conn.exec_driver_sql(
             """
             SELECT id FROM teams WHERE name = %s AND classroom_id = %s
@@ -42,9 +40,6 @@ def crear_equipo_con_miembros(
 
         team_id = fila[0]
 
-        # Aquí podrías almacenar los miembros como nombres en un campo JSON
-        # o en una tabla separada. Por ahora, dejamos el equipo sin miembros.
-        # Los miembros se pueden asociar después según tu estructura de BD.
 
         return team_id
 
@@ -52,31 +47,38 @@ def crear_equipo_con_miembros(
 def listar_equipos_classroom(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
+        equipos_raw = conn.exec_driver_sql(
             """
-            SELECT id, name, classroom_id, created_at, updated_at
-            FROM teams
-            WHERE classroom_id = %s
-            ORDER BY name
+            SELECT t.id, t.name, t.classroom_id, t.created_at, t.updated_at,
+            u.id, u.username, u.email
+            FROM teams t
+            LEFT JOIN team_members tm ON tm.team_id = t.id
+            LEFT JOIN users u ON u.id = tm.user_id
+            WHERE t.classroom_id = %s
+            ORDER BY t.name, u.username
             """,
             (classroom_id,),
         ).fetchall()
 
-    equipos = []
-    for fila in resultados:
+    equipos_dict = {}
+    for fila in equipos_raw:
         team_id = fila[0]
-        miembros = obtener_miembros_equipo(team_id)
-        equipos.append(
-            {
+        if team_id not in equipos_dict:
+            equipos_dict[team_id] = {
                 "id": team_id,
                 "name": fila[1],
                 "classroom_id": fila[2],
                 "created_at": fila[3],
                 "updated_at": fila[4],
-                "miembros": miembros,
+                "miembros": [],
             }
-        )
-    return equipos
+        if fila[5]: #sí existe un user id
+            equipos_dict[team_id]["miembros"].append({
+                "id": fila[5],
+                "username": fila[6],
+                "email": fila[7],
+            })
+    return list(equipos_dict.values())
 
 
 def obtener_miembros_equipo(team_id: int) -> list[dict]:
