@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   grid?.addEventListener("click", (event) => {
-    const editBtn = event.target.closest(".ev-card__edit-btn");
+    const editBtn = event.target.closest(".ev-edit-btn");
     if (!editBtn) return;
     event.preventDefault();
     openEditModal(editBtn);
