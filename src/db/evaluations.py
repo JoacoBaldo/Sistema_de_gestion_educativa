@@ -135,7 +135,7 @@ def actualizar_evaluacion_db(
         conn.commit()
     return {"message": "Evaluacion actualizada exitosamente", "status": 200}
 
-def eliminar_evaluacion(evaluation_id: int) -> dict:
+def eliminar_evaluacion_db(evaluation_id: int) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
         conn.exec_driver_sql(

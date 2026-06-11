@@ -1,12 +1,12 @@
 from src.db.classroom import existe_classroom
-from src.db.evaluaciones import (
+from src.db.evaluations import (
     actualizar_evaluacion_db,
     crear_evaluacion_db,
     existe_evaluacion_en_classroom,
     existe_evaluation_type,
     obtener_evaluacion_por_id,
     obtener_evaluaciones_classroom,
-    eliminar_evaluacion,
+    eliminar_evaluacion_db,
 )
 
 from .errores import (
@@ -141,7 +141,7 @@ def eliminar_evaluacion(evaluation_id: int) -> tuple:
                 "status": 404,
             }
 
-        resultado = eliminar_evaluacion(evaluation_id)
+        resultado = eliminar_evaluacion_db(evaluation_id)
         return resultado, None
 
     except Exception as e:

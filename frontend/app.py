@@ -444,10 +444,11 @@ def actualizar_evaluacion_aula(classroom_id, evaluation_id):
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
 
-@app.route(
-    "/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/eliminar",
-    methods=["POST"],
-)
+
+# Esto deberia ser un metodo DELETE pero al no poderse usar fetch, y los from solo envian post o get, se opto por esta solucion. El endpoint de la api si es DELETE
+
+@app.route("/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/eliminar", methods=["POST"],)
+         
 def eliminar_evaluacion_aula(classroom_id, evaluation_id):
     usuario, redireccion = requiere_login()
     if redireccion:
@@ -567,10 +568,7 @@ def subir_recurso_biblioteca(classroom_id):
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="library"))
 
-@app.route(
-    "/aulas/<int:classroom_id>/gestionar/recursos/<int:resource_id>/actualizar",
-    methods=["POST"],
-)
+@app.route("/aulas/<int:classroom_id>/gestionar/recursos/<int:resource_id>/actualizar", methods=["POST"],)
 def actualizar_recurso_biblioteca(classroom_id, resource_id):
     usuario, redireccion = requiere_login()
     if redireccion:
@@ -607,10 +605,7 @@ def actualizar_recurso_biblioteca(classroom_id, resource_id):
     )
 
 
-@app.route(
-    "/aulas/<int:classroom_id>/gestionar/recursos/<int:resource_id>/eliminar",
-    methods=["POST"],
-)
+@app.route("/aulas/<int:classroom_id>/gestionar/recursos/<int:resource_id>/eliminar", methods=["POST"],)
 def eliminar_recurso_biblioteca(classroom_id, resource_id):
     usuario, redireccion = requiere_login()
     if redireccion:

@@ -51,21 +51,20 @@ document.addEventListener("DOMContentLoaded", () => {
   function openEditModal(btn) {
     if (!editForm || !editModal || !classroomId) return;
     const evaluationId = btn.dataset.id;
-
     editForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/actualizar`;
-
     const deleteBtn = document.getElementById("ev-edit-delete-btn");
     if (deleteBtn) {
-      deleteBtn.formAction = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/eliminar`;
-
       deleteBtn.onclick = null;
 
       deleteBtn.onclick = function (e) {
-        if (!confirm("¿Estás seguro de que querés eliminar esta evaluación de forma permanente?")) {
-          e.preventDefault();
+        e.preventDefault();
+        if (confirm("¿Estás seguro de que querés eliminar esta evaluación de forma permanente?")) {
+          editForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/eliminar`;
+          editForm.submit();
         }
       };
     }
+
 
     document.getElementById("ev-edit-name").value = btn.dataset.nombre || "";
     document.getElementById("ev-edit-type").value = btn.dataset.tipo || "parcial";
