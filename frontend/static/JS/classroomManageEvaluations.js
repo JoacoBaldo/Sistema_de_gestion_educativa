@@ -51,15 +51,31 @@ document.addEventListener("DOMContentLoaded", () => {
   function openEditModal(btn) {
     if (!editForm || !editModal || !classroomId) return;
     const evaluationId = btn.dataset.id;
+
     editForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/actualizar`;
+
+    const deleteBtn = document.getElementById("ev-edit-delete-btn");
+    if (deleteBtn) {
+      deleteBtn.formAction = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/eliminar`;
+
+      deleteBtn.onclick = null;
+
+      deleteBtn.onclick = function (e) {
+        if (!confirm("¿Estás seguro de que querés eliminar esta evaluación de forma permanente?")) {
+          e.preventDefault();
+        }
+      };
+    }
+
     document.getElementById("ev-edit-name").value = btn.dataset.nombre || "";
     document.getElementById("ev-edit-type").value = btn.dataset.tipo || "parcial";
     document.getElementById("ev-edit-individual").checked = btn.dataset.individual === "1";
+
     editModal.classList.remove("hidden");
   }
 
   grid?.addEventListener("click", (event) => {
-    const editBtn = event.target.closest(".ev-card__edit-btn");
+    const editBtn = event.target.closest(".ev-edit-btn");
     if (!editBtn) return;
     event.preventDefault();
     openEditModal(editBtn);

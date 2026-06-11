@@ -15,9 +15,8 @@
         <div class="st-search ev-search">
             <span class="st-search-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-                        stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" />
                     <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
                 </svg>
             </span>
@@ -49,12 +48,8 @@
 
     <div class="ev-grid" id="ev-grid" aria-live="polite">
         {% for ev in evaluaciones or [] %}
-        <article class="ev-card"
-            data-id="ev-{{ ev.id }}"
-            data-evaluation-id="{{ ev.id }}"
-            data-type="{{ ev.tipo_slug }}"
-            data-date="{{ ev.fecha }}"
-            data-nombre="{{ ev.name }}"
+        <article class="ev-card" data-id="ev-{{ ev.id }}" data-evaluation-id="{{ ev.id }}"
+            data-type="{{ ev.tipo_slug }}" data-date="{{ ev.fecha }}" data-nombre="{{ ev.name }}"
             data-individual="{{ 'true' if ev.individual else 'false' }}">
             <div class="ev-card__top">
                 <span class="ev-badge ev-badge--{{ ev.tipo_slug }}">{{ ev.tipo_nombre }}</span>
@@ -65,9 +60,7 @@
             </div>
             <footer class="ev-card__footer">
                 <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn" aria-label="Editar evaluación"
-                    data-id="{{ ev.id }}"
-                    data-nombre="{{ ev.name }}"
-                    data-tipo="{{ ev.tipo_slug }}"
+                    data-id="{{ ev.id }}" data-nombre="{{ ev.name }}" data-tipo="{{ ev.tipo_slug }}"
                     data-individual="{{ '1' if ev.individual else '0' }}">
                     Editar
                 </button>
@@ -79,7 +72,8 @@
 
     {% include 'classroom-manage/evaluations/forms/crear_evaluation.html' %}
 
-    <div id="ev-edit-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ev-edit-modal-title">
+    <div id="ev-edit-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+        aria-labelledby="ev-edit-modal-title">
         <div class="glass-card">
             <div class="glass-header">
                 <h3 id="ev-edit-modal-title">Editar Evaluación</h3>
@@ -104,8 +98,26 @@
                     <input type="checkbox" id="ev-edit-individual" name="individual">
                 </div>
                 <div class="action-buttons">
-                    <button type="button" class="btn-cancelar" id="ev-edit-cancel">Cancelar</button>
-                    <button type="submit" class="btn-crear">Guardar cambios</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+
+                        <button type="submit" id="ev-edit-delete-btn" class="btn-cancelar"
+                            style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); height: 100%; max-width: 48px;"
+                            formmethod="POST" formaction="" title="Eliminar evaluacion">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" style="display: block;">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                </path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="btn-cancelar" id="ev-edit-cancel">Cancelar</button>
+                        <button type="submit" class="btn-crear">Guardar cambios</button>
+
+                    </div>
                 </div>
             </form>
         </div>

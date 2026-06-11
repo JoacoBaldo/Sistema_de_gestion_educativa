@@ -49,3 +49,23 @@ def eliminar_contenido_classroom(
     db_resources.eliminar_contenido_classroom(contenido_id)
 
     return {"message": f"Contenido con ID {contenido_id} eliminado correctamente"}, None
+
+def editar_contenido_classroom(
+    classroom_id: int,
+    contenido_id: int,
+    titulo: str,
+    tipo: str,
+    url: str,
+    usuario_id: int,
+):
+    try:
+
+        db_resources.actualizar_contenido_db(contenido_id, titulo, tipo, url)
+
+        return {"mensaje": "Contenido actualizado con éxito", "id": contenido_id}, None
+    except Exception as e:
+        error_estructurado = {
+            "error": f"ERROR_BASE_DE_DATOS: {str(e)}",
+            "status": 500
+        }
+        return None, error_estructurado

@@ -134,3 +134,16 @@ def actualizar_evaluacion_db(
         conn.exec_driver_sql(query, tuple(params))
         conn.commit()
     return {"message": "Evaluacion actualizada exitosamente", "status": 200}
+
+def eliminar_evaluacion(evaluation_id: int) -> dict:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            DELETE FROM evaluations 
+            WHERE id = %s
+            """,
+            (evaluation_id,),
+        )
+        conn.commit()
+    return {"message": "Evaluación eliminada exitosamente", "status": 200}
