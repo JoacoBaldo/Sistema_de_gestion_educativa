@@ -14,7 +14,9 @@ def obtener_conexion():
     if _engine is None:
         url = os.getenv("DATABASE_URL", "")
         if not url:
-            raise ValueError("DATABASE_URL no está configurada. Verifica las variables de entorno en Railway.")
+            raise ValueError(
+                "DATABASE_URL no está configurada. Verifica las variables de entorno en Railway."
+            )
         try:
             _engine = create_engine(
                 url,
