@@ -27,39 +27,37 @@ def obtener_promedio_aprobados(classroom_id: int) -> list[dict]:
     return [{"user_id": f[0], "score": f[1]} for f in resultados]
 
 
-def obtener_ingresos_por_año(classroom_id: int) -> list[dict]:
+def obtener_estudiantes_datos(classroom_id: int) -> tuple[list[dict], dict]:
+
     engine = obtener_conexion()
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT created_at
+            SELECT created_at, status_type_id
             FROM classroom_users
             WHERE classroom_id = %s AND role_id = %s
             """,
             (classroom_id, ESTUDIANTE),
         ).fetchall()
-    return [{"created_at": f[0]} for f in resultados]
+
+    ingresos = [{"created_at": f[0]} for f in resultados]
+    status_list = [f[1] for f in resultados]
+    conteos = {
+        "total_estudiantes": len(status_list),
+        "total_activos": sum(1 for s in status_list if s == STATUS_ACTIVO),
+        "total_abandonaron": sum(1 for s in status_list if s == STATUS_ABANDONO),
+    }
+    return ingresos, conteos
+
+
+def obtener_ingresos_por_año(classroom_id: int) -> list[dict]:
+    ingresos, _ = obtener_estudiantes_datos(classroom_id)
+    return ingresos
 
 
 def obtener_conteos_estudiantes(classroom_id: int) -> dict:
-    engine = obtener_conexion()
-    with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
-            """
-            SELECT status_type_id
-            FROM classroom_users
-            WHERE classroom_id = %s AND role_id = %s
-            """,
-            (classroom_id, ESTUDIANTE),
-        ).fetchall()
-
-    status = [f[0] for f in resultados]
-
-    return {
-        "total_estudiantes": len(status),
-        "total_activos": sum(1 for s in status if s == STATUS_ACTIVO),
-        "total_abandonaron": sum(1 for s in status if s == STATUS_ABANDONO),
-    }
+    _, conteos = obtener_estudiantes_datos(classroom_id)
+    return conteos
 
 
 def obtener_alumnos_aprobados_activos(classroom_id: int) -> list[dict]:
@@ -76,8 +74,8 @@ def obtener_alumnos_aprobados_activos(classroom_id: int) -> list[dict]:
                 ON e.id = g.evaluation_id
                 AND e.classroom_id = cu.classroom_id
             WHERE cu.classroom_id = %s
-              AND cu.role_id = %s
-              AND cu.status_type_id = %s
+                AND cu.role_id = %s
+                AND cu.status_type_id = %s
             GROUP BY u.id, u.username, u.email, cu.created_at
             HAVING AVG(g.score) >= 4
             ORDER BY u.username
