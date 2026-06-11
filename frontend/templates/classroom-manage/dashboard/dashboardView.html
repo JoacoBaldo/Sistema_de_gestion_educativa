@@ -7,8 +7,7 @@
         <div class="st-actions cmr-report-actions">
             <button class="st-btn st-btn-primary" type="button" id="db-pdf-students" data-pdf="students">
                 <span class="st-ghost-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 384 512"><path fill="#ffffff" d="M0 64C0 28.7 28.7 0 64 0h160v128c0 17.7 14.3 32 32 32h128v288c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384 64H256V0l128 128z"/></svg>                </span>
                 PDF alumnos
             </button>
             <button class="st-btn st-btn-ghost" type="button" id="db-pdf-stats" data-pdf="stats">
@@ -26,6 +25,14 @@
         </div>
     </header>
 
+    {# Declaración de variables Jinja2 #}
+    {% set m = metricas or {} %}
+    {% set total = m.get('total_estudiantes', 0) %}
+    {% set activos = m.get('total_activos', 0) %}
+    {% set abandonaron = m.get('total_abandonaron', 0) %}
+    {% set aprobacion = m.get('promedio_aprobados', 0) %}
+    {% set abandono_pct = (abandonaron / total * 100) if total else 0 %}
+
     <div class="cmr-kpi-row" role="region" aria-label="Indicadores principales">
         <article class="cmr-kpi cm-panel">
             <div class="cmr-kpi__top">
@@ -33,7 +40,7 @@
                     <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/></svg>
                 </div>
             </div>
-            <div class="cmr-kpi__value" id="db-kpi-total">—</div>
+            <div class="cmr-kpi__value" id="db-kpi-total">{{ total }}</div>
             <div class="cmr-kpi__label">Total estudiantes</div>
         </article>
         <article class="cmr-kpi cm-panel">
@@ -42,7 +49,7 @@
                     <svg viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="1.6"/><path d="M22 4 12 14.01l-3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                 </div>
             </div>
-            <div class="cmr-kpi__value" id="db-kpi-active">—</div>
+            <div class="cmr-kpi__value" id="db-kpi-active">{{ activos }}</div>
             <div class="cmr-kpi__label">Estudiantes activos</div>
         </article>
         <article class="cmr-kpi cm-panel">
@@ -51,7 +58,7 @@
                     <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M10 19V9M16 19v-6M22 19V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                 </div>
             </div>
-            <div class="cmr-kpi__value" id="db-kpi-approval">—</div>
+            <div class="cmr-kpi__value" id="db-kpi-approval">{{ '%.1f'|format(aprobacion) }}%</div>
             <div class="cmr-kpi__label">Tasa de aprobación</div>
         </article>
         <article class="cmr-kpi cm-panel">
@@ -60,7 +67,7 @@
                     <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M22 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                 </div>
             </div>
-            <div class="cmr-kpi__value" id="db-kpi-dropout">—</div>
+            <div class="cmr-kpi__value" id="db-kpi-dropout">{{ '%.1f'|format(abandono_pct) }}%</div>
             <div class="cmr-kpi__label">Tasa de abandono</div>
         </article>
     </div>
@@ -69,12 +76,22 @@
         <section class="cm-panel" aria-label="Tendencia de matrícula">
             <div class="cmr-card-head">
                 <div>
-                    <h2>Matrícula por mes</h2>
+                    <h2>Matrícula por año</h2>
                     <p>Evolución de estudiantes inscriptos</p>
                 </div>
             </div>
             <div class="cmr-card-body">
-                <div class="cmr-chart-wrap" id="db-enrollment-chart" role="img" aria-label="Gráfico de barras de matrícula"></div>
+                <div class="cmr-chart-wrap" id="db-enrollment-chart" role="img" aria-label="Gráfico de barras de matrícula">
+                    {% if m.get('ingresos_por_año') %}
+                    <ul class="cmr-bar-list">
+                        {% for item in m.ingresos_por_año %}
+                        <li><strong>{{ item.year }}</strong>: {{ item.total }} estudiante(s)</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="cmr-empty-inline">Sin datos de matrícula.</p>
+                    {% endif %}
+                </div>
             </div>
         </section>
 
@@ -89,12 +106,11 @@
             <div class="cmr-card-body">
                 <div class="cmr-donut">
                     <div class="cmr-donut__ring" aria-hidden="true">
-                        <div class="cmr-donut__center" id="db-donut-center">78%<span>Aprobados</span></div>
+                        <div class="cmr-donut__center" id="db-donut-center">{{ '%.0f'|format(aprobacion) }}%<span>Aprobación</span></div>
                     </div>
                     <div class="cmr-legend" id="db-approval-legend">
-                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#10b981"></span> Aprobados (35)</span>
-                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#3b82f6"></span> Pendientes (7)</span>
-                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#f43f5e"></span> Reprobados (3)</span>
+                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#10b981"></span> Activos: {{ activos }}</span>
+                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#f43f5e"></span> Abandonaron: {{ abandonaron }}</span>
                     </div>
                 </div>
             </div>
@@ -109,55 +125,3 @@
 
         <div class="cmr-filter-panel" role="region" aria-label="Filtros del listado">
             <div class="st-search" style="flex:2; min-width:200px;">
-                <span class="st-search-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                </span>
-                <input id="db-search" type="search" placeholder="Buscar por nombre o padrón..." aria-label="Buscar alumnos">
-            </div>
-            <div class="cmr-form-row">
-                <label for="db-filter-status">Estado</label>
-                <select id="db-filter-status" aria-label="Filtrar por estado">
-                    <option value="all">Todos</option>
-                    <option value="active">Activos</option>
-                    <option value="abandoned">Abandonaron</option>
-                    <option value="approved">Aprobados</option>
-                    <option value="pending">Pendientes</option>
-                    <option value="failed">Reprobados</option>
-                </select>
-            </div>
-            <div class="cmr-form-row">
-                <label for="db-filter-team">Equipo</label>
-                <select id="db-filter-team" aria-label="Filtrar por equipo">
-                    <option value="all">Todos los equipos</option>
-                </select>
-            </div>
-            <fieldset class="cmr-form-row" style="border:0; margin:0; padding:0;">
-                <legend class="sr-only">Columnas del PDF</legend>
-                <span style="font-size:0.85rem;font-weight:700;color:var(--color-text);">Columnas PDF</span>
-                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;">
-                    <label class="cmr-check"><input type="checkbox" name="db-col" value="nombre" checked> Nombre</label>
-                    <label class="cmr-check"><input type="checkbox" name="db-col" value="apellido" checked> Apellido</label>
-                    <label class="cmr-check"><input type="checkbox" name="db-col" value="padron" checked> Padrón</label>
-                    <label class="cmr-check"><input type="checkbox" name="db-col" value="email" checked> Email</label>
-                    <label class="cmr-check"><input type="checkbox" name="db-col" value="estado" checked> Estado</label>
-                    <label class="cmr-check"><input type="checkbox" name="db-col" value="equipo"> Equipo</label>
-                </div>
-            </fieldset>
-        </div>
-
-        <table class="st-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Padrón</th>
-                    <th class="st-col-email">Email</th>
-                    <th>Estado</th>
-                    <th>Equipo</th>
-                </tr>
-            </thead>
-            <tbody id="db-students-tbody"></tbody>
-        </table>
-        <p class="cmr-empty" id="db-empty" hidden>No hay alumnos que coincidan con los filtros.</p>
-    </section>
-</section>

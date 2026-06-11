@@ -4,6 +4,103 @@ from typing import Optional
 from .conexion import obtener_conexion
 
 
+def crear_equipo_con_miembros(
+    nombre: str, miembros: list, classroom_id: int
+) -> Optional[int]:
+    """
+    Crea un nuevo equipo con miembros (nombres).
+    Retorna el ID del equipo creado o None si falla.
+    """
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            INSERT INTO teams (name, classroom_id, created_at, updated_at)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (
+                nombre,
+                classroom_id,
+                datetime.now(timezone.utc),
+                datetime.now(timezone.utc),
+            ),
+        )
+        conn.commit()
+
+        fila = conn.exec_driver_sql(
+            """
+            SELECT id FROM teams WHERE name = %s AND classroom_id = %s
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (nombre, classroom_id),
+        ).fetchone()
+
+        if fila is None:
+            return None
+
+        team_id = fila[0]
+
+        return team_id
+
+
+def listar_equipos_classroom(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        equipos_raw = conn.exec_driver_sql(
+            """
+            SELECT t.id, t.name, t.classroom_id, t.created_at, t.updated_at,
+            u.id, u.username, u.email
+            FROM teams t
+            LEFT JOIN team_members tm ON tm.team_id = t.id
+            LEFT JOIN users u ON u.id = tm.user_id
+            WHERE t.classroom_id = %s
+            ORDER BY t.name, u.username
+            """,
+            (classroom_id,),
+        ).fetchall()
+
+    equipos_dict = {}
+    for fila in equipos_raw:
+        team_id = fila[0]
+        if team_id not in equipos_dict:
+            equipos_dict[team_id] = {
+                "id": team_id,
+                "name": fila[1],
+                "classroom_id": fila[2],
+                "created_at": fila[3],
+                "updated_at": fila[4],
+                "miembros": [],
+            }
+        if fila[5]:  # sí existe un user id
+            equipos_dict[team_id]["miembros"].append(
+                {
+                    "id": fila[5],
+                    "username": fila[6],
+                    "email": fila[7],
+                }
+            )
+    return list(equipos_dict.values())
+
+
+def obtener_miembros_equipo(team_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT u.id, u.username, u.email
+            FROM team_members tm
+            JOIN users u ON u.id = tm.user_id
+            WHERE tm.team_id = %s
+            ORDER BY u.username
+            """,
+            (team_id,),
+        ).fetchall()
+
+    return [
+        {"id": fila[0], "username": fila[1], "email": fila[2]} for fila in resultados
+    ]
+
+
 def obtener_equipo(team_id: int) -> Optional[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:

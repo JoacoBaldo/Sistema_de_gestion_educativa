@@ -6,8 +6,10 @@ git clone <repo-url>
 cd Sistema_gestion_educativa
 
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+# Linux/Mac
+source venv/bin/activate
+# Windows
+venv\Scripts\activate
 
 pip install -r requirements.txt
 ```
@@ -18,10 +20,24 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-## Ejecutar
+## Ejecutar Backend
 
 ```bash
 python app.py
 ```
+## Ejecutar Frontend
 
-Disponible en `http://localhost:5000`
+```bash
+python frontend/app.py
+```
+
+## O tambien
+
+```bash
+cd frontend
+python app.py
+```
+
+Backend disponible en `http://localhost:5000`
+Frontend disponible en `http://localhost:5001`
+

@@ -92,3 +92,14 @@ BODY_INVALIDO = {
     "error": "El body debe ser el JSON de respuesta del endpoint de métricas",
     "status": 400,
 }
+ARCHIVO_NO_ENVIADO = {
+    "error": "No se envió ningún archivo con la clave 'archivo'",
+    "status": 400,
+}
+ARCHIVO_VACIO = {"error": "El nombre del archivo está vacío", "status": 400}
+ERROR_PROCESAMIENTO_CSV = {"error": "Error al procesar el archivo CSV", "status": 500}
+EVALUACION_NO_EXISTE = {"error": "La evaluación especificada no existe", "status": 404}
+SESION_INVALIDA = {"error": "Sesión inválida. Vuelve a iniciar sesión.", "status": 401}
+MIEMBROS_REQUERIDO = {"error": "Al menos un miembro es requerido", "status": 400}
+CLASSROOM_NO_ESPECIFICADO = {"error": "Classroom no especificado", "status": 400}
+EQUIPO_NO_CREADO = {"error": "No se pudo crear el equipo", "status": 500}

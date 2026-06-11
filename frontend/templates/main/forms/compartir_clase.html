@@ -6,7 +6,7 @@
     </div>
     <p class="subtitle">Ingresa el correo de la persona a la que quieres dar acceso.</p>
 
-    <form id="shareForm" method="POST" action="/clases/compartir" novalidate>
+    <form id="shareForm" method="POST" action="{{ url_for('compartir_clase') }}" novalidate>
       <input type="hidden" id="classId" name="classId">
 
       <div class="mb-3">
@@ -22,7 +22,11 @@
         </select>
       </div>
 
+      {% if join_link %}
+      <p id="cc-share-link-result" class="glass-hint" role="status" style="word-break:break-all;margin-top:12px;">{{ join_link }}</p>
+      {% else %}
       <p id="cc-share-link-result" class="glass-hint" hidden role="status" style="word-break:break-all;margin-top:12px;"></p>
+      {% endif %}
 
       <div class="action-buttons">
         <button type="button" class="btn-cancelar" id="cc-share-cancel-btn">Cancelar</button>

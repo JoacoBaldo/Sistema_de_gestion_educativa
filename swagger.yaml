@@ -1,0 +1,1378 @@
+openapi: 3.0.3
+info:
+  title: Sistema de Gestión Educativa API
+  description: API REST para el sistema de gestión educativa. Permite administrar aulas, alumnos, evaluaciones, asistencia, equipos y recursos.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Backend API
+
+tags:
+  - name: Auth
+    description: Autenticación y registro de usuarios
+  - name: Classrooms
+    description: Gestión de aulas
+  - name: Students
+    description: Gestión de alumnos
+  - name: Evaluations
+    description: Gestión de evaluaciones
+  - name: Attendance
+    description: Registro de asistencia
+  - name: Metrics
+    description: Métricas y reportes del aula
+  - name: Professors
+    description: Gestión de profesores en el aula
+  - name: Resources
+    description: Biblioteca de recursos del aula
+  - name: Teams
+    description: Gestión de equipos
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Recurso no encontrado"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "usuario@ejemplo.com"
+        password:
+          type: string
+          format: password
+          example: "contraseña123"
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          example: "Juan Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan@ejemplo.com"
+        password:
+          type: string
+          format: password
+          example: "contraseña123"
+
+    AuthResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "Juan Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan@ejemplo.com"
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Usuario creado exitosamente"
+        status:
+          type: integer
+          example: 201
+
+    PasswordRecoveryRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: "usuario@ejemplo.com"
+
+    ClassroomRequest:
+      type: object
+      required:
+        - name
+        - department
+        - university
+        - class_day
+        - class_start
+        - class_end
+        - academic_period_id
+      properties:
+        name:
+          type: string
+          example: "Introducción al Desarrollo de Software"
+        department:
+          type: string
+          example: "Ingeniería Informática"
+        university:
+          type: string
+          example: "Universidad de Buenos Aires"
+        class_day:
+          type: integer
+          description: "Día de la semana (0=Lunes, 6=Domingo)"
+          example: 2
+        class_start:
+          type: string
+          format: time
+          example: "09:00"
+        class_end:
+          type: string
+          format: time
+          example: "11:00"
+        academic_period_id:
+          type: integer
+          example: 1
+
+    ClassroomResponse:
+      type: object
+      properties:
+        classroom_id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: "Introducción al Desarrollo de Software"
+        department:
+          type: string
+          example: "Ingeniería Informática"
+        university:
+          type: string
+          example: "Universidad de Buenos Aires"
+        class_day:
+          type: integer
+          example: 2
+        class_start:
+          type: string
+          example: "09:00"
+        class_end:
+          type: string
+          example: "11:00"
+        academic_period_id:
+          type: integer
+          example: 1
+
+    AcademicPeriod:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        start_date:
+          type: string
+          format: date
+          example: "2026-03-01"
+        end_date:
+          type: string
+          format: date
+          example: "2026-07-31"
+
+    JoinLinkResponse:
+      type: object
+      properties:
+        join_link:
+          type: string
+          example: "http://localhost:5001/aulas/join?token=abc123"
+
+    StudentImportResponse:
+      type: object
+      properties:
+        cantidad_creados:
+          type: integer
+          description: "Alumnos nuevos creados en el sistema"
+          example: 15
+        cantidad_asociados:
+          type: integer
+          description: "Alumnos ya existentes asociados al aula"
+          example: 3
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        nombre:
+          type: string
+          example: "María"
+        apellido:
+          type: string
+          example: "García"
+        padron:
+          type: string
+          example: "104532"
+        email:
+          type: string
+          format: email
+          example: "maria.garcia@fi.uba.ar"
+
+    StudentsListResponse:
+      type: object
+      properties:
+        pagina_actual:
+          type: integer
+          example: 1
+        cantidad_por_pagina:
+          type: integer
+          example: 10
+        total_alumnos_curso:
+          type: integer
+          example: 28
+        datos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Student"
+
+    EvaluationRequest:
+      type: object
+      required:
+        - name
+        - evaluation_type_id
+        - individual
+      properties:
+        name:
+          type: string
+          example: "Trabajo Práctico 1"
+        evaluation_type_id:
+          type: integer
+          example: 2
+        referenced_eval_id:
+          type: integer
+          nullable: true
+          description: "ID de la evaluación padre (para sub-evaluaciones)"
+          example: null
+        individual:
+          type: integer
+          description: "1 = individual, 0 = grupal"
+          example: 1
+
+    EvaluationUpdateRequest:
+      type: object
+      required:
+        - classroom_id
+        - name
+        - evaluation_type_id
+        - individual
+      properties:
+        classroom_id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: "Trabajo Práctico 1 (actualizado)"
+        evaluation_type_id:
+          type: integer
+          example: 2
+        referenced_eval_id:
+          type: integer
+          nullable: true
+          example: null
+        individual:
+          type: integer
+          example: 1
+
+    EvaluationResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 201
+        id:
+          type: integer
+          example: 7
+        name:
+          type: string
+          example: "Trabajo Práctico 1"
+        evaluation_type_id:
+          type: integer
+          example: 2
+        individual:
+          type: integer
+          example: 1
+        classroom_id:
+          type: integer
+          example: 42
+
+    AttendanceDeltaRequest:
+      type: object
+      required:
+        - delta
+      properties:
+        delta:
+          type: integer
+          description: "Número de clases a agregar (positivo) o restar (negativo)"
+          example: 1
+
+    AttendanceResponse:
+      type: object
+      description: "Datos de asistencia/ausencia del aula"
+      properties:
+        message:
+          type: string
+          example: "Asistencia registrada"
+
+    MetricsResponse:
+      type: object
+      description: "Métricas estadísticas del aula"
+      properties:
+        classroom_id:
+          type: integer
+          example: 42
+        total_students:
+          type: integer
+          example: 28
+        average_attendance:
+          type: number
+          format: float
+          example: 85.3
+
+    Professor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        username:
+          type: string
+          example: "Dr. Carlos López"
+        email:
+          type: string
+          format: email
+          example: "carlos.lopez@uba.ar"
+        role:
+          type: string
+          example: "Profesor"
+
+    Resource:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        titulo:
+          type: string
+          example: "Introducción a Git"
+        url:
+          type: string
+          format: uri
+          example: "https://git-scm.com/doc"
+
+    ResourceRequest:
+      type: object
+      required:
+        - titulo
+        - url
+      properties:
+        titulo:
+          type: string
+          example: "Introducción a Git"
+        url:
+          type: string
+          format: uri
+          example: "https://git-scm.com/doc"
+
+    TeamCreateRequest:
+      type: object
+      required:
+        - name
+        - miembros
+      properties:
+        name:
+          type: string
+          example: "Equipo Alpha"
+        miembros:
+          type: array
+          items:
+            type: string
+          description: "Lista de padrones o IDs de los miembros"
+          example: ["104532", "104533", "104534"]
+        classroom_id:
+          type: integer
+          description: "Puede enviarse en el body o como query param"
+          example: 42
+
+    TeamUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Equipo Alpha (renombrado)"
+        member_ids:
+          type: array
+          items:
+            type: integer
+          example: [101, 102, 103]
+
+    TeamResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          example: "Equipo Alpha"
+        classroom_id:
+          type: integer
+          example: 42
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/Student"
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Operación exitosa"
+
+paths:
+  # ─────────────────────────────────────────────
+  # AUTH
+  # ─────────────────────────────────────────────
+
+  /api/v1/users/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/login/join:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión mediante link de invitación
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: "Token de invitación al aula"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login exitoso con token de invitación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Token inválido o expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/register:
+    post:
+      tags: [Auth]
+      summary: Registrar nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "409":
+          description: El email ya está registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /recuperar-password:
+    post:
+      tags: [Auth]
+      summary: Solicitar recuperación de contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordRecoveryRequest"
+      responses:
+        "200":
+          description: Email de recuperación enviado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "404":
+          description: Email no registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # CLASSROOMS
+  # ─────────────────────────────────────────────
+
+  /api/v1/classrooms:
+    post:
+      tags: [Classrooms]
+      summary: Crear un nuevo aula
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClassroomRequest"
+      responses:
+        "201":
+          description: Aula creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassroomResponse"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/classrooms/{user_id}:
+    get:
+      tags: [Classrooms]
+      summary: Obtener aulas de un usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        "200":
+          description: Lista de aulas del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClassroomResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/classrooms/{classroom_id}/link:
+    get:
+      tags: [Classrooms]
+      summary: Obtener link de invitación al aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+        - in: query
+          name: role_id
+          required: true
+          schema:
+            type: integer
+          description: "ID del rol para la invitación (1=Profesor, 2=Alumno)"
+          example: 2
+      responses:
+        "200":
+          description: Link de invitación generado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JoinLinkResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Sin permisos para esta aula
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/academic-periods:
+    get:
+      tags: [Classrooms]
+      summary: Obtener períodos académicos disponibles
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de períodos académicos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AcademicPeriod"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # STUDENTS
+  # ─────────────────────────────────────────────
+
+  /api/v1/classrooms/{classroom_id}/alumnos:
+    get:
+      tags: [Students]
+      summary: Obtener alumnos del aula con paginación
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+        - in: query
+          name: pagina
+          schema:
+            type: integer
+            default: 1
+          description: "Número de página"
+        - in: query
+          name: cantidad
+          schema:
+            type: integer
+            default: 10
+          description: "Cantidad de alumnos por página"
+      responses:
+        "200":
+          description: Lista paginada de alumnos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentsListResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/classrooms/{classroom_id}/students/import:
+    post:
+      tags: [Students]
+      summary: Importar alumnos desde archivo CSV
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - archivo
+              properties:
+                archivo:
+                  type: string
+                  format: binary
+                  description: "Archivo CSV con columnas: nombre, apellido, padron, email"
+      responses:
+        "200":
+          description: Importación completada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentImportResponse"
+        "400":
+          description: Formato de archivo inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # EVALUATIONS
+  # ─────────────────────────────────────────────
+
+  /api/v1/classroom/{classroom_id}/evaluaciones:
+    post:
+      tags: [Evaluations]
+      summary: Crear una nueva evaluación en el aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationRequest"
+      responses:
+        "201":
+          description: Evaluación creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResponse"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/evaluaciones/{evaluation_id}:
+    patch:
+      tags: [Evaluations]
+      summary: Actualizar una evaluación existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: evaluation_id
+          required: true
+          schema:
+            type: integer
+          example: 7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationUpdateRequest"
+      responses:
+        "200":
+          description: Evaluación actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResponse"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Evaluación no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # ATTENDANCE
+  # ─────────────────────────────────────────────
+
+  /api/v1/attendance/{classroom_id}:
+    get:
+      tags: [Attendance]
+      summary: Obtener datos de asistencia del aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      responses:
+        "200":
+          description: Datos de asistencia del aula
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: [Attendance]
+      summary: Registrar una clase de asistencia (agregar o quitar)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceDeltaRequest"
+      responses:
+        "200":
+          description: Asistencia registrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # METRICS
+  # ─────────────────────────────────────────────
+
+  /api/v1/metrics/{classroom_id}:
+    get:
+      tags: [Metrics]
+      summary: Obtener métricas del aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      responses:
+        "200":
+          description: Métricas del aula
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/metrics/{classroom_id}/pdf:
+    post:
+      tags: [Metrics]
+      summary: Exportar métricas del aula a PDF
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+        - in: query
+          name: filter
+          schema:
+            type: string
+          description: "Filtro opcional para el reporte (ej: 'evaluaciones', 'asistencia')"
+          required: false
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: "Datos de métricas a incluir en el PDF"
+              additionalProperties: true
+      responses:
+        "200":
+          description: PDF generado exitosamente
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # PROFESSORS
+  # ─────────────────────────────────────────────
+
+  /api/v1/classrooms/{classroom_id}/professors:
+    get:
+      tags: [Professors]
+      summary: Obtener profesores del aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      responses:
+        "200":
+          description: Lista de profesores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Professor"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/classrooms/{classroom_id}/user/{user_id}:
+    delete:
+      tags: [Professors]
+      summary: Eliminar un usuario del aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        "200":
+          description: Usuario eliminado del aula
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Sin permisos para esta operación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Aula o usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # RESOURCES
+  # ─────────────────────────────────────────────
+
+  /api/v1/classrooms/{classroom_id}/resources:
+    get:
+      tags: [Resources]
+      summary: Obtener recursos de la biblioteca del aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      responses:
+        "200":
+          description: Lista de recursos del aula
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/classrooms/{classroom_id}/contenidos:
+    post:
+      tags: [Resources]
+      summary: Agregar un recurso a la biblioteca del aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResourceRequest"
+      responses:
+        "201":
+          description: Recurso creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/classrooms/{classroom_id}/contenidos/{contenido_id}:
+    delete:
+      tags: [Resources]
+      summary: Eliminar un recurso de la biblioteca
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: classroom_id
+          required: true
+          schema:
+            type: integer
+          example: 42
+        - in: path
+          name: contenido_id
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        "200":
+          description: Recurso eliminado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Recurso no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ─────────────────────────────────────────────
+  # TEAMS
+  # ─────────────────────────────────────────────
+
+  /api/v1/teams:
+    post:
+      tags: [Teams]
+      summary: Crear un equipo en el aula
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: classroom_id
+          schema:
+            type: integer
+          description: "ID del aula (también puede enviarse en el form-data)"
+          example: 42
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - miembros
+              properties:
+                name:
+                  type: string
+                  example: "Equipo Alpha"
+                miembros:
+                  type: array
+                  items:
+                    type: string
+                  description: "Padrones o IDs de los miembros del equipo"
+                  example: ["104532", "104533"]
+                classroom_id:
+                  type: integer
+                  example: 42
+      responses:
+        "201":
+          description: Equipo creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamResponse"
+        "400":
+          description: Datos inválidos o alumnos no encontrados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/teams/{team_id}:
+    put:
+      tags: [Teams]
+      summary: Actualizar un equipo (nombre y/o miembros)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: team_id
+          required: true
+          schema:
+            type: integer
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamUpdateRequest"
+      responses:
+        "200":
+          description: Equipo actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamResponse"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Equipo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Teams]
+      summary: Eliminar un equipo
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: team_id
+          required: true
+          schema:
+            type: integer
+          example: 3
+      responses:
+        "200":
+          description: Equipo eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Equipo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

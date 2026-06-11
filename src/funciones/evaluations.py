@@ -1,20 +1,29 @@
-from src.db.evaluaciones import (
-    crear_evaluacion_db,
-    existe_evaluation_type,
-    existe_evaluacion_en_classroom,
-    obtener_evaluacion_por_id,
-    actualizar_evaluacion_db,
-)
 from src.db.classroom import existe_classroom
+from src.db.evaluaciones import (
+    actualizar_evaluacion_db,
+    crear_evaluacion_db,
+    existe_evaluacion_en_classroom,
+    existe_evaluation_type,
+    obtener_evaluacion_por_id,
+    obtener_evaluaciones_classroom,
+)
+
 from .errores import (
     CLASSROOM_NO_EXISTE,
     DATOS_EVALUACION_REQUERIDOS,
     REFERENCED_EVAL_NO_EXISTE,
     REFERENCED_EVAL_REQUERIDO,
     TIPO_EVALUACION_INVALIDO,
+    EVALUACION_NO_EXISTE,
 )
 
 EVALUATION_TYPE_RECUPERATORIO = 3
+
+
+def obtener_evaluaciones(classroom_id: int) -> tuple:
+    if not existe_classroom(classroom_id):
+        return None, CLASSROOM_NO_EXISTE
+    return obtener_evaluaciones_classroom(classroom_id), None
 
 
 def crear_evaluacion(
@@ -26,10 +35,13 @@ def crear_evaluacion(
 ) -> tuple:
     if not name or not evaluation_type_id:
         return None, DATOS_EVALUACION_REQUERIDOS
+
     if not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
+
     if not existe_evaluation_type(evaluation_type_id):
         return None, TIPO_EVALUACION_INVALIDO
+
     if evaluation_type_id == EVALUATION_TYPE_RECUPERATORIO:
         if not referenced_eval_id:
             return None, REFERENCED_EVAL_REQUERIDO
@@ -37,10 +49,28 @@ def crear_evaluacion(
             return None, REFERENCED_EVAL_NO_EXISTE
     else:
         referenced_eval_id = None
+
     resultado = crear_evaluacion_db(
         classroom_id, name, evaluation_type_id, referenced_eval_id, individual
     )
     return resultado, None
+
+
+def _resolver_referenced_eval(
+    new_type_id: int,
+    referenced_eval_id: int | None,
+    evaluacion_actual: dict,
+) -> tuple[int | None, dict | None]:
+    if new_type_id != EVALUATION_TYPE_RECUPERATORIO:
+        return None, None
+
+    if referenced_eval_id is not None:
+        return referenced_eval_id, None
+
+    if evaluacion_actual["evaluation_type_id"] != EVALUATION_TYPE_RECUPERATORIO:
+        return None, REFERENCED_EVAL_REQUERIDO
+
+    return evaluacion_actual["referenced_eval_id"], None
 
 
 def actualizar_evaluacion(
@@ -62,10 +92,7 @@ def actualizar_evaluacion(
 
     evaluacion_actual = obtener_evaluacion_por_id(evaluation_id)
     if evaluacion_actual is None:
-        return None, {
-            "error": "La evaluación especificada no existe",
-            "status": 404,
-        }
+        return None, EVALUACION_NO_EXISTE
 
     if classroom_id is not None and not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
@@ -78,33 +105,28 @@ def actualizar_evaluacion(
     new_classroom_id = (
         classroom_id if classroom_id is not None else evaluacion_actual["classroom_id"]
     )
-    new_evaluation_type_id = (
+    new_type_id = (
         evaluation_type_id
         if evaluation_type_id is not None
         else evaluacion_actual["evaluation_type_id"]
     )
 
-    if new_evaluation_type_id == EVALUATION_TYPE_RECUPERATORIO:
-        if referenced_eval_id is None:
-            if evaluacion_actual["evaluation_type_id"] != EVALUATION_TYPE_RECUPERATORIO:
-                return None, REFERENCED_EVAL_REQUERIDO
-            referenced_eval_id = evaluacion_actual["referenced_eval_id"]
+    ref_eval_final, error = _resolver_referenced_eval(
+        new_type_id, referenced_eval_id, evaluacion_actual
+    )
+    if error:
+        return None, error
 
-        if referenced_eval_id is not None:
-            if not existe_evaluacion_en_classroom(
-                referenced_eval_id,
-                new_classroom_id,
-            ):
-                return None, REFERENCED_EVAL_NO_EXISTE
-    else:
-        referenced_eval_id = None
+    if ref_eval_final is not None and not existe_evaluacion_en_classroom(
+        ref_eval_final, new_classroom_id
+    ):
+        return None, REFERENCED_EVAL_NO_EXISTE
 
-    resultado = actualizar_evaluacion_db(
+    return actualizar_evaluacion_db(
         classroom_id,
         name,
         evaluation_type_id,
-        referenced_eval_id,
+        ref_eval_final,
         individual,
         evaluation_id,
-    )
-    return resultado, None
+    ), None

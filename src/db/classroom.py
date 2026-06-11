@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .constantes import ADMINISTRADOR, ESTUDIANTE, PROFESOR, AYUDANTE
+from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR
 
 
 def obtener_profesores(classroom_id: int) -> list:
@@ -104,6 +104,39 @@ def guardar_classroom(name: str, department: str, university: str) -> int:
         return cursor.lastrowid
 
 
+def normalizar_horario_a_datetime(valor: str) -> str:
+    """Convierte HH:MM o HH:MM:SS al formato datetime que exige MySQL."""
+    if not valor:
+        return valor
+
+    texto = str(valor).strip().replace("T", " ")
+    if " " in texto:
+        partes = texto.split(" ", 1)
+        fecha, hora = partes[0], partes[1]
+        if len(hora) == 5:
+            hora = f"{hora}:00"
+        return f"{fecha} {hora}"
+
+    if len(texto) == 5:
+        return f"1970-01-01 {texto}:00"
+    if len(texto) == 8:
+        return f"1970-01-01 {texto}"
+
+    return texto
+
+
+def formatear_hora_desde_db(valor) -> str | None:
+    if valor is None:
+        return None
+
+    texto = str(valor).strip()
+    if " " in texto:
+        hora = texto.split(" ", 1)[1]
+        return hora[:5] if len(hora) >= 5 else hora
+
+    return texto[:5] if len(texto) >= 5 else texto
+
+
 def guardar_class_schedule(
     classroom_id: int,
     class_day: int,
@@ -111,6 +144,9 @@ def guardar_class_schedule(
     class_end: str,
     academic_period_id: int,
 ) -> int:
+    inicio = normalizar_horario_a_datetime(class_start)
+    fin = normalizar_horario_a_datetime(class_end)
+
     engine = obtener_conexion()
     with engine.connect() as conn:
         cursor = conn.exec_driver_sql(
@@ -118,7 +154,7 @@ def guardar_class_schedule(
             INSERT INTO class_schedule (classroom_id, class_day, class_start, class_end, academic_period_id)
             VALUES (%s, %s, %s, %s, %s)
             """,
-            (classroom_id, class_day, class_start, class_end, academic_period_id),
+            (classroom_id, class_day, inicio, fin, academic_period_id),
         )
         conn.commit()
         return cursor.lastrowid
@@ -230,10 +266,8 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
             "schedule": {
                 "id": fila["schedule_id"],
                 "class_day": fila["class_day"],
-                "class_start": str(fila["class_start"])
-                if fila["class_start"]
-                else None,
-                "class_end": str(fila["class_end"]) if fila["class_end"] else None,
+                "class_start": formatear_hora_desde_db(fila["class_start"]),
+                "class_end": formatear_hora_desde_db(fila["class_end"]),
                 "academic_period_id": fila["academic_period_id"],
             }
             if fila["schedule_id"] is not None
@@ -248,9 +282,12 @@ def obtener_alumnos(classroom_id: int) -> list:
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT u.id, u.username, u.email, cu.status_type_id, cu.created_at
+            SELECT u.id, u.username, u.email, cu.status_type_id, cu.created_at,
+                   sp.document, c.name AS career_name
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            LEFT JOIN careers c ON c.id = sp.career_id
             WHERE cu.classroom_id = %s AND cu.role_id = %s
             ORDER BY u.username
             """,
@@ -264,6 +301,8 @@ def obtener_alumnos(classroom_id: int) -> list:
             "email": f[2],
             "status_type_id": f[3],
             "created_at": f[4],
+            "document": f[5],
+            "career": f[6],
         }
         for f in resultados
     ]

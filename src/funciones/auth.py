@@ -4,6 +4,7 @@ import bcrypt
 
 from src.db import auth as db_auth
 from src.db import classroom as db_classroom
+
 from .constantes import TIEMPO_EXPIRACION_HORAS
 from .errores import (
     CREDENCIALES_INVALIDAS,
@@ -20,11 +21,11 @@ def verificar_token(token: str) -> tuple:
     return usuario, None
 
 
-def crear_token(usuario_id: int, username: str, email: str) -> str:
-    db_auth.eliminar_sesiones_usuario(usuario_id)
+def crear_token(usuario: dict) -> str:
+    db_auth.eliminar_sesiones_usuario(usuario["id"])
     token = db_auth.generar_token()
     expira_en = datetime.now() + timedelta(hours=TIEMPO_EXPIRACION_HORAS)
-    db_auth.guardar_sesion(usuario_id, token, expira_en)
+    db_auth.guardar_sesion(usuario["id"], token, expira_en)
     return token
 
 
@@ -45,7 +46,7 @@ def login_con_link(email: str, password: str, join_token: str) -> tuple:
 
     db_classroom.agregar_usuario_classroom(classroom_id, usuario["id"], role_id)
 
-    token = crear_token(usuario["id"], usuario["username"], usuario["email"])
+    token = crear_token(usuario)
     return {**usuario, "role_id": role_id, "token": token}, None
 
 

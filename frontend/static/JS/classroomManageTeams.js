@@ -1,44 +1,26 @@
-import { requestJson } from "./common/http.js";
-import { apiUrl, apiErrorMessage } from "./common/api.js";
-import { authHeaders, requireAuth } from "./common/auth.js";
-import { createCmrToast } from "./common/ui.js";
-
 document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("tm-grid");
-  if (!grid) return;
-  requireAuth();
+  const searchInput = document.getElementById("tm-search-input");
+  const emptyMsg = document.getElementById("tm-empty");
 
-  const showToast = createCmrToast();
+  function applySearch() {
+    if (!grid) return;
+    const q = (searchInput?.value || "").trim().toLowerCase();
+    let visible = 0;
 
-  grid.addEventListener("click", async (event) => {
-    const deleteBtn = event.target.closest(".tm-delete-btn");
-    if (!deleteBtn) return;
-    event.preventDefault();
+    Array.from(grid.querySelectorAll(".tm-card")).forEach((card) => {
+      const nombre = (card.dataset.nombre || "").toLowerCase();
+      const show = !q || nombre.includes(q);
+      card.style.display = show ? "" : "none";
+      if (show) visible += 1;
+    });
 
-    const teamId = deleteBtn.dataset.id;
-    const nombre = deleteBtn.dataset.nombre || "este equipo";
-    if (!teamId) return;
-    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
-
-    try {
-      const response = await requestJson(apiUrl("/api/v1/teams"), {
-        method: "DELETE",
-        headers: authHeaders(),
-        body: { id: Number(teamId) },
-      });
-      const body = response.json();
-      if (!response.ok) {
-        throw new Error(apiErrorMessage(body, "No se pudo eliminar el equipo"));
-      }
-      deleteBtn.closest(".tm-card")?.remove();
-      showToast("Equipo eliminado.");
-      if (!grid.querySelector(".tm-card")) {
-        const empty = document.getElementById("tm-empty");
-        if (empty) empty.hidden = false;
-      }
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || "Error al eliminar.");
+    if (emptyMsg) {
+      const hasCards = grid.querySelectorAll(".tm-card").length > 0;
+      emptyMsg.classList.toggle("hidden", !hasCards || visible > 0);
     }
-  });
+  }
+
+  searchInput?.addEventListener("input", applySearch);
+  applySearch();
 });

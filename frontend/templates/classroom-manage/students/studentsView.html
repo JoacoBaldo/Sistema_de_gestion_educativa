@@ -5,9 +5,8 @@
             <p class="st-subtitle">Administra registros, estado y matrícula de estudiantes</p>
         </div>
         <div class="st-actions">
-            <button class="st-btn st-btn-primary" type="button" id="st-add-student-btn">
-                <span class="st-btn-icon" aria-hidden="true">+</span>
-                Añadir estudiante
+            <button class="st-btn st-btn-primary" type="button" id="st-add-btn">
+                + Añadir estudiante
             </button>
         </div>
     </header>
@@ -42,44 +41,32 @@
                     <option value="all">Todos los equipos</option>
                 </select>
             </label>
-
-            <button class="st-btn st-btn-ghost" type="button" id="st-export-btn">
-                <span class="st-ghost-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                        <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"
-                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                            stroke-linejoin="round" opacity="0.75" />
-                    </svg>
-                </span>
-                Exportar
-            </button>
         </div>
     </div>
 
     <section class="st-import" aria-label="Importar estudiantes desde CSV">
-        <div class="st-dropzone" id="st-dropzone" tabindex="0" role="button"
-            aria-label="Arrastra y suelta un archivo CSV o haz clic para seleccionar">
-            <div class="st-dropzone-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M12 16V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                    <path d="M7 8l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path
-                        d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
-                        stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                        stroke-linejoin="round" opacity="0.75" />
-                </svg>
+        <form method="POST" action="{{ url_for('cargar_csv_estudiantes', classroom_id=classroom_id) }}" enctype="multipart/form-data" id="st-csv-form">
+            <div class="st-dropzone" id="st-dropzone" tabindex="0" role="button"
+                aria-label="Arrastra y suelta un archivo CSV o haz clic para seleccionar">
+                <div class="st-dropzone-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 16V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M7 8l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
+                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                            stroke-linejoin="round" opacity="0.75" />
+                    </svg>
+                </div>
+                <div class="st-dropzone-text">
+                    <div class="st-dropzone-title">Importar estudiantes desde CSV</div>
+                    <div class="st-dropzone-subtitle">Arrastra tu archivo aquí o haz clic para buscar</div>
+                </div>
+                <button class="st-btn st-btn-secondary" type="button">Seleccionar archivo</button>
+                <input type="file" id="st-file-input" name="archivo" accept=".csv,text/csv" hidden>
             </div>
-            <div class="st-dropzone-text">
-                <div class="st-dropzone-title">Importar estudiantes desde CSV</div>
-                <div class="st-dropzone-subtitle">Arrastra tu archivo aquí o haz clic para buscar</div>
-            </div>
-            <button class="st-btn st-btn-secondary" type="button">Seleccionar archivo</button>
-            <input type="file" id="st-file-input" accept=".csv,text/csv" hidden>
-        </div>
+        </form>
     </section>
 
     <section class="st-table-card" aria-label="Listado de estudiantes">
@@ -94,8 +81,41 @@
                     <th class="st-col-actions">Acciones</th>
                 </tr>
             </thead>
-            <tbody id="st-tbody"></tbody>
+            <tbody id="st-tbody">
+                {% for alumno in alumnos or [] %}
+                {% set partes = (alumno.username or '').split(' ', 1) %}
+                {% set nombre = partes[0] if partes else alumno.username %}
+                {% set apellido = partes[1] if partes|length > 1 else '' %}
+                {% set activo = alumno.status_type_id != 2 %}
+                <tr data-padron="{{ alumno.id }}" data-nombre="{{ nombre }}" data-apellido="{{ apellido }}"
+                    data-email="{{ alumno.email }}" data-status="{{ 'active' if activo else 'abandoned' }}" data-team="">
+                    <td>{{ nombre }}</td>
+                    <td>{{ apellido }}</td>
+                    <td>{{ alumno.id }}</td>
+                    <td class="st-col-email">{{ alumno.email }}</td>
+                    <td>
+                        {% if activo %}
+                        <span class="st-badge st-badge-active">Activo</span>
+                        {% else %}
+                        <span class="st-badge st-badge-dropped">Abandono</span>
+                        {% endif %}
+                    </td>
+                    <td class="st-col-actions">
+                        <form method="POST" action="{{ url_for('eliminar_usuario_aula', classroom_id=classroom_id, user_id=alumno.id) }}" style="display:inline;">
+                            <input type="hidden" name="vista" value="students">
+                            <button type="submit" class="st-btn st-btn-ghost" onclick="return confirm('¿Quitar a este estudiante del aula?');">Quitar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">No hay estudiantes inscriptos en esta aula.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </section>
-    {% include 'classroom-manage/students/studentForm.html' %}
+    {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
+
+    <script type="module" src="{{ url_for('static', filename='js/studentsModal.js') }}"></script>
 </section>

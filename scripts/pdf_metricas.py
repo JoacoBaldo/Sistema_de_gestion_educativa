@@ -3,7 +3,10 @@ from datetime import date
 
 from reportlab.lib import colors  # type: ignore[import-untyped]
 from reportlab.lib.pagesizes import A4  # type: ignore[import-untyped]
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # type: ignore[import-untyped]
+from reportlab.lib.styles import (  # type: ignore[import-untyped]
+    ParagraphStyle,
+    getSampleStyleSheet,
+)
 from reportlab.lib.units import cm  # type: ignore[import-untyped]
 from reportlab.platypus import (  # type: ignore[import-untyped]
     Paragraph,
