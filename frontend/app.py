@@ -32,7 +32,7 @@ from src.funciones.classroom import (
     obtener_periodos_academicos,
     obtener_profesores_classroom,
 )
-from src.funciones.evaluaciones import (
+from src.funciones.evaluations import (
     actualizar_evaluacion,
     crear_evaluacion,
     obtener_evaluaciones,
