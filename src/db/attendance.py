@@ -80,17 +80,17 @@ def obtener_estudiantes_classroom(classroom_id):
     return resultados_devolver
 
 
-def inasistencia_db(student_id, attendance_event_id, fecha):
+def inasistencia_db(student_id, attendance_event_id, fecha, delta: int = 1):
     engine = obtener_conexion()
     with engine.connect() as conn:
         conn.exec_driver_sql(
             """
             UPDATE attendance
-            SET student_id = %s, attendance_event_id = %s, absence = absence + 1, updated_at = %s
+            SET student_id = %s, attendance_event_id = %s, absence = GREATEST(0, absence + %s), updated_at = %s
             """,
-            (student_id, attendance_event_id, fecha),
+            (student_id, attendance_event_id, delta, fecha),
         )
         conn.commit()
         conn.close()
 
-    return {"mensaje": "Inasistencia sumada correctamente", "status_code": 200}
+    return {"mensaje": "Inasistencia actualizada correctamente", "status_code": 200}
