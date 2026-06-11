@@ -14,7 +14,7 @@ from .errores import (
     REFERENCED_EVAL_NO_EXISTE,
     REFERENCED_EVAL_REQUERIDO,
     TIPO_EVALUACION_INVALIDO,
-    EVALUACION_NO_EXISTE
+    EVALUACION_NO_EXISTE,
 )
 
 EVALUATION_TYPE_RECUPERATORIO = 3
@@ -97,19 +97,36 @@ def actualizar_evaluacion(
     if classroom_id is not None and not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
 
-    if evaluation_type_id is not None and not existe_evaluation_type(evaluation_type_id):
+    if evaluation_type_id is not None and not existe_evaluation_type(
+        evaluation_type_id
+    ):
         return None, TIPO_EVALUACION_INVALIDO
 
-    new_classroom_id = classroom_id if classroom_id is not None else evaluacion_actual["classroom_id"]
-    new_type_id = evaluation_type_id if evaluation_type_id is not None else evaluacion_actual["evaluation_type_id"]
+    new_classroom_id = (
+        classroom_id if classroom_id is not None else evaluacion_actual["classroom_id"]
+    )
+    new_type_id = (
+        evaluation_type_id
+        if evaluation_type_id is not None
+        else evaluacion_actual["evaluation_type_id"]
+    )
 
-    ref_eval_final, error = _resolver_referenced_eval(new_type_id, referenced_eval_id, evaluacion_actual)
+    ref_eval_final, error = _resolver_referenced_eval(
+        new_type_id, referenced_eval_id, evaluacion_actual
+    )
     if error:
         return None, error
 
-    if ref_eval_final is not None and not existe_evaluacion_en_classroom(ref_eval_final, new_classroom_id):
+    if ref_eval_final is not None and not existe_evaluacion_en_classroom(
+        ref_eval_final, new_classroom_id
+    ):
         return None, REFERENCED_EVAL_NO_EXISTE
 
     return actualizar_evaluacion_db(
-        classroom_id, name, evaluation_type_id, ref_eval_final, individual, evaluation_id
+        classroom_id,
+        name,
+        evaluation_type_id,
+        ref_eval_final,
+        individual,
+        evaluation_id,
     ), None

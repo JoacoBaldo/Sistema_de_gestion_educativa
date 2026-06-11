@@ -40,7 +40,6 @@ def crear_equipo_con_miembros(
 
         team_id = fila[0]
 
-
         return team_id
 
 
@@ -72,12 +71,14 @@ def listar_equipos_classroom(classroom_id: int) -> list[dict]:
                 "updated_at": fila[4],
                 "miembros": [],
             }
-        if fila[5]: #sí existe un user id
-            equipos_dict[team_id]["miembros"].append({
-                "id": fila[5],
-                "username": fila[6],
-                "email": fila[7],
-            })
+        if fila[5]:  # sí existe un user id
+            equipos_dict[team_id]["miembros"].append(
+                {
+                    "id": fila[5],
+                    "username": fila[6],
+                    "email": fila[7],
+                }
+            )
     return list(equipos_dict.values())
 
 
