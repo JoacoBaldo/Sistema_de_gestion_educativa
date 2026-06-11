@@ -1,6 +1,7 @@
 from .conexion import obtener_conexion
 from .constantes import ESTUDIANTE
 
+
 def contar_eventos_classroom(classroom_id: int) -> int:
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -46,9 +47,6 @@ def obtener_inasistencias_por_alumno(classroom_id: int) -> list[dict]:
         }
         for f in resultados
     ]
-
-
-
 
 
 def crear_evento_asistencia(classroom_id, qr_code, fecha):

@@ -40,13 +40,20 @@ def obtener_inasistencias_classroom(classroom_id: int, usuario_id: int) -> tuple
     }, None
 
 
-def sumar_inasistencia(classroom_id: int, fecha: datetime | None = None, delta: int = 1, usuario_id: int | None = None):
+def sumar_inasistencia(
+    classroom_id: int,
+    fecha: datetime | None = None,
+    delta: int = 1,
+    usuario_id: int | None = None,
+):
     if fecha is None:
         fecha = datetime.now()
     if not existe_classroom(classroom_id):
         return {"error": "El aula no existe"}, 404
 
-    if usuario_id and not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+    if usuario_id and not db_classroom.puede_administrar_classroom(
+        classroom_id, usuario_id
+    ):
         return {"error": "Sin acceso a este aula"}, 403
 
     nuevo_evento_id = crear_evento_asistencia(
