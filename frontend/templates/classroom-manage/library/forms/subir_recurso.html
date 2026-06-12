@@ -6,10 +6,12 @@
     </div>
     <p class="subtitle" id="lb-modal-subtitle">Completa la información del material público</p>
 
-    <form id="lb-recurso-form" method="POST" action="{{ url_for('subir_recurso_biblioteca', classroom_id=classroom_id) }}">      
+    <form id="lb-recurso-form" method="POST"
+      action="{{ url_for('subir_recurso_biblioteca', classroom_id=classroom_id) }}">
       <div class="mb-3">
         <label class="form-label" for="lb-nombre">📄 Nombre del recurso <span class="text-danger">*</span></label>
-        <input type="text" id="lb-nombre" name="titulo" class="glass-input" placeholder="Ej. Introducción a estructuras de datos" required>
+        <input type="text" id="lb-nombre" name="titulo" class="glass-input"
+          placeholder="Ej. Introducción a estructuras de datos" required>
       </div>
 
       <div class="mb-3">
@@ -17,7 +19,9 @@
         <select id="lb-tipo" name="tipo" class="glass-input" required>
           <option value="pdf">PDF</option>
           <option value="video">Video</option>
-          <option value="link" selected>Enlace</option>
+          <option value="enlace" selected>Enlace</option>
+          <option value="presentacion">Presentación</option>
+          <option value="documento">Documento</option>
         </select>
       </div>
 

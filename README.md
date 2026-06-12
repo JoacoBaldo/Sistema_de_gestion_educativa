@@ -41,3 +41,6 @@ python app.py
 Backend disponible en `http://localhost:5000`
 Frontend disponible en `http://localhost:5001`
 
+
+Ruta para probar asistencia como alumno http://127.0.0.1:5001/aulas/cambiarPorNumeroDeAula/asistencia/validar?code=  <-- ahi va el codigo que se consigue desde assistencia como profesor
+

@@ -135,7 +135,7 @@ html {
   padding: 0.9rem 1rem;
   font-family: inherit;
   font-size: 0.95rem;
-  color: var(--input-text);
+  color: black;
   background: var(--input-bg);
   border: 0;
   border-radius: var(--radius-input);

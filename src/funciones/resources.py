@@ -19,25 +19,17 @@ def subir_contenido_classroom(
     titulo: str,
     url: str,
     usuario_id: int,
-    tipo_recurso: str = "link",
+    tipo_recurso: str = "enlace",
 ) -> tuple:
-    MAPEO_TIPOS = {"pdf": 1, "video": 2, "link": 3}
-    file_type_id = MAPEO_TIPOS.get(tipo_recurso.lower(), 3)
-
-    engine = obtener_conexion()
     try:
-        with engine.connect() as conn:
-            conn.exec_driver_sql(
-                """
-                INSERT INTO resourses (classroom_id, Title, link, file_type_id, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, NOW(), NOW())
-                """,
-                (classroom_id, titulo, url, file_type_id),
-            )
-            conn.commit()
-        return {"message": "Recurso subido"}, None
+        nuevo_id = db_resources.guardar_contenido_classroom(
+            classroom_id, titulo, tipo_recurso, url, usuario_id
+        )
+        # Retornamos el éxito
+        return {"message": "Recurso subido", "id": nuevo_id}, None
     except Exception as e:
-        return None, {"error": str(e)}
+        # Agregamos 'status' para evitar el KeyError en utils.py
+        return None, {"error": str(e), "status": 500}
 
 
 def eliminar_contenido_classroom(
@@ -49,3 +41,23 @@ def eliminar_contenido_classroom(
     db_resources.eliminar_contenido_classroom(contenido_id)
 
     return {"message": f"Contenido con ID {contenido_id} eliminado correctamente"}, None
+
+def editar_contenido_classroom(
+    classroom_id: int,
+    contenido_id: int,
+    titulo: str,
+    tipo: str,
+    url: str,
+    usuario_id: int,
+):
+    try:
+
+        db_resources.actualizar_contenido_db(contenido_id, titulo, tipo, url)
+
+        return {"mensaje": "Contenido actualizado con éxito", "id": contenido_id}, None
+    except Exception as e:
+        error_estructurado = {
+            "error": f"ERROR_BASE_DE_DATOS: {str(e)}",
+            "status": 500
+        }
+        return None, error_estructurado
