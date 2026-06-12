@@ -17,9 +17,9 @@ from .utils import extraer_token, responder_error
 teams_bp = Blueprint("teams", __name__)
 
 
-def _parsear_miembros_formulario():
+""" def _parsear_miembros_formulario():
     miembros = request.form.getlist("miembros")
-    return [m.strip() for m in miembros if m and str(m).strip()]
+    return [m.strip() for m in miembros if m and str(m).strip()] """
 
 
 @teams_bp.route("/api/v1/teams", methods=["GET"])

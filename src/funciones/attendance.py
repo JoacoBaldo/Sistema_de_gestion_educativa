@@ -7,6 +7,7 @@ from src.db.attendance import (
     crear_evento_asistencia,
     inasistencia_db,
     obtener_estudiantes_classroom,
+    obtener_evento_por_codigo,
 )
 from src.db.classroom import existe_classroom
 
@@ -64,3 +65,26 @@ def sumar_inasistencia(
         inasistencia_db(student_id, nuevo_evento_id, fecha, delta=delta)
 
     return {"mensaje": "Inasistencia actualizada correctamente"}, 200
+
+
+def validar_asistencia(classroom_id: int, code: str, usuario_id: int):
+    # 1. Validamos si el código corresponde a un evento real de esa aula
+    evento = obtener_evento_por_codigo(classroom_id, code)
+    if not evento:
+        return {"error": "El código de asistencia es inválido o ya expiró"}, 400
+
+    try:
+        from datetime import datetime
+        fecha_actual = datetime.now()
+        
+        inasistencia_db(
+            student_id=usuario_id, 
+            attendance_event_id=evento["id"], 
+            fecha=fecha_actual, 
+            delta=-1
+        )
+        
+        return {"mensaje": "Asistencia registrada con éxito"}, 200
+
+    except Exception as e:
+        return {"error": f"Error interno del servidor al registrar: {str(e)}"}, 500

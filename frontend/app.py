@@ -195,9 +195,17 @@ def datos_vista_gestion(classroom_id, usuario, vista):
         datos["alumnos"] = extraer_lista(res_a, err_a)
 
     elif vista == "asistance":
-        res, err = consumir_api("GET", f"/api/v1/attendance/{classroom_id}")
-        datos["asistencia"] = extraer_lista(res, err) if isinstance(res, list) or (isinstance(res, dict) and not "error" in res) else None
-        if err: flash("No se pudo cargar la asistencia", "error")
+        res, error = consumir_api("GET", f"/api/v1/attendance/{classroom_id}")
+    
+        if error or not res or not isinstance(res, dict):
+            datos["asistencia"] = {
+                "total_events": 0,
+                "average_absences": 0.0,
+                "attendance_percentage": 100.0,
+                "students": []
+            }
+        else:
+            datos["asistencia"] = res
 
     elif vista == "teams":
         res_t, err_t = consumir_api("GET", f"/api/v1/teams?classroom_id={classroom_id}")
@@ -473,13 +481,43 @@ def registrar_asistencia_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
-    res, error = consumir_api("POST", f"/api/v1/attendance/{classroom_id}")
+    payload = {"delta": 1}
+    res, error = consumir_api("POST", f"/api/v1/attendance/{classroom_id}", json_data=payload)
+    
     if error or (res and type(res) is dict and res.get("error")):
         flash("No se pudo registrar asistencia", "error")
     else:
-        flash("Evento de asistencia registrado.", "success")
+        flash("Evento de asistencia registrado con éxito.", "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="asistance"))
+
+@app.route("/aulas/<int:classroom_id>/asistencia/validar", methods=["GET", "POST"])
+def validar_asistencia_alumno(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    if request.method == "POST":
+        code = request.form.get("code")
+        
+        payload = {"code": code}
+        res, error = consumir_api("POST", f"/api/v1/attendance/{classroom_id}/validar", json_data=payload)
+        
+        if error:
+            flash(f"Error al registrar asistencia: {error.get('error', 'Código inválido o expirado')}", "error")
+            return redirect(url_for("validar_asistencia_alumno", classroom_id=classroom_id, code=code))
+        else:
+            flash("¡Asistencia registrada con éxito! Ya tenés tu presente.", "success")
+            
+            return redirect(url_for("classroom_manage", classroom_id=classroom_id))
+
+    code = request.args.get("code", "")
+    
+    return render_template(
+        "classroom-manage/asistance/validar_asistencia.html", 
+        classroom_id=classroom_id, 
+        code=code, 
+        usuario=usuario
+    )
 
 @app.route("/aulas/<int:classroom_id>/gestionar/metricas/pdf", methods=["POST"])
 def descargar_metricas_pdf(classroom_id):
@@ -662,7 +700,7 @@ def actualizar_equipo_aula(classroom_id, team_id):
 
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
-        "member_ids": request.form.getlist("miembros") # Lista de IDs de estudiantes
+        "member_ids": request.form.getlist("miembros")
     }
     
     res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)
