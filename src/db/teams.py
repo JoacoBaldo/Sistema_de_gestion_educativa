@@ -8,40 +8,22 @@ def crear_equipo_con_miembros(
     nombre: str, miembros: list, classroom_id: int
 ) -> Optional[int]:
     """
-    Crea un nuevo equipo con miembros (nombres).
-    Retorna el ID del equipo creado o None si falla.
+    Crea un nuevo equipo y retorna el ID generado por MySQL de forma segura.
     """
     engine = obtener_conexion()
     with engine.connect() as conn:
-        conn.exec_driver_sql(
+        cursor = conn.exec_driver_sql(
             """
             INSERT INTO teams (name, classroom_id, created_at, updated_at)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (
-                nombre,
-                classroom_id,
-                datetime.now(timezone.utc),
-                datetime.now(timezone.utc),
-            ),
-        )
-        conn.commit()
-
-        fila = conn.exec_driver_sql(
-            """
-            SELECT id FROM teams WHERE name = %s AND classroom_id = %s
-            ORDER BY created_at DESC LIMIT 1
+            VALUES (%s, %s, NOW(), NOW())
             """,
             (nombre, classroom_id),
-        ).fetchone()
-
-        if fila is None:
-            return None
-
-        team_id = fila[0]
+        )
+        conn.commit()
+        
+        team_id = cursor.lastrowid
 
         return team_id
-
 
 def listar_equipos_classroom(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
@@ -71,7 +53,7 @@ def listar_equipos_classroom(classroom_id: int) -> list[dict]:
                 "updated_at": fila[4],
                 "miembros": [],
             }
-        if fila[5]:  # sí existe un user id
+        if fila[5]:
             equipos_dict[team_id]["miembros"].append(
                 {
                     "id": fila[5],

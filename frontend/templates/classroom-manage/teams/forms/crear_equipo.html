@@ -6,13 +6,15 @@
     </div>
     <p class="subtitle">Configura el equipo y asigna estudiantes del aula.</p>
 
-    <form id="formEquipo" method="POST" action="{{ url_for('teams.crear_equipo_formulario') }}?classroom_id={{ classroom_id }}" novalidate>
+    <form id="formEquipo" method="POST" action="{{ url_for('crear_equipo_aula', classroom_id=classroom_id) }}"
+      novalidate>
       <input type="hidden" name="classroom_id" value="{{ classroom_id }}">
       <input type="hidden" name="token" value="{{ token }}">
 
       <div class="mb-3">
         <label class="form-label" for="nombre_equipo">👥 Nombre del Equipo <span class="text-danger">*</span></label>
-        <input type="text" id="nombre_equipo" name="nombre_equipo" class="glass-input" placeholder="Ejemplo: Equipo Hipatia" required>
+        <input type="text" id="nombre_equipo" name="nombre_equipo" class="glass-input"
+          placeholder="Ejemplo: Equipo Hipatia" required>
       </div>
 
       <div class="mb-3">

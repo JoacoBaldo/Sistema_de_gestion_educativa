@@ -10,17 +10,43 @@ from src.funciones.errores import (
     NAME_VACIO,
     SESION_INVALIDA,
 )
-from src.funciones.teams import crear_equipo, editar_equipo, eliminar_equipo
+from src.funciones.teams import crear_equipo, editar_equipo, eliminar_equipo, obtener_equipos_classroom
 
 from .utils import extraer_token, responder_error
 
 teams_bp = Blueprint("teams", __name__)
 
 
-def _parsear_miembros_formulario():
+""" def _parsear_miembros_formulario():
     miembros = request.form.getlist("miembros")
-    return [m.strip() for m in miembros if m and str(m).strip()]
+    return [m.strip() for m in miembros if m and str(m).strip()] """
 
+
+@teams_bp.route("/api/v1/teams", methods=["GET"])
+def listar_equipos_api():
+    token = extraer_token()
+    if not token:
+        return responder_error(SESION_INVALIDA)
+
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    classroom_id_str = request.args.get("classroom_id")
+    if not classroom_id_str:
+        return responder_error(CLASSROOM_NO_ESPECIFICADO)
+
+    try:
+        classroom_id = int(classroom_id_str)
+    except ValueError:
+        return responder_error(CLASSROOM_NO_ESPECIFICADO)
+
+    resultado, error = obtener_equipos_classroom(classroom_id, usuario["id"])
+    
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
 
 @teams_bp.route("/api/v1/teams/<int:team_id>", methods=["PUT"])
 def actualizar_equipo(team_id):
@@ -82,16 +108,10 @@ def crear_equipo_formulario():
     if error:
         return responder_error(error)
 
-    nombre = request.form.get("name", "").strip()
-    miembros = _parsear_miembros_formulario()
-    classroom_id_str = request.args.get("classroom_id") or request.form.get(
-        "classroom_id"
-    )
-
-    try:
-        classroom_id = int(classroom_id_str) if classroom_id_str else None
-    except (ValueError, TypeError):
-        classroom_id = None
+    data = request.get_json(silent=True) or {}
+    nombre = data.get("name", "").strip()
+    miembros = data.get("member_ids", [])
+    classroom_id = data.get("classroom_id")
 
     if not nombre:
         return responder_error(NAME_VACIO)
@@ -100,9 +120,9 @@ def crear_equipo_formulario():
         return responder_error(MIEMBROS_REQUERIDO)
 
     if not classroom_id:
-        return responder_error(CLASSROOM_NO_ESPECIFICADO)
+        return responder_error(CLASSROOM_NO_ESPECIFICADO) [cite: 30]
 
-    resultado, error = crear_equipo(nombre, miembros, classroom_id, usuario["id"])
+    resultado, error = crear_equipo(nombre, miembros, int(classroom_id), usuario["id"])
     if error:
         return responder_error(error)
 

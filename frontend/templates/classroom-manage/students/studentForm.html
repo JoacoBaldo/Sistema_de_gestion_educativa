@@ -1,0 +1,41 @@
+<div id="st-student-modal" class="st-modal hidden" role="dialog" aria-modal="true" aria-label="Editar estudiante">
+  <div class="st-modal-panel">
+    <header class="st-modal-header">
+      <h2 class="st-modal-title">Editar estudiante</h2>
+    </header>
+
+    <form id="st-student-form" class="st-form" novalidate>
+      <div class="st-form-row">
+        <label for="st-student-name">Nombre</label>
+        <input id="st-student-name" name="nombre" type="text" required>
+      </div>
+
+      <div class="st-form-row">
+        <label for="st-student-lastname">Apellido</label>
+        <input id="st-student-lastname" name="apellido" type="text" required>
+      </div>
+
+      <div class="st-form-row">
+        <label for="st-student-email">Email</label>
+        <input id="st-student-email" name="email" type="email" required>
+      </div>
+
+      <div class="st-form-row">
+        <label for="st-student-padron">Padrón / ID</label>
+        <input id="st-student-padron" name="padron" type="text" required>
+      </div>
+
+      <div class="st-form-row st-form-row--toggle">
+        <label for="st-student-abandoned">Abandonó la materia</label>
+        <input id="st-student-abandoned" name="abandoned" type="checkbox">
+      </div>
+
+      <div class="st-form-actions">
+        <button type="button" class="st-btn" id="st-student-cancel-btn">Cancelar</button>
+        <button type="submit" class="st-btn st-btn-primary" id="st-student-save-btn">Guardar</button>
+      </div>
+    </form>
+
+    <div id="st-student-toast" class="st-toast hidden" role="status" aria-live="polite"></div>
+  </div>
+</div>

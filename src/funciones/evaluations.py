@@ -1,11 +1,12 @@
 from src.db.classroom import existe_classroom
-from src.db.evaluaciones import (
+from src.db.evaluations import (
     actualizar_evaluacion_db,
     crear_evaluacion_db,
     existe_evaluacion_en_classroom,
     existe_evaluation_type,
     obtener_evaluacion_por_id,
     obtener_evaluaciones_classroom,
+    eliminar_evaluacion_db,
 )
 
 from .errores import (
@@ -130,3 +131,22 @@ def actualizar_evaluacion(
         individual,
         evaluation_id,
     ), None
+
+def eliminar_evaluacion(evaluation_id: int) -> tuple:
+    try:
+        evaluacion = obtener_evaluacion_por_id(evaluation_id)
+        if evaluacion is None:
+            return None, {
+                "error": "La evaluación especificada no existe",
+                "status": 404,
+            }
+
+        resultado = eliminar_evaluacion_db(evaluation_id)
+        return resultado, None
+
+    except Exception as e:
+        error_estructurado = {
+            "error": f"ERROR_BASE_DE_DATOS: {str(e)}",
+            "status": 500,
+        }
+        return None, error_estructurado

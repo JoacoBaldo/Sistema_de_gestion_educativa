@@ -98,6 +98,7 @@ ARCHIVO_NO_ENVIADO = {
 }
 ARCHIVO_VACIO = {"error": "El nombre del archivo está vacío", "status": 400}
 ERROR_PROCESAMIENTO_CSV = {"error": "Error al procesar el archivo CSV", "status": 500}
+FECHA_INVALIDA = {"error": "La fecha de fin debe ser posterior a la fecha de inicio", "status": 400}
 EVALUACION_NO_EXISTE = {"error": "La evaluación especificada no existe", "status": 404}
 SESION_INVALIDA = {"error": "Sesión inválida. Vuelve a iniciar sesión.", "status": 401}
 MIEMBROS_REQUERIDO = {"error": "Al menos un miembro es requerido", "status": 400}
