@@ -3,7 +3,14 @@ from typing import List, Optional
 from src.db import classroom as db_classroom
 from src.db import teams as db_teams
 
-from .errores import EQUIPO_NO_EXISTE, MIEMBROS_INVALIDOS, NO_ES_ADMIN
+from .errores import (
+    EQUIPO_NO_CREADO,
+    EQUIPO_NO_EXISTE,
+    MIEMBROS_INVALIDOS,
+    MIEMBROS_REQUERIDO,
+    NAME_VACIO,
+    NO_ES_ADMIN,
+)
 
 
 def _parsear_ids_miembros(miembros: List[str]) -> tuple[list[int] | None, dict | None]:
@@ -33,10 +40,10 @@ def crear_equipo(
     usuario_id: int,
 ) -> tuple:
     if not nombre or not nombre.strip():
-        return None, "El nombre del equipo es requerido"
+        return None, NAME_VACIO
 
     if not miembros:
-        return None, "Al menos un miembro es requerido"
+        return None, MIEMBROS_REQUERIDO
 
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, NO_ES_ADMIN
@@ -55,7 +62,7 @@ def crear_equipo(
     )
 
     if equipo_id is None:
-        return None, "No se pudo crear el equipo"
+        return None, EQUIPO_NO_CREADO
 
     db_teams.reemplazar_miembros(equipo_id, member_ids)
     return {"message": "Team created", "id": equipo_id}, None

@@ -1,47 +1,58 @@
-from flask import Blueprint, flash, jsonify, redirect, request, session, url_for
+from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
 from src.funciones.errores import (
+    CLASSROOM_NO_ESPECIFICADO,
     MIEMBROS_NO_ES_LISTA,
     MIEMBROS_NO_INT,
+    MIEMBROS_REQUERIDO,
     NAME_O_MIEMBROS_REQUERIDO,
     NAME_VACIO,
+    SESION_INVALIDA,
 )
-from src.funciones.teams import crear_equipo, editar_equipo, eliminar_equipo
+from src.funciones.teams import crear_equipo, editar_equipo, eliminar_equipo, obtener_equipos_classroom
 
 from .utils import extraer_token, responder_error
 
 teams_bp = Blueprint("teams", __name__)
 
 
-def _obtener_token_formulario():
-    return (
-        request.form.get("token")
-        or request.cookies.get("token")
-        or session.get("token")
-    )
-
-
-def _redirigir_equipos(classroom_id=None):
-    if classroom_id:
-        return redirect(
-            url_for(
-                "classroom_manage",
-                classroom_id=classroom_id,
-                vista="teams",
-            )
-        )
-    return redirect(request.referrer or url_for("classrooms"))
-
-
-def _parsear_miembros_formulario():
+""" def _parsear_miembros_formulario():
     miembros = request.form.getlist("miembros")
-    return [m.strip() for m in miembros if m and str(m).strip()]
+    return [m.strip() for m in miembros if m and str(m).strip()] """
 
+
+@teams_bp.route("/api/v1/teams", methods=["GET"])
+def listar_equipos_api():
+    token = extraer_token()
+    if not token:
+        return responder_error(SESION_INVALIDA)
+
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    classroom_id_str = request.args.get("classroom_id")
+    if not classroom_id_str:
+        return responder_error(CLASSROOM_NO_ESPECIFICADO)
+
+    try:
+        classroom_id = int(classroom_id_str)
+    except ValueError:
+        return responder_error(CLASSROOM_NO_ESPECIFICADO)
+
+    resultado, error = obtener_equipos_classroom(classroom_id, usuario["id"])
+    
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
 
 @teams_bp.route("/api/v1/teams/<int:team_id>", methods=["PUT"])
 def actualizar_equipo(team_id):
     token = extraer_token()
+    if not token:
+        return responder_error(SESION_INVALIDA)
     usuario, error = verificar_token(token)
     if error:
         return responder_error(error)
@@ -71,62 +82,11 @@ def actualizar_equipo(team_id):
     return jsonify(resultado), 200
 
 
-@teams_bp.route("/api/v1/teams/<int:team_id>", methods=["POST"])
-def procesar_equipo(team_id):
-    token = _obtener_token_formulario()
-    if not token:
-        flash("Sesión inválida. Vuelve a iniciar sesión.", "error")
-        classroom_id = request.form.get("classroom_id")
-        return _redirigir_equipos(classroom_id)
-
-    usuario, error = verificar_token(token)
-    if error:
-        flash(error.get("error", "Sesión inválida"), "error")
-        classroom_id = request.form.get("classroom_id")
-        return _redirigir_equipos(classroom_id)
-
-    accion = request.form.get("_action", "actualizar")
-    classroom_id = request.form.get("classroom_id")
-
-    if accion == "eliminar":
-        _, error = eliminar_equipo(int(team_id), usuario["id"])
-        if error:
-            mensaje = error.get("error") if isinstance(error, dict) else str(error)
-            flash(mensaje, "error")
-            return _redirigir_equipos(classroom_id)
-        flash("Equipo eliminado exitosamente", "success")
-        return _redirigir_equipos(classroom_id)
-
-    nombre = request.form.get("nombre_equipo", "").strip()
-    miembros = _parsear_miembros_formulario()
-
-    if not nombre:
-        flash("El nombre del equipo es requerido", "error")
-        return _redirigir_equipos(classroom_id)
-
-    if not miembros:
-        flash("Al menos un miembro es requerido", "error")
-        return _redirigir_equipos(classroom_id)
-
-    try:
-        member_ids = [int(miembro) for miembro in miembros]
-    except (TypeError, ValueError):
-        flash("Los miembros deben ser estudiantes válidos del aula", "error")
-        return _redirigir_equipos(classroom_id)
-
-    _, error = editar_equipo(int(team_id), nombre, member_ids, usuario["id"])
-    if error:
-        mensaje = error.get("error") if isinstance(error, dict) else str(error)
-        flash(mensaje, "error")
-        return _redirigir_equipos(classroom_id)
-
-    flash("Equipo actualizado exitosamente", "success")
-    return _redirigir_equipos(classroom_id)
-
-
 @teams_bp.route("/api/v1/teams/<int:team_id>", methods=["DELETE"])
 def borrar_equipo(team_id):
     token = extraer_token()
+    if not token:
+        return responder_error(SESION_INVALIDA)
     usuario, error = verificar_token(token)
     if error:
         return responder_error(error)
@@ -140,44 +100,30 @@ def borrar_equipo(team_id):
 
 @teams_bp.route("/api/v1/teams", methods=["POST"])
 def crear_equipo_formulario():
-    token = _obtener_token_formulario()
+    token = extraer_token()
     if not token:
-        flash("Sesión inválida. Vuelve a iniciar sesión.", "error")
-        return redirect(url_for("login"))
+        return responder_error(SESION_INVALIDA)
 
     usuario, error = verificar_token(token)
     if error:
-        flash(error.get("error", "Sesión inválida"), "error")
-        return redirect(url_for("login"))
+        return responder_error(error)
 
-    nombre = request.form.get("nombre_equipo", "").strip()
-    miembros = _parsear_miembros_formulario()
-    classroom_id_str = request.args.get("classroom_id") or request.form.get(
-        "classroom_id"
-    )
-
-    try:
-        classroom_id = int(classroom_id_str) if classroom_id_str else None
-    except (ValueError, TypeError):
-        classroom_id = None
+    data = request.get_json(silent=True) or {}
+    nombre = data.get("name", "").strip()
+    miembros = data.get("member_ids", [])
+    classroom_id = data.get("classroom_id")
 
     if not nombre:
-        flash("El nombre del equipo es requerido", "error")
-        return _redirigir_equipos(classroom_id)
+        return responder_error(NAME_VACIO)
 
     if not miembros:
-        flash("Al menos un miembro es requerido", "error")
-        return _redirigir_equipos(classroom_id)
+        return responder_error(MIEMBROS_REQUERIDO)
 
     if not classroom_id:
-        flash("Classroom no especificado", "error")
-        return _redirigir_equipos()
+        return responder_error(CLASSROOM_NO_ESPECIFICADO) [cite: 30]
 
-    _, error = crear_equipo(nombre, miembros, classroom_id, usuario["id"])
+    resultado, error = crear_equipo(nombre, miembros, int(classroom_id), usuario["id"])
     if error:
-        mensaje = error.get("error") if isinstance(error, dict) else str(error)
-        flash(mensaje, "error")
-        return _redirigir_equipos(classroom_id)
+        return responder_error(error)
 
-    flash("Equipo creado exitosamente", "success")
-    return _redirigir_equipos(classroom_id)
+    return jsonify(resultado), 201

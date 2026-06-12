@@ -4,7 +4,7 @@ from flask import Flask
 from src.root.attendance import attendance_bp
 from src.root.auth import auth_bp
 from src.root.classroom import classroom_bp
-from src.root.evaluaciones import evaluacion_bp
+from src.root.evaluations import evaluacion_bp
 from src.root.metrics import metrics_bp
 from src.root.resources import resources_bp
 from src.root.students import students_bp
