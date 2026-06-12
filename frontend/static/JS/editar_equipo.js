@@ -25,8 +25,10 @@ function crearFilaMiembro(selectedId = "") {
 window.abrirModalEditarEquipo = function (teamId, teamName, members = []) {
   document.getElementById("edit_team_id").value = teamId;
   document.getElementById("edit_nombre_equipo").value = teamName;
-  formEditarEquipo.action = `/api/v1/teams/${teamId}`;
+  const classroomId = document.getElementById("tm-page")?.dataset.classroomId ||
+    document.querySelector("[data-classroom-id]")?.dataset.classroomId;
 
+  formEditarEquipo.action = `/aulas/${classroomId}/gestionar/equipos/${teamId}/actualizar`;
   editMiembrosList.innerHTML = "";
   if (members && members.length) {
     members.forEach((memberId) => crearFilaMiembro(memberId));

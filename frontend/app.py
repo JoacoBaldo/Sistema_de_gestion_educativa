@@ -639,43 +639,38 @@ def crear_equipo_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
-    payload = [
-        ("nombre_equipo", request.form.get("nombre_equipo") or ""),
-        ("classroom_id", str(classroom_id))
-    ]
-    
-    for miembro in request.form.getlist("miembros"):
-        payload.append(("miembros", miembro))
+    payload = {
+        "name": request.form.get("nombre_equipo", "").strip(),
+        "classroom_id": classroom_id,
+        "member_ids": request.form.getlist("miembros") # Lista de strings de IDs
+    }
 
-    res, error = consumir_api("POST", "/api/v1/teams", data=payload)
+    res, error = consumir_api("POST", "/api/v1/teams", json_data=payload)
     
     if error:
-        flash(f"No se pudo crear el equipo: {error.get('error', 'Error desconocido')}", "error")
+        flash(f"No se pudo crear el equipo: {error.get('error', 'Error desconocido')}", "error") [cite: 70]
     else:
         flash("Equipo creado con éxito.", "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="teams"))
 
 
-@app.route("/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/actualizar", methods=["POST", "PUT"])
+@app.route("/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/actualizar", methods=["POST"])
 def actualizar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
-    payload = [
-        ("nombre_equipo", request.form.get("nombre_equipo") or ""),
-        ("classroom_id", str(classroom_id))
-    ]
+    payload = {
+        "name": request.form.get("nombre_equipo", "").strip(),
+        "member_ids": request.form.getlist("miembros") # Lista de IDs de estudiantes
+    }
     
-    for miembro in request.form.getlist("miembros"):
-        payload.append(("miembros", miembro))
-
-    res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", data=payload)
+    res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)
     
     if error:
         flash(f"No se pudo actualizar el equipo: {error.get('error', 'Error desconocido')}", "error")
     else:
-        flash("Equipo actualizado.", "success")
+        flash("Equipo actualizado con éxito.", "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="teams"))
 
