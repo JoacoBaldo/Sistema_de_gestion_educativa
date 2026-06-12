@@ -1,13 +1,20 @@
 <section class="ev-page" aria-label="Gestión de evaluaciones y trabajos prácticos">
     <header class="ev-header">
         <div>
+            {% if session.get('user', {}).get('role_id') != 3 %}
             <h1 class="ev-title">Gestión de Evaluaciones y TPs</h1>
             <p class="ev-subtitle">Administra exámenes, trabajos prácticos y sus respectivas notas.</p>
+            {% else %}
+            <h1 class="ev-title">Evaluaciones y Trabajos Prácticos</h1>
+            <p class="ev-subtitle">Listado de evaluaciones cargadas para esta aula</p>
+            {% endif %}
         </div>
         <div class="ev-actions">
-            <a class="st-btn st-btn-primary ev-btn-new" href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
+            {% if session.get('user', {}).get('role_id') != 3 %} <a class="st-btn st-btn-primary ev-btn-new"
+                href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
                 + Nueva Evaluación
             </a>
+            {% endif %}
         </div>
     </header>
 
@@ -59,11 +66,13 @@
                 <h2 class="ev-card__title">{{ ev.name }}</h2>
             </div>
             <footer class="ev-card__footer">
-                <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn" aria-label="Editar evaluación"
+                {% if session.get('user', {}).get('role_id') != 3 %} <button type="button"
+                    class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn" aria-label="Editar evaluación"
                     data-id="{{ ev.id }}" data-nombre="{{ ev.name }}" data-tipo="{{ ev.tipo_slug }}"
                     data-individual="{{ '1' if ev.individual else '0' }}">
                     Editar
                 </button>
+                {% endif %}
                 <p class="ev-card__progress">{% if ev.individual %}Individual{% else %}Grupal{% endif %}</p>
             </footer>
         </article>

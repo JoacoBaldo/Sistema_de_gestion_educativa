@@ -120,7 +120,7 @@ def crear_equipo_formulario():
         return responder_error(MIEMBROS_REQUERIDO)
 
     if not classroom_id:
-        return responder_error(CLASSROOM_NO_ESPECIFICADO) [cite: 30]
+        return responder_error(CLASSROOM_NO_ESPECIFICADO)
 
     resultado, error = crear_equipo(nombre, miembros, int(classroom_id), usuario["id"])
     if error:

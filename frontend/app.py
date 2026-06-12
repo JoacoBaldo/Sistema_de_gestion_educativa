@@ -152,7 +152,6 @@ def resolver_periodo_academico(fecha_inicio, fecha_fin, periodos):
             fin = str(periodo.get("end_date", ""))[:10]
             if fecha_inicio and fecha_fin and inicio <= fecha_inicio <= fin:
                 return periodo.get("id")
-    # Si no encuentra coincidencia de fechas, devuelve el primer ID por defecto
     for p in periodos:
         if isinstance(p, dict) and "id" in p:
             return p["id"]
@@ -237,6 +236,21 @@ def datos_vista_gestion(classroom_id, usuario, vista):
 @app.context_processor
 def inyectar_globales():
     usuario = session.get(USER_SESSION_KEY)
+
+    if usuario and isinstance(usuario, dict):
+        if "role_id" not in usuario:
+            classroom_id = request.view_args.get('classroom_id') if request.view_args else None
+            
+            if classroom_id:
+                res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+                if not err and isinstance(res, list):
+                    es_estudiante = any(alumn.get("id") == usuario.get("id") for alumn in res)
+                    usuario["role_id"] = 3 if es_estudiante else 1
+                else:
+                    usuario["role_id"] = 3
+            else:
+                usuario["role_id"] = 3 
+
     return {
         "user": usuario,
         "user_initials": iniciales_usuario(usuario.get("username") if usuario else ""),
@@ -686,7 +700,7 @@ def crear_equipo_aula(classroom_id):
     res, error = consumir_api("POST", "/api/v1/teams", json_data=payload)
     
     if error:
-        flash(f"No se pudo crear el equipo: {error.get('error', 'Error desconocido')}", "error") [cite: 70]
+        flash(f"No se pudo crear el equipo: {error.get('error', 'Error desconocido')}", "error")
     else:
         flash("Equipo creado con éxito.", "success")
 
@@ -726,6 +740,34 @@ def eliminar_equipo_aula(classroom_id, team_id):
         flash("Equipo eliminado correctamente.", "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="teams"))
+
+@app.route("/aulas/<int:classroom_id>/gestionar/metricas/pdf")
+def descargar_pdf_dashboard(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    filtro = request.args.get("filter", "students")
+    res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
+    if err_m or not res_m:
+        flash("No se pudieron obtener las métricas base para armar el PDF.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard"))
+
+    pdf_content, err_pdf = consumir_api(
+        "POST", 
+        f"/api/v1/metrics/{classroom_id}/pdf?filter={filtro}", 
+        json_data=res_m
+    )
+
+    if err_pdf:
+        flash(f"Error al generar el PDF: {err_pdf.get('error', 'Error desconocido')}", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard"))
+
+    return send_file(
+        io.BytesIO(pdf_content),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"reporte_{filtro}_aula_{classroom_id}.pdf"
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
