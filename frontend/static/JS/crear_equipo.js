@@ -11,10 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const toast = document.getElementById("tm-team-toast");
   const miembrosList = document.getElementById("miembros-list");
   const btnAddMember = document.getElementById("btn-add-member");
-  const btnGuardar = document.getElementById("btnGuardarEquipo");
   const newBtn = document.getElementById("tm-new-btn");
   const cancelBtn = document.getElementById("tm-team-cancel-btn");
   const closeBtn = document.getElementById("tm-team-close");
+  const memberTemplate = document.getElementById("tm-member-select-template");
 
   if (!modal || !form) return;
 
@@ -28,51 +28,42 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("hidden");
   }
 
-  function createMemberRow(value = "") {
+  function createMemberRow() {
+    if (memberTemplate) {
+      const fragment = memberTemplate.content.cloneNode(true);
+      const row = fragment.querySelector(".glass-list-row--member");
+      row?.querySelector(".glass-btn-remove")?.addEventListener("click", () => {
+        if (miembrosList.children.length === 1) {
+          const select = row.querySelector("select");
+          if (select) select.value = "";
+          return;
+        }
+        row.remove();
+      });
+      miembrosList.appendChild(fragment);
+      return row;
+    }
+
     const row = document.createElement("div");
     row.className = "glass-list-row--member";
-
-    const input = document.createElement("input");
-    input.type = "text";
-    input.name = "miembros";
-    input.className = "glass-input";
-    input.placeholder = "Nombre del miembro";
-    input.value = value;
-    input.required = true;
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "glass-btn-remove";
-    remove.textContent = "✕";
-    remove.setAttribute("aria-label", "Eliminar miembro");
-    remove.addEventListener("click", () => removeMemberRow(row));
-
-    row.appendChild(input);
-    row.appendChild(remove);
+    const select = document.createElement("select");
+    select.name = "miembros";
+    select.className = "glass-input";
+    select.required = true;
+    row.appendChild(select);
+    miembrosList.appendChild(row);
     return row;
-  }
-
-  function removeMemberRow(row) {
-    if (!row || !miembrosList) return;
-    if (miembrosList.children.length === 1) {
-      const input = row.querySelector("input");
-      if (input) input.value = "";
-      return;
-    }
-    miembrosList.removeChild(row);
   }
 
   function resetForm() {
     form.reset();
     if (!miembrosList) return;
     miembrosList.innerHTML = "";
-    miembrosList.appendChild(createMemberRow());
+    createMemberRow();
   }
 
   btnAddMember?.addEventListener("click", () => {
-    const row = createMemberRow();
-    miembrosList.appendChild(row);
-    row.querySelector("input")?.focus();
+    createMemberRow();
   });
 
   newBtn?.addEventListener("click", (event) => {
@@ -90,34 +81,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
     const nombreEquipo = document.getElementById("nombre_equipo")?.value.trim();
-    const miembros = Array.from(form.querySelectorAll("input[name='miembros']"))
-      .map((input) => input.value.trim())
+    const miembros = Array.from(form.querySelectorAll("select[name='miembros']"))
+      .map((select) => select.value.trim())
       .filter(Boolean);
 
     if (!nombreEquipo) {
       showToast("El nombre del equipo es obligatorio.");
-      document.getElementById("nombre_equipo")?.focus();
+      event.preventDefault();
       return;
     }
 
-    if (miembros.length === 0) {
-      showToast("Agrega al menos un miembro al equipo.");
-      miembrosList?.querySelector("input")?.focus();
-      return;
-    }
-
-    if (btnGuardar) {
-      btnGuardar.textContent = "Creando...";
-      btnGuardar.disabled = true;
-    }
-
-    showToast("Alta de equipos no disponible (POST /api/v1/teams no implementado).");
-    if (btnGuardar) {
-      btnGuardar.textContent = "Crear Equipo";
-      btnGuardar.disabled = false;
+    if (!miembros.length) {
+      showToast("Selecciona al menos un miembro del aula.");
+      event.preventDefault();
     }
   });
 });

@@ -4,32 +4,17 @@
       <h3 id="tm-modal-title">Crear Nuevo Equipo</h3>
       <button type="button" class="btn-close-custom" id="tm-team-close" aria-label="Cerrar">✕</button>
     </div>
-    <p class="subtitle">Configura el equipo, su proyecto y los miembros de forma rápida.</p>
+    <p class="subtitle">Configura el equipo y asigna estudiantes del aula.</p>
 
-    <form id="formEquipo" method="POST" action="/equipos" novalidate>
+    <form id="formEquipo" method="POST" action="{{ url_for('crear_equipo_aula', classroom_id=classroom_id) }}"
+      novalidate>
+      <input type="hidden" name="classroom_id" value="{{ classroom_id }}">
+      <input type="hidden" name="token" value="{{ token }}">
+
       <div class="mb-3">
         <label class="form-label" for="nombre_equipo">👥 Nombre del Equipo <span class="text-danger">*</span></label>
-        <input type="text" id="nombre_equipo" name="nombre_equipo" class="glass-input" placeholder="Ejemplo: Equipo Hipatia" required>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label" for="proyecto">📋 Proyecto</label>
-        <input type="text" id="proyecto" name="proyecto" class="glass-input" placeholder="Ejemplo: Portal de gestión">
-      </div>
-
-      <div class="row mb-3">
-        <div class="col-6">
-          <label class="form-label" for="fecha_entrega">📅 Fecha de Entrega</label>
-          <input type="date" id="fecha_entrega" name="fecha_entrega" class="glass-input">
-        </div>
-        <div class="col-6">
-          <label class="form-label" for="estado">📌 Estado</label>
-          <select id="estado" name="estado" class="glass-input">
-            <option value="activo" selected>Activo</option>
-            <option value="en_revision">En revisión</option>
-            <option value="finalizado">Finalizado</option>
-          </select>
-        </div>
+        <input type="text" id="nombre_equipo" name="nombre_equipo" class="glass-input"
+          placeholder="Ejemplo: Equipo Hipatia" required>
       </div>
 
       <div class="mb-3">
@@ -39,16 +24,16 @@
         </div>
         <div id="miembros-list" class="glass-dynamic-list">
           <div class="glass-list-row--member">
-            <input type="text" name="miembros" class="glass-input" placeholder="Nombre del miembro" required>
+            <select name="miembros" class="glass-input" required>
+              <option value="" disabled selected>Seleccionar estudiante</option>
+              {% for alumno in alumnos or [] %}
+              <option value="{{ alumno.id }}">{{ alumno.username }} — {{ alumno.email }}</option>
+              {% endfor %}
+            </select>
             <button type="button" class="glass-btn-remove" aria-label="Eliminar miembro">✕</button>
           </div>
         </div>
-        <p class="glass-field-hint">Agrega al menos un miembro y completa el nombre del equipo.</p>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label" for="descripcion">📝 Descripción</label>
-        <textarea id="descripcion" name="descripcion" class="glass-input" rows="4" placeholder="Descripción breve del equipo"></textarea>
+        <p class="glass-field-hint">Selecciona al menos un estudiante inscripto en el aula.</p>
       </div>
 
       <div class="action-buttons">

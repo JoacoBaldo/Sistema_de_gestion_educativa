@@ -3,12 +3,9 @@ from flask import Blueprint, jsonify, request
 from src.funciones.auth import verificar_token
 from src.funciones.classroom import (
     crear_nueva_classroom,
-    eliminar_usuario_classroom,
     obtener_link_classroom,
     obtener_lista_classrooms,
     obtener_periodos_academicos,
-    obtener_profesores_classroom,
-    obtener_alumnos_classroom,
 )
 from src.funciones.errores import (
     DATOS_INVALIDOS,
@@ -16,39 +13,10 @@ from src.funciones.errores import (
     SCHEDULE_REQUERIDO,
     USER_ID_NO_COINCIDE,
 )
+
 from .utils import extraer_token, responder_error
 
 classroom_bp = Blueprint("classroom", __name__)
-
-
-@classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/professors", methods=["GET"])
-def listar_profesores(classroom_id):
-    token = extraer_token()
-    usuario, error = verificar_token(token)
-    if error:
-        return responder_error(error)
-
-    resultado, error = obtener_profesores_classroom(classroom_id, usuario["id"])
-    if error:
-        return responder_error(error)
-
-    return jsonify(resultado), 200
-
-
-@classroom_bp.route(
-    "/api/v1/classrooms/<int:classroom_id>/user/<int:user_id>", methods=["DELETE"]
-)
-def eliminar_usuario(classroom_id, user_id):
-    token = extraer_token()
-    usuario, error = verificar_token(token)
-    if error:
-        return responder_error(error)
-
-    resultado, error = eliminar_usuario_classroom(classroom_id, user_id, usuario["id"])
-    if error:
-        return responder_error(error)
-
-    return jsonify(resultado), 200
 
 
 @classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/link", methods=["GET"])
@@ -141,37 +109,3 @@ def crear_aula():
         return responder_error(error)
 
     return jsonify(resultado), 201
-
-
-@classroom_bp.route("/api/v1/classrooms/<int:classroom_id>/alumnos", methods=["GET"])
-def listar_alumnos_paginados(classroom_id):
-    token = extraer_token()
-    usuario, error = verificar_token(token)
-    if error:
-        return responder_error(error)
-
-    pagina = request.args.get("pagina", default=1, type=int)
-    cantidad = request.args.get("cantidad", default=10, type=int)
-
-    if pagina < 1 or cantidad < 1:
-        return jsonify(
-            {"error": "Los parámetros de paginación deben ser mayores a 0"}
-        ), 400
-
-    todos_los_alumnos, error = obtener_alumnos_classroom(classroom_id)
-    if error:
-        return responder_error(error)
-
-    inicio = (pagina - 1) * cantidad
-    fin = inicio + cantidad
-
-    alumnos_paginados = todos_los_alumnos[inicio:fin]
-
-    return jsonify(
-        {
-            "pagina_actual": pagina,
-            "cantidad_por_pagina": cantidad,
-            "total_alumnos_curso": len(todos_los_alumnos),
-            "datos": alumnos_paginados,
-        }
-    ), 200

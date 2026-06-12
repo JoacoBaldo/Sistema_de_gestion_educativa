@@ -6,15 +6,15 @@
     </div>
     <p class="subtitle">Completa la información para registrar una evaluación o TP.</p>
 
-    <form id="ev-evaluation-form" novalidate>
+    <form id="ev-evaluation-form" method="POST" action="{{ url_for('crear_evaluacion_aula', classroom_id=classroom_id) }}" novalidate>
       <div class="mb-3">
         <label class="form-label" for="ev-evaluation-name">📝 Nombre <span class="text-danger">*</span></label>
-        <input type="text" id="ev-evaluation-name" name="nombre" class="glass-input" placeholder="Ejemplo: Parcial 1" required>
+        <input type="text" id="ev-evaluation-name" name="name" class="glass-input" placeholder="Ejemplo: Primer Parcial" required>
       </div>
 
       <div class="mb-3">
         <label class="form-label" for="ev-evaluation-type">📂 Tipo <span class="text-danger">*</span></label>
-        <select id="ev-evaluation-type" name="tipo" class="glass-input" required>
+        <select id="ev-evaluation-type" name="evaluation_type_id" class="glass-input" required>
           <option value="" disabled selected>Seleccionar tipo</option>
           <option value="parcial">Parcial</option>
           <option value="tp">TP</option>
@@ -36,7 +36,7 @@
 
       <div class="glass-form-row--toggle mb-3">
         <label class="form-label mb-0" for="ev-evaluation-individual">👤 Individual</label>
-        <input type="checkbox" id="ev-evaluation-individual" name="individual">
+        <input type="checkbox" id="ev-evaluation-individual" name="individual" value="1">
       </div>
 
       <div class="action-buttons">

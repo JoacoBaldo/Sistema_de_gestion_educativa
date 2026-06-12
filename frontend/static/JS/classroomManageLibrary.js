@@ -1,9 +1,4 @@
-import { createCmrToast, escapeHtml } from "./common/ui.js";
-import { requireAuth } from "./common/auth.js";
-
 (function () {
-  requireAuth();
-  const showToast = createCmrToast();
   const grid = document.getElementById("lb-grid");
   const emptyMsg = document.getElementById("lb-empty");
   const searchInput = document.getElementById("lb-search");
@@ -13,59 +8,47 @@ import { requireAuth } from "./common/auth.js";
   const modalClose = document.getElementById("lb-modal-close");
   const modalCancel = document.getElementById("lb-modal-cancel");
   const form = document.getElementById("lb-recurso-form");
-  const editId = document.getElementById("lb-edit-id");
   const inputNombre = document.getElementById("lb-nombre");
-  const inputTipo = document.getElementById("lb-tipo");
   const inputLink = document.getElementById("lb-link");
-  const modalTitle = document.getElementById("lb-modal-title");
-  const modalSubtitle = document.getElementById("lb-modal-subtitle");
-  const modalSubmit = document.getElementById("lb-modal-submit");
+  const editModal = document.getElementById("lb-edit-modal");
+  const editForm = document.getElementById("lb-edit-form");
+  const editClose = document.getElementById("lb-edit-close");
+  const editCancel = document.getElementById("lb-edit-cancel");
+  const layout = document.querySelector(".cm-layout");
+  const classroomId = layout?.getAttribute("data-classroom-id");
 
   let activeType = "all";
-  let resources = [];
 
   function render() {
     if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll(".lb-card"));
     const q = (searchInput?.value || "").trim().toLowerCase();
-    const list = resources.filter((r) => {
-      if (activeType !== "all" && r.type !== activeType) return false;
-      if (q && !r.title.toLowerCase().includes(q)) return false;
-      return true;
+    let visible = 0;
+
+    cards.forEach((card) => {
+      const type = (card.dataset.type || "all").trim().toLowerCase();
+      const title = (card.dataset.title || "").toLowerCase();
+
+      const matchesType = (activeType === "all" || type === activeType);
+      const matchesSearch = (!q || title.includes(q));
+      const show = matchesType && matchesSearch;
+
+      card.style.display = show ? "" : "none";
+      if (show) visible += 1;
     });
 
-    if (!list.length) {
-      grid.innerHTML = "";
-      if (emptyMsg) {
-        emptyMsg.hidden = false;
-        emptyMsg.textContent =
-          "No hay recursos. El listado y carga de archivos requiere endpoints de biblioteca en el backend.";
+    if (emptyMsg) {
+      emptyMsg.hidden = visible > 0;
+      if (cards.length === 0) {
+        emptyMsg.textContent = "No hay recursos cargados en este curso.";
+      } else if (visible === 0) {
+        emptyMsg.textContent = "No se encontraron recursos con esos criterios.";
       }
-      return;
     }
-
-    if (emptyMsg) emptyMsg.hidden = true;
-    grid.innerHTML = list
-      .map((r) => {
-        const safeUrl = escapeHtml(r.url);
-        const safeTitle = escapeHtml(r.title);
-        return `<article class="lb-card cm-panel" data-id="${r.id}">
-          <a class="lb-card__link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">
-            <h3 class="lb-card__title">${safeTitle}</h3>
-          </a>
-        </article>`;
-      })
-      .join("");
   }
 
-  function openModal(mode) {
+  function openModal() {
     if (!modal) return;
-    if (mode === "create") {
-      if (editId) editId.value = "";
-      form?.reset();
-      if (modalTitle) modalTitle.textContent = "Subir recurso";
-      if (modalSubtitle) modalSubtitle.textContent = "Requiere POST /classrooms/{id}/resources/upload";
-      if (modalSubmit) modalSubmit.textContent = "Publicar";
-    }
     modal.classList.remove("hidden");
     inputNombre?.focus();
   }
@@ -73,23 +56,69 @@ import { requireAuth } from "./common/auth.js";
   function closeModal() {
     modal?.classList.add("hidden");
     form?.reset();
-    if (editId) editId.value = "";
   }
 
-  uploadBtn?.addEventListener("click", () => openModal("create"));
+  function closeEditModal() {
+    editModal?.classList.add("hidden");
+    editForm?.reset();
+  }
+
+  function openEditModal(btn) {
+    if (!editForm || !editModal || !classroomId) return;
+    const resourceId = btn.dataset.id;
+    editForm.action = `/aulas/${classroomId}/gestionar/recursos/${resourceId}/actualizar`;
+    const deleteBtn = document.getElementById("lb-edit-delete-btn");
+    if (deleteBtn) {
+      deleteBtn.formAction = `/aulas/${classroomId}/gestionar/recursos/${resourceId}/eliminar`;
+      deleteBtn.onclick = null;
+      deleteBtn.onclick = function (e) {
+        if (!confirm("¿Estás seguro de que querés eliminar este recurso de forma permanente?")) {
+          e.preventDefault();
+        }
+      };
+    }
+
+    document.getElementById("lb-edit-name").value = btn.dataset.nombre || "";
+    document.getElementById("lb-edit-type").value = btn.dataset.tipo || "link";
+    document.getElementById("lb-edit-url").value = btn.dataset.url || "";
+
+    editModal.classList.remove("hidden");
+  }
+
+  uploadBtn?.addEventListener("click", () => openModal());
   modalClose?.addEventListener("click", closeModal);
   modalCancel?.addEventListener("click", closeModal);
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
   });
 
+  grid?.addEventListener("click", (event) => {
+    const editBtn = event.target.closest(".lb-edit-btn");
+    if (!editBtn) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    openEditModal(editBtn);
+  });
+
+  editClose?.addEventListener("click", closeEditModal);
+  editCancel?.addEventListener("click", closeEditModal);
+  editModal?.addEventListener("click", (event) => {
+    if (event.target === editModal) closeEditModal();
+  });
+
   form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    showToast("Subida de recursos no disponible (endpoint no implementado en la API).");
-    closeModal();
+    const nombre = inputNombre?.value.trim();
+    const link = inputLink?.value.trim();
+
+    if (!nombre || !link) {
+      e.preventDefault();
+      alert("Por favor, completa todos los campos obligatorios.");
+    }
   });
 
   searchInput?.addEventListener("input", render);
+
   pills.forEach((pill) => {
     pill.addEventListener("click", () => {
       pills.forEach((p) => p.classList.remove("is-active"));

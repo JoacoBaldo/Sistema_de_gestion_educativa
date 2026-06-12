@@ -138,9 +138,56 @@
 /* Members section */
 .tm-card__members {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;   
+  gap: 10px;
   margin-bottom: 22px;
+  padding-left: 0;
+  list-style: none;
+  height: 105px;             
+  overflow-y: auto;          
+  padding-right: 5px;        
+}
+
+.tm-card__members::-webkit-scrollbar {
+  width: 5px;
+}
+
+.tm-card__members::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.tm-card__members::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tm-card__member-item {
+  display: flex;
+  flex-direction: column;    
+  gap: 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+}
+
+.tm-card__member-item:last-child {
+  border-bottom: none;      
+}
+
+.tm-card__member-name {
+  font-weight: 600;
+  color: #1e2538;
+  font-size: 14px;
+}
+
+.tm-card__member-email {
+  color: #8a94a6;
+  font-size: 12px;
+}
+
+.tm-empty-members {
+  color: #8a94a6;
+  font-size: 13px;
+  font-style: italic;
 }
 
 .tm-avatar-group {

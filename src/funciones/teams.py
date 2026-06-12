@@ -2,7 +2,70 @@ from typing import List, Optional
 
 from src.db import classroom as db_classroom
 from src.db import teams as db_teams
-from .errores import EQUIPO_NO_EXISTE, MIEMBROS_INVALIDOS, NO_ES_ADMIN
+
+from .errores import (
+    EQUIPO_NO_CREADO,
+    EQUIPO_NO_EXISTE,
+    MIEMBROS_INVALIDOS,
+    MIEMBROS_REQUERIDO,
+    NAME_VACIO,
+    NO_ES_ADMIN,
+)
+
+
+def _parsear_ids_miembros(miembros: List[str]) -> tuple[list[int] | None, dict | None]:
+    member_ids = []
+    for miembro in miembros:
+        try:
+            member_ids.append(int(miembro))
+        except (TypeError, ValueError):
+            return None, MIEMBROS_INVALIDOS
+    return member_ids, None
+
+
+def obtener_equipos_classroom(classroom_id: int, usuario_id: int) -> tuple:
+    if not db_classroom.usuario_en_classroom(classroom_id, usuario_id):
+        from .errores import SIN_ACCESO
+
+        return None, SIN_ACCESO
+
+    equipos = db_teams.listar_equipos_classroom(classroom_id)
+    return equipos, None
+
+
+def crear_equipo(
+    nombre: str,
+    miembros: List[str],
+    classroom_id: int,
+    usuario_id: int,
+) -> tuple:
+    if not nombre or not nombre.strip():
+        return None, NAME_VACIO
+
+    if not miembros:
+        return None, MIEMBROS_REQUERIDO
+
+    if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+        return None, NO_ES_ADMIN
+
+    member_ids, error = _parsear_ids_miembros(miembros)
+    if error:
+        return None, error
+
+    if not db_teams.miembros_pertenecen_aula(classroom_id, member_ids):
+        return None, MIEMBROS_INVALIDOS
+
+    equipo_id = db_teams.crear_equipo_con_miembros(
+        nombre.strip(),
+        miembros,
+        classroom_id,
+    )
+
+    if equipo_id is None:
+        return None, EQUIPO_NO_CREADO
+
+    db_teams.reemplazar_miembros(equipo_id, member_ids)
+    return {"message": "Team created", "id": equipo_id}, None
 
 
 def editar_equipo(

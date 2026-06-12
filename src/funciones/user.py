@@ -1,4 +1,3 @@
-import bcrypt
 import logging
 import os
 import smtplib
@@ -6,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import bcrypt
 from jose import jwt
 
 from src.db.auth import obtener_usuario_por_email

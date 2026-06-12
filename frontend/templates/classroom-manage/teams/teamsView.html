@@ -1,73 +1,126 @@
 <section class="tm-page" aria-label="Gestión de Equipos y avances">
-  <header class="tm-header">
-      <div>
-          <h1 class="tm-title">Gestión de Equipos y avances</h1>
-          <p class="tm-subtitle">Administra equipos y proyectos colaborativos</p>
-      </div>
-      <div class="tm-actions">
-          <a class="st-btn st-btn-primary tm-btn-new" href="?vista=teams&amp;accion=nueva" id="tm-new-btn">
-              <span class="st-btn-icon" aria-hidden="true">+</span>
-              Nuevo Equipo
-          </a>
-      </div>
-  </header>
-  <div class="tm-toolbar" role="region" aria-label="Filtros y ordenamiento">
-      <div class="st-search tm-search">
-          <span class="st-search-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                  d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-              </svg>
-          </span>
-          <input id="tm-search-input" type="search" placeholder="Buscar por nombre de equipo..." aria-label="Buscar equipos">
-      </div>
-  </div>
-  <div class="tm-grid" id="tm-grid" aria-live="polite"></div>
-  <p class="tm-empty" id="tm-empty">No hay equipos listados. El alta y listado por API no están disponibles; podés eliminar equipos existentes por ID si los conocés.</p>
+    <header class="tm-header">
+        <div>
+            <h1 class="tm-title">Gestión de Equipos y avances</h1>
+            <p class="tm-subtitle">Administra equipos y proyectos colaborativos</p>
+        </div>
+        <div class="tm-actions">
+            <a class="st-btn st-btn-primary tm-btn-new" href="?vista=teams&amp;accion=nueva" id="tm-new-btn">
+                + Nuevo Equipo
+            </a>
+        </div>
+    </header>
+    <div class="tm-toolbar" role="region" aria-label="Filtros y ordenamiento">
+        <div class="st-search tm-search">
+            <span class="st-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+            </span>
+            <input id="tm-search-input" type="search" placeholder="Buscar por nombre de equipo..."
+                aria-label="Buscar equipos">
+        </div>
+    </div>
+    <div class="tm-grid" id="tm-grid" aria-live="polite">
+        {% for equipo in equipos or [] %}
+        <article class="tm-card" data-id="{{ equipo.id }}" data-nombre="{{ equipo.name }}">
+            <header class="tm-card__header">
+                <h2 class="tm-card__title">{{ equipo.name }}</h2>
+            </header>
+            <div class="tm-card__body">
+                <p class="tm-card__members-label">Miembros</p>
+                <ul class="tm-card__members">
+                    {% for miembro in equipo.miembros %}
+                    <li class="tm-card__member-item">
+                        <span class="tm-card__member-name">{{ miembro.username }}</span>
+                        <span class="tm-card__member-email">{{ miembro.email }}</span>
+                    </li>
+                    {% else %}
+                    <li class="tm-empty-members">Sin miembros asignados</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <footer class="tm-card__footer">
+                <button type="button" class="st-btn st-btn-ghost tm-edit-btn" data-id="{{ equipo.id }}"
+                    data-nombre="{{ equipo.name }}"
+                    data-miembros="{{ equipo.miembros | map(attribute='id') | join(',') }}">
+                    Editar
+                </button>
 
-  {% include 'classroom-manage/teams/forms/crear_equipo.html' %}
-  
-  <!-- Modal para Editar Equipo - Adaptado al Backend -->
-  <div id="tm-edit-team-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="tm-edit-modal-title">
-      <div class="glass-card">
-          <div class="glass-header">
-              <h3 id="tm-edit-modal-title">Editar Equipo</h3>
-              <button type="button" class="btn-close-custom" id="tm-edit-team-close" aria-label="Cerrar">✕</button>
-          </div>
-          <p class="subtitle">Modifica el nombre del equipo y los miembros asignados.</p>
+                <form method="POST"
+                    action="{{ url_for('eliminar_equipo_aula', classroom_id=classroom_id, team_id=equipo.id) }}"
+                    style="display:inline;">
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <input type="hidden" name="classroom_id" value="{{ classroom_id }}">
+                    <button type="submit" class="st-btn st-btn-ghost tm-delete-btn" data-id="{{ equipo.id }}"
+                        data-nombre="{{ equipo.name }}" onclick="return confirm('¿Eliminar {{ equipo.name }}?');">
+                        Eliminar
+                    </button>
+                </form>
+            </footer>
+        </article>
+        {% endfor %}
+    </div>
 
-          <form id="formEditarEquipo" novalidate>
-              <!-- Campo oculto para ID del equipo -->
-              <input type="hidden" id="edit_team_id" name="team_id" value="">
+    {% if not equipos %}
+    <p class="tm-empty" id="tm-empty">No hay equipos en esta aula. Creá uno con el botón superior.</p>
+    {% else %}
+    <p class="tm-empty hidden" id="tm-empty">No hay equipos que coincidan con la búsqueda.</p>
+    {% endif %}
 
-              <div class="mb-3">
-                  <label class="form-label" for="edit_nombre_equipo">Nombre del Equipo <span class="text-danger">*</span></label>
-                  <input type="text" id="edit_nombre_equipo" name="nombre_equipo" class="glass-input" placeholder="Ejemplo: Equipo Hipatia" required>
-              </div>
+    {% include 'classroom-manage/teams/forms/crear_equipo.html' %}
 
-              <div class="mb-3">
-                  <div class="glass-section-header">
-                      <label class="form-label mb-0">Miembros del equipo <span class="text-danger">*</span></label>
-                      <button type="button" class="btn-add-horario" id="btn-edit-add-member">+ Agregar miembro</button>
-                  </div>
-                  <div id="edit-miembros-list" class="glass-dynamic-list">
-                      <div class="glass-list-row--member">
-                          <input type="text" name="miembros" class="glass-input" placeholder="Nombre del miembro" required>
-                          <button type="button" class="glass-btn-remove" aria-label="Eliminar miembro">✕</button>
-                      </div>
-                  </div>
-                  <p class="glass-field-hint">Modifica los integrantes o agrega nuevos de ser necesario.</p>
-              </div>
+    <div id="tm-edit-team-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+        aria-labelledby="tm-edit-modal-title">
+        <div class="glass-card">
+            <div class="glass-header">
+                <h3 id="tm-edit-modal-title">Editar Equipo</h3>
+                <button type="button" class="btn-close-custom" id="tm-edit-team-close" aria-label="Cerrar">✕</button>
+            </div>
+            <p class="subtitle">Modifica el nombre del equipo y los miembros asignados.</p>
 
-              <div class="action-buttons">
-                  <button type="button" class="btn-cancelar" id="tm-edit-team-cancel-btn">Cancelar</button>
-                  <button type="submit" class="btn-crear" id="btnActualizarEquipo">Guardar Cambios</button>
-              </div>
-          </form>
-      </div>
-  </div>
+            <form id="formEditarEquipo" method="POST" action="" novalidate>
+                <input type="hidden" id="edit_team_id" name="team_id" value="">
+                <input type="hidden" name="token" id="edit_token" value="{{ token }}">
+                <input type="hidden" name="classroom_id" value="{{ classroom_id }}">
+
+                <div class="mb-3">
+                    <label class="form-label" for="edit_nombre_equipo">Nombre del Equipo <span
+                            class="text-danger">*</span></label>
+                    <input type="text" id="edit_nombre_equipo" name="nombre_equipo" class="glass-input"
+                        placeholder="Ejemplo: Equipo Hipatia" required>
+                </div>
+
+                <div class="mb-3">
+                    <div class="glass-section-header">
+                        <label class="form-label mb-0">Miembros del equipo <span class="text-danger">*</span></label>
+                        <button type="button" class="btn-add-horario" id="btn-edit-add-member">+ Agregar
+                            miembro</button>
+                    </div>
+                    <div id="edit-miembros-list" class="glass-dynamic-list"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn-cancelar" id="tm-edit-team-cancel-btn">Cancelar</button>
+                    <button type="submit" class="btn-crear" id="btnActualizarEquipo">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <template id="tm-member-select-template">
+        <div class="glass-list-row--member">
+            <select name="miembros" class="glass-input" required>
+                <option value="" disabled selected>Seleccionar estudiante</option>
+                {% for alumno in alumnos or [] %}
+                <option value="{{ alumno.id }}">{{ alumno.username }} — {{ alumno.email }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="glass-btn-remove" aria-label="Eliminar miembro">✕</button>
+        </div>
+    </template>
 </section>
 
-<script type="module" src="{{ url_for('static', filename='js/editar_equipo.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='JS/editar_equipo.js') }}"></script>
