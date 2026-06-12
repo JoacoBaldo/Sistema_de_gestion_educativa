@@ -551,9 +551,12 @@ def subir_recurso_biblioteca(classroom_id):
     payload = {
         "titulo": request.form.get("titulo"),
         "url": request.form.get("url"),
-        "tipo": request.form.get("tipo") or "link",
+        "tipo": request.form.get("tipo"),
         "user_id": usuario["id"]
     }
+
+    print(f"DEBUG CREAR -> Titulo: {payload['titulo']}, URL: {payload['url']}, Tipo recibido: {payload['tipo']}")
+
 
     if not payload["titulo"] or not payload["url"]:
         flash("El título y el link del recurso son obligatorios.", "error")
@@ -636,8 +639,6 @@ def crear_equipo_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
-    # El backend espera datos de formulario (form-data), no JSON.
-    # Usamos una lista de tuplas para poder enviar múltiples "miembros"
     payload = [
         ("nombre_equipo", request.form.get("nombre_equipo") or ""),
         ("classroom_id", str(classroom_id))
@@ -646,7 +647,6 @@ def crear_equipo_aula(classroom_id):
     for miembro in request.form.getlist("miembros"):
         payload.append(("miembros", miembro))
 
-    # Importante: enviamos mediante 'data=', no 'json_data='
     res, error = consumir_api("POST", "/api/v1/teams", data=payload)
     
     if error:

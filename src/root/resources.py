@@ -43,12 +43,13 @@ def subir_contenido(classroom_id):
     body = request.get_json(silent=True) or {}
     titulo = body.get("titulo")
     url = body.get("url")
+    tipo = body.get("tipo")
 
     if not titulo or not url:
         return responder_error(DATOS_INVALIDOS)
 
     resultado, error = subir_contenido_classroom(
-        classroom_id, titulo, url, usuario["id"]
+        classroom_id, titulo, url, usuario["id"], tipo
     )
     if error:
         return responder_error(error)

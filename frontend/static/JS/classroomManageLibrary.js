@@ -78,7 +78,6 @@
       };
     }
 
-    // 3. Cargamos los datos actuales en los inputs como ya hacías
     document.getElementById("lb-edit-name").value = btn.dataset.nombre || "";
     document.getElementById("lb-edit-type").value = btn.dataset.tipo || "link";
     document.getElementById("lb-edit-url").value = btn.dataset.url || "";

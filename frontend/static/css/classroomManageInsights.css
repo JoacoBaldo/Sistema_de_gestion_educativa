@@ -568,9 +568,19 @@
   color: #7c3aed;
 }
 
-.lb-card__icon--link {
+.lb-card__icon--enlace {
   background: rgba(20, 184, 166, 0.1);
   color: #0d9488;
+}
+
+.lb-card__icon--presentacion {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.lb-card__icon--documento {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
 }
 
 .lb-card__body {

@@ -31,6 +31,11 @@ def guardar_contenido_classroom(
     classroom_id: int, titulo: str, tipo: str, url: str, usuario_id: int
 ) -> int:
     engine = obtener_conexion()
+    
+    tipo_normalizado = tipo.lower().strip()
+    if tipo_normalizado == "link":
+        tipo_normalizado = "enlace"
+
     with engine.connect() as conn:
         cursor = conn.exec_driver_sql(
             """
@@ -38,16 +43,19 @@ def guardar_contenido_classroom(
             VALUES (
                 %s, 
                 %s, 
-                (SELECT id FROM file_types WHERE LOWER(name) LIKE CONCAT('%%', LOWER(%s), '%%') LIMIT 1), 
+                COALESCE(
+                    (SELECT id FROM file_types WHERE LOWER(name) LIKE CONCAT('%%', %s, '%%') LIMIT 1),
+                    1
+                ), 
                 %s, 
                 NOW()
             )
-            RETURNING id
             """,
-            (classroom_id, titulo, tipo, url),
+            (classroom_id, titulo, tipo_normalizado, url),
         )
-        nuevo_id = cursor.fetchone()[0]
         conn.commit()
+        
+        nuevo_id = cursor.lastrowid
 
     return nuevo_id
 
@@ -68,6 +76,11 @@ def actualizar_contenido_db(
     contenido_id: int, titulo: str, tipo: str, url: str
 ) -> None:
     engine = obtener_conexion()
+    
+    tipo_normalizado = tipo.lower().strip()
+    if tipo_normalizado == "link":
+        tipo_normalizado = "enlace"
+
     with engine.connect() as conn:
         conn.exec_driver_sql(
             """
@@ -76,11 +89,11 @@ def actualizar_contenido_db(
                 Title = %s,
                 link = %s,
                 file_type_id = COALESCE(
-                    (SELECT id FROM file_types WHERE LOWER(name) LIKE CONCAT('%%', LOWER(%s), '%%') LIMIT 1),
+                    (SELECT id FROM file_types WHERE LOWER(name) LIKE CONCAT('%%', %s, '%%') LIMIT 1),
                     file_type_id
                 )
             WHERE id = %s
             """,
-            (titulo, url, tipo, contenido_id),
+            (titulo, url, tipo_normalizado, contenido_id),
         )
-        conn.commit()       
+        conn.commit()   
