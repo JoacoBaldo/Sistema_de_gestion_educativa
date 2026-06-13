@@ -57,6 +57,10 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
 
     for u in usuarios:
         email = u.get("email")
+        if not email:
+            errores.append({"usuario": "desconocido", "error": "email es requerido"})
+            continue
+
         document = u.get("document", "").strip()
         career_name = u.get("career", "").strip()
 
@@ -73,7 +77,10 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
             continue
 
         try:
-            user_id = obtener_user_id_por_email(email)
+            user_id = obtener_user_id_por_email(str(email))
+            if not user_id:
+                errores.append({"usuario": email, "error": "No se pudo obtener el ID del usuario"})
+                continue
 
             if usuario_nuevo:
                 career_id = obtener_o_crear_carrera(career_name)
@@ -116,6 +123,8 @@ def crear_estudiante_en_classroom(
         return None, error
 
     user_id = obtener_user_id_por_email(email)
+    if not user_id:
+        return None, "No se pudo obtener el ID del usuario"
 
     if usuario_nuevo:
         career_id = obtener_o_crear_carrera(career)

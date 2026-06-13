@@ -69,6 +69,8 @@ import { requireAuth } from "./common/auth.js";
 
     if (codeText) codeText.textContent = currentToken;
     if (sessionDateEl) sessionDateEl.textContent = formatSessionDate();
+    const sendCodeInput = document.getElementById("at-send-code");
+    if (sendCodeInput) sendCodeInput.value = currentToken;
   }
 
   function setupAutoRefresh() {

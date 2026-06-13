@@ -11,18 +11,15 @@ from src.db import classroom as db_classroom
 from .errores import (
     CLASSROOM_NO_EXISTE,
     CODIGO_INVALIDO,
-    CODIGO_NO_CORRESPONDE,
     ERROR_ENVIO_MAIL,
     SIN_ACCESO,
     SIN_ESTUDIANTES,
 )
 from datetime import datetime
 from src.db.attendance import (
-    crear_codigos_por_alumno,
     crear_evento_asistencia,
     inasistencia_db,
     obtener_estudiantes_classroom,
-    obtener_estudiantes_classroom_con_email,
     obtener_evento_por_codigo,
 )
 from src.db.classroom import existe_classroom
@@ -69,14 +66,10 @@ def sumar_inasistencia(
     if not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
 
-    if usuario_id and not db_classroom.puede_administrar_classroom(
-        classroom_id, usuario_id
-    ):
+    if usuario_id and not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, SIN_ACCESO
 
-    nuevo_evento_id = crear_evento_asistencia(
-        classroom_id, "QR_CODE_PLACEHOLDER", fecha
-    )
+    nuevo_evento_id = crear_evento_asistencia(classroom_id, "QR_CODE_PLACEHOLDER", fecha)
     for student_id in obtener_estudiantes_classroom(classroom_id):
         inasistencia_db(student_id, nuevo_evento_id, fecha, delta=delta)
 
@@ -103,7 +96,7 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
         "to": [{"email": destinatario}],
         "subject": "Código de asistencia - uniManage",
         "textContent": (
-            f"Hola,\n\nAdjuntamos tu código QR personal de asistencia.\n"
+            f"Hola,\n\nAdjuntamos el código QR de asistencia de hoy.\n"
             f"También podés acceder directamente desde este enlace:\n{link}\n\n"
             f"Código: {code}"
         ),
@@ -127,29 +120,18 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
         return None, ERROR_ENVIO_MAIL
 
 
-def enviar_qr_a_estudiantes(classroom_id: int, usuario_id: int) -> tuple:
+def enviar_qr_a_estudiantes(classroom_id: int, usuario_id: int, code: str) -> tuple:
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, SIN_ACCESO
 
-    estudiantes = obtener_estudiantes_classroom_con_email(classroom_id)
+    estudiantes = db_attendance.obtener_inasistencias_por_alumno(classroom_id)
     if not estudiantes:
         return None, SIN_ESTUDIANTES
-
-    fecha = datetime.now()
-    evento_id = crear_evento_asistencia(classroom_id, "MULTI_QR", fecha)
-
-    student_ids = [e["user_id"] for e in estudiantes]
-    for student_id in student_ids:
-        inasistencia_db(student_id, evento_id, fecha, delta=1)
-
-    codigos = crear_codigos_por_alumno(evento_id, student_ids)
 
     enviados = 0
     fallidos = []
     for estudiante in estudiantes:
-        _, error = _enviar_mail_qr(
-            estudiante["email"], classroom_id, codigos[estudiante["user_id"]]
-        )
+        _, error = _enviar_mail_qr(estudiante["email"], classroom_id, code)
         if error:
             fallidos.append(estudiante["email"])
         else:
@@ -162,9 +144,6 @@ def validar_asistencia(classroom_id: int, code: str, usuario_id: int) -> tuple:
     evento = obtener_evento_por_codigo(classroom_id, code)
     if not evento:
         return None, CODIGO_INVALIDO
-
-    if evento["user_id"] != usuario_id:
-        return None, CODIGO_NO_CORRESPONDE
 
     inasistencia_db(
         student_id=usuario_id,

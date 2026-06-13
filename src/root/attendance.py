@@ -6,7 +6,7 @@ from src.funciones.attendance import (
     validar_asistencia,
 )
 from src.funciones.auth import verificar_token
-from src.funciones.errores import CODIGO_REQUERIDO, DELTA_CERO, DELTA_INVALIDO
+from src.funciones.errores import CODIGO_REQUERIDO, DELTA_CERO, DELTA_INVALIDO, SIN_ESTUDIANTES
 
 from .utils import extraer_token, responder_error
 
@@ -61,7 +61,13 @@ def enviar_qr_estudiantes(classroom_id):
     if error:
         return responder_error(error)
 
-    resultado, error = enviar_qr_a_estudiantes(classroom_id, usuario["id"])
+    body = request.get_json(silent=True) or {}
+    code = body.get("code")
+
+    if not code:
+        return responder_error(CODIGO_REQUERIDO)
+
+    resultado, error = enviar_qr_a_estudiantes(classroom_id, usuario["id"], code)
     if error:
         return responder_error(error)
 
