@@ -549,6 +549,26 @@ def registrar_asistencia_aula(classroom_id):
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="asistance"))
 
+@app.route("/aulas/<int:classroom_id>/gestionar/asistencia/enviar-qr", methods=["POST"])
+def enviar_qr_asistencia(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    res, error = consumir_api("POST", f"/api/v1/attendance/{classroom_id}/qr")
+
+    if error:
+        flash(error.get("error", "No se pudieron enviar los QRs"), "error")
+    else:
+        enviados = res.get("enviados", 0)
+        fallidos = res.get("fallidos", [])
+        msg = f"QRs enviados a {enviados} estudiante{'s' if enviados != 1 else ''}."
+        if fallidos:
+            msg += f" No se pudo enviar a: {', '.join(fallidos)}."
+        flash(msg, "success")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="asistance"))
+
+
 @app.route("/aulas/<int:classroom_id>/asistencia/validar", methods=["GET", "POST"])
 def validar_asistencia_alumno(classroom_id):
     usuario, redireccion = requiere_login()

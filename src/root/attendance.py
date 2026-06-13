@@ -1,6 +1,12 @@
 from flask import Blueprint, jsonify, request
-from src.funciones.attendance import obtener_inasistencias_classroom, sumar_inasistencia, validar_asistencia
+from src.funciones.attendance import (
+    enviar_qr_a_estudiantes,
+    obtener_inasistencias_classroom,
+    sumar_inasistencia,
+    validar_asistencia,
+)
 from src.funciones.auth import verificar_token
+from src.funciones.errores import CODIGO_REQUERIDO, DELTA_CERO, DELTA_INVALIDO
 
 from .utils import extraer_token, responder_error
 
@@ -28,22 +34,36 @@ def registrar_asistencia_aula(classroom_id):
     if error:
         return responder_error(error)
 
-    if not classroom_id:
-        return {"error": "El ID del aula es requerido"}, 400
-
     body = request.get_json(silent=True) or {}
-    
     delta = body.get("delta", 1)
 
     try:
         delta = int(delta)
     except (ValueError, TypeError):
-        return {"error": "El campo 'delta' debe ser un entero"}, 400
+        return responder_error(DELTA_INVALIDO)
 
     if delta == 0:
-        return {"error": "El campo 'delta' no puede ser 0"}, 400
+        return responder_error(DELTA_CERO)
 
-    return sumar_inasistencia(classroom_id, delta=delta, usuario_id=usuario["id"])
+    resultado, error = sumar_inasistencia(classroom_id, delta=delta, usuario_id=usuario["id"])
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
+
+
+@attendance_bp.route("/api/v1/attendance/<int:classroom_id>/qr", methods=["POST"])
+def enviar_qr_estudiantes(classroom_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    resultado, error = enviar_qr_a_estudiantes(classroom_id, usuario["id"])
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200
 
 
 @attendance_bp.route("/api/v1/attendance/<int:classroom_id>/validar", methods=["POST"])
@@ -57,11 +77,10 @@ def validar_asistencia_alumno_api(classroom_id):
     code = body.get("code")
 
     if not code:
-        return {"error": "El código de asistencia es requerido"}, 400
+        return responder_error(CODIGO_REQUERIDO)
 
-    resultado, status_code = validar_asistencia(classroom_id, code, usuario["id"])
-    
-    if type(resultado) is dict and "error" in resultado:
-        return resultado, status_code
+    resultado, error = validar_asistencia(classroom_id, code, usuario["id"])
+    if error:
+        return responder_error(error)
 
-    return resultado, status_code
+    return jsonify(resultado), 200
