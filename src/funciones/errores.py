@@ -111,3 +111,11 @@ SIN_PERMISO_CREAR_ALUMNO = {
     "error": "Solo PROFESOR, AYUDANTE o ADMINISTRADOR pueden agregar alumnos",
     "status": 403,
 }
+SIN_PERMISO_EDITAR_ALUMNO = {
+    "error": "Solo PROFESOR, AYUDANTE o ADMINISTRADOR pueden editar alumnos",
+    "status": 403,
+}
+ESTUDIANTE_NO_EN_CLASSROOM = {
+    "error": "El usuario no es un estudiante de este classroom",
+    "status": 404,
+}

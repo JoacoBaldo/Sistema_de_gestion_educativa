@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelBtn = document.getElementById("ca-aula-cancel-btn");
   const closeBtn = document.getElementById("ca-aula-close");
   const createBtn = document.getElementById("btnCrearAula");
+  const periodSlider = document.getElementById("ca-period-slider");
+  const periodHidden = document.getElementById("ca-academic-period-id");
+  const toast = document.getElementById("ca-aula-toast");
 
   if (!modal || !form) return;
 
@@ -43,11 +46,34 @@ document.addEventListener("DOMContentLoaded", () => {
     return row;
   }
 
+  function selectPeriodPill(pill) {
+    if (!pill || !periodSlider) return;
+    const pills = periodSlider.querySelectorAll(".glass-period-pill");
+    pills.forEach((p) => {
+      p.classList.remove("is-active");
+      p.setAttribute("aria-checked", "false");
+    });
+    pill.classList.add("is-active");
+    pill.setAttribute("aria-checked", "true");
+    if (periodHidden) {
+      periodHidden.value = pill.dataset.periodId || "";
+    }
+  }
+
+  function resetPeriodSlider() {
+    if (!periodSlider) return;
+    const firstPill = periodSlider.querySelector(".glass-period-pill");
+    if (firstPill) selectPeriodPill(firstPill);
+  }
+
   function resetForm() {
     form.reset();
-    if (!horariosList) return;
-    horariosList.innerHTML = "";
-    horariosList.appendChild(createHorarioRow());
+    if (horariosList) {
+      horariosList.innerHTML = "";
+      horariosList.appendChild(createHorarioRow());
+    }
+    resetPeriodSlider();
+    if (toast) toast.classList.add("hidden");
   }
 
   function openFromQuery() {
@@ -55,8 +81,26 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal();
   }
 
+  function showToast(message) {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+  }
+
   btnAddHorario?.addEventListener("click", () => {
     horariosList?.appendChild(createHorarioRow());
+  });
+
+  periodSlider?.addEventListener("click", (event) => {
+    const pill = event.target.closest(".glass-period-pill");
+    if (pill) selectPeriodPill(pill);
+  });
+
+  form.addEventListener("submit", (event) => {
+    if (!periodHidden || !periodHidden.value) {
+      event.preventDefault();
+      showToast("Seleccioná un período académico.");
+    }
   });
 
   createBtn?.addEventListener("click", (event) => {

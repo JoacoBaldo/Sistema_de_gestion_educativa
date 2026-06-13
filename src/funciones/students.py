@@ -1,15 +1,22 @@
+import bcrypt
+import logging
+
 from src.db.classroom import agregar_usuario_classroom, puede_gestionar_alumnos, usuario_en_classroom
 from src.db.constantes import ESTUDIANTE
 from src.db.students import (
+    actualizar_estudiante,
     crear_student_profile,
-    crear_estudiante_completo,
+    email_existe_otro,
+    es_estudiante_en_classroom,
     obtener_o_crear_carrera,
     obtener_user_id_por_email,
 )
 from src.funciones.errores import (
     DATOS_ESTUDIANTE_REQUERIDOS,
     EMAIL_YA_EXISTE,
+    ESTUDIANTE_NO_EN_CLASSROOM,
     SIN_PERMISO_CREAR_ALUMNO,
+    SIN_PERMISO_EDITAR_ALUMNO,
     USUARIO_YA_EN_CLASSROOM,
 )
 from src.funciones.user import create_user
@@ -95,7 +102,7 @@ def crear_estudiante_en_classroom(
     if not puede_gestionar_alumnos(classroom_id, caller_id):
         return None, SIN_PERMISO_CREAR_ALUMNO
 
-    resultado, error = create_user(
+    _, error = create_user(
         {"username": username, "email": email, "password": document}
     )
     usuario_nuevo = error is None
@@ -106,14 +113,29 @@ def crear_estudiante_en_classroom(
 
     if usuario_nuevo:
         career_id = obtener_o_crear_carrera(career)
-        user_id, db_error = crear_estudiante_completo(
-            username, email, resultado["password"], document, career_id, classroom_id
-        )
-        if db_error:
-            return None, {"error": db_error, "status": 500}
-    else:
-        if usuario_en_classroom(classroom_id, user_id):
-            return None, USUARIO_YA_EN_CLASSROOM
-        agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
+        crear_student_profile(user_id, document, career_id)
+    elif usuario_en_classroom(classroom_id, user_id):
+        return None, USUARIO_YA_EN_CLASSROOM
 
+    agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
     return {"message": "Estudiante creado y asignado", "user_id": user_id}, None
+
+
+def actualizar_estudiante_en_classroom(
+    classroom_id: int, caller_id: int, user_id: int,
+    username: str, email: str, document: str, career: str
+) -> tuple:
+    if not puede_gestionar_alumnos(classroom_id, caller_id):
+        return None, SIN_PERMISO_EDITAR_ALUMNO
+
+    if not es_estudiante_en_classroom(classroom_id, user_id):
+        return None, ESTUDIANTE_NO_EN_CLASSROOM
+
+    if email_existe_otro(email, user_id):
+        return None, EMAIL_YA_EXISTE
+
+    career_id = obtener_o_crear_carrera(career)
+    hashed = bcrypt.hashpw(document.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    actualizar_estudiante(user_id, username, email, hashed, document, career_id)
+
+    return {"message": "Estudiante actualizado", "user_id": user_id}, None

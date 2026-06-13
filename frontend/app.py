@@ -7,6 +7,7 @@ import requests
 from flask import (
     Flask,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -142,20 +143,6 @@ def enriquecer_aulas(aulas):
                 "total_students": aula.get("total_students", 0),
             })
     return resultado
-
-def resolver_periodo_academico(fecha_inicio, fecha_fin, periodos):
-    if not periodos or not isinstance(periodos, list):
-        return None
-    for periodo in periodos:
-        if isinstance(periodo, dict):
-            inicio = str(periodo.get("start_date", ""))[:10]
-            fin = str(periodo.get("end_date", ""))[:10]
-            if fecha_inicio and fecha_fin and inicio <= fecha_inicio <= fin:
-                return periodo.get("id")
-    for p in periodos:
-        if isinstance(p, dict) and "id" in p:
-            return p["id"]
-    return None
 
 def datos_vista_gestion(classroom_id, usuario, vista):
     datos = {
@@ -324,15 +311,18 @@ def classrooms():
 
     aulas_res, err_aulas = consumir_api("GET", f"/api/v1/classrooms/{usuario['id']}")
     periodos_res, err_periodos = consumir_api("GET", "/api/v1/academic-periods")
+    roles_res, _ = consumir_api("GET", "/api/v1/role_types")
 
     aulas = aulas_res if not err_aulas and isinstance(aulas_res, list) else []
     periodos = periodos_res if not err_periodos and isinstance(periodos_res, list) else []
+    role_types = roles_res if isinstance(roles_res, list) else []
     join_link = session.pop("join_link", None)
 
     return render_template(
         "main/classroomsGrid.html",
         classrooms=enriquecer_aulas(aulas),
         periodos=periodos,
+        role_types=role_types,
         join_link=join_link,
     )
 
@@ -344,32 +334,24 @@ def crear_aula():
     dias = request.form.getlist("dia")
     inicios = request.form.getlist("h_inicio")
     fines = request.form.getlist("h_fin")
+    academic_period_id = request.form.get("academic_period_id")
 
     if not dias or not inicios or not fines:
         flash("Agrega al menos un horario.", "error")
         return redirect(url_for("classrooms"))
 
-    periodos_res, _ = consumir_api("GET", "/api/v1/academic-periods")
-    
-    academic_period_id = resolver_periodo_academico(
-        request.form.get("fecha_inicio"), 
-        request.form.get("fecha_fin"), 
-        periodos_res if isinstance(periodos_res, list) else []
-    )
-
-    if academic_period_id is None:
-        flash("No hay períodos académicos configurados o válidos.", "error")
+    if not academic_period_id:
+        flash("Seleccioná un período académico.", "error")
         return redirect(url_for("classrooms"))
 
     payload = {
         "name": (request.form.get("nombre") or "").strip(),
         "department": (request.form.get("catedra") or "").strip(),
         "university": (request.form.get("universidad") or "").strip(),
-        "user_id": usuario["id"],
         "class_day": DIAS_A_NUMERO.get(dias[0], 0),
         "class_start": inicios[0],
         "class_end": fines[0],
-        "academic_period_id": academic_period_id
+        "academic_period_id": int(academic_period_id),
     }
 
     res, error = consumir_api("POST", "/api/v1/classrooms", json_data=payload)
@@ -386,17 +368,16 @@ def compartir_clase():
     if redireccion: return redireccion
 
     classroom_id = request.form.get("classId") or request.form.get("class_id")
-    rol = request.form.get("rol") or "Editor"
-    role_id = 2 if rol == "Lector" else 1
+    role_id = request.form.get("role_id", 1)
 
-    params = {"role_id": role_id}
-    res, error = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/link", params=params)
-    
+    res, error = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/link", params={"role_id": role_id})
+
     if error or not isinstance(res, dict) or not res.get("join_link"):
         flash("No se pudo generar el enlace", "error")
     else:
-        session["join_link"] = res["join_link"]
-        flash("Enlace de invitación generado.", "success")
+        raw = res["join_link"]
+        token = raw.split("token=")[-1]
+        session["join_link"] = f"{request.host_url.rstrip('/')}/auth?token={token}"
 
     return redirect(url_for("classrooms"))
 
@@ -570,13 +551,47 @@ def procesar_crear_estudiante(classroom_id):
         "career": career,
     }
 
-    res, error = consumir_api("POST", f"/api/v1/classrooms/{classroom_id}/alumnos", json_data=payload)
+    res, error = consumir_api("POST", f"/api/v1/classrooms/{classroom_id}/student", json_data=payload)
     
     if error or (res and type(res) is dict and res.get("error")):
         error_msg = error.get('error') if isinstance(error, dict) else (res.get('error') if isinstance(res, dict) else error)
         flash(f"Error al vincular el estudiante: {error_msg}", "error")
     else:
         flash("Estudiante creado y asignado con éxito.", "success")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+
+@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/editar", methods=["POST"])
+def procesar_editar_estudiante(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    nombre   = (request.form.get("nombre") or "").strip()
+    apellido = (request.form.get("apellido") or "").strip()
+    padron   = (request.form.get("padron") or "").strip()
+    email    = (request.form.get("email") or "").strip()
+    career   = (request.form.get("career") or "").strip()
+    user_id  = request.form.get("user_id")
+
+    if not user_id:
+        flash("Datos incompletos para editar el estudiante.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+
+    payload = {
+        "user_id": int(user_id),
+        "username": f"{nombre} {apellido}",
+        "email": email,
+        "document": padron,
+        "career": career,
+    }
+
+    res, error = consumir_api("PUT", f"/api/v1/classrooms/{classroom_id}/student", json_data=payload)
+
+    if error or (res and type(res) is dict and res.get("error")):
+        error_msg = error.get("error") if isinstance(error, dict) else (res.get("error") if isinstance(res, dict) else error)
+        flash(f"Error al editar el estudiante: {error_msg}", "error")
+    else:
+        flash("Estudiante actualizado con éxito.", "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
 
