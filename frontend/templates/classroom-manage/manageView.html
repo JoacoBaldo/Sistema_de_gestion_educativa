@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% set vista = request.args.get('vista', 'students') %}
+{% set vista = request.args.get('vista', 'dashboard' if session.get('user', {}).get('role_id') != 3 else 'students') %}
 
 {% block title %}Gestión del aula - UniManage{% endblock %}
 

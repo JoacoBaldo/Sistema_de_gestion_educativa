@@ -240,16 +240,16 @@ def inyectar_globales():
     if usuario and isinstance(usuario, dict):
         if "role_id" not in usuario:
             classroom_id = request.view_args.get('classroom_id') if request.view_args else None
-            
+
             if classroom_id:
-                res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+                res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/professors")
                 if not err and isinstance(res, list):
-                    es_estudiante = any(alumn.get("id") == usuario.get("id") for alumn in res)
-                    usuario["role_id"] = 3 if es_estudiante else 1
+                    prof_match = next((p for p in res if p.get("id") == usuario.get("id")), None)
+                    usuario["role_id"] = prof_match.get("role_id", 1) if prof_match else 3
                 else:
                     usuario["role_id"] = 3
             else:
-                usuario["role_id"] = 3 
+                usuario["role_id"] = 3
 
     return {
         "user": usuario,
@@ -557,11 +557,17 @@ def procesar_crear_estudiante(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
+    nombre = (request.form.get("nombre") or "").strip()
+    apellido = (request.form.get("apellido") or "").strip()
+    padron = (request.form.get("padron") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    career = (request.form.get("career") or "").strip()
+
     payload = {
-        "nombre": request.form.get("nombre"),
-        "apellido": request.form.get("apellido"),
-        "padron": request.form.get("padron"),
-        "email": request.form.get("email"),
+        "username": f"{nombre} {apellido}",
+        "email": email,
+        "document": padron,
+        "career": career,
     }
 
     res, error = consumir_api("POST", f"/api/v1/classrooms/{classroom_id}/alumnos", json_data=payload)

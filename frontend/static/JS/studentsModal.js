@@ -39,14 +39,15 @@ import {
     bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });
     bindModalDismiss(modal, closeModal);
   
-    // Validación rápida antes de enviar
+    // Validación antes de enviar
     form.addEventListener("submit", (event) => {
       const nombre = document.getElementById("st_nombre")?.value.trim();
       const apellido = document.getElementById("st_apellido")?.value.trim();
       const padron = document.getElementById("st_padron")?.value.trim();
       const email = document.getElementById("st_email")?.value.trim();
-  
-      if (!nombre || !apellido || !padron || !email) {
+      const career = document.getElementById("st_career")?.value.trim();
+
+      if (!nombre || !apellido || !padron || !email || !career) {
         showToast("Todos los campos con asterisco (*) son obligatorios.");
         event.preventDefault();
         return;

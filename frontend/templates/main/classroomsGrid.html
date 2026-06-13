@@ -56,9 +56,8 @@
                 <p class="um-subtitle">Selecciona un aula para gestionar</p>
             </div>
 
-            {% if session.get('user', {}).get('role_id') != 3 %} <button class="um-primary-btn" id="btnCrearAula"
-                type="button">+ Crear un
-                aula</button>
+            {% if classrooms | selectattr('role_id', 'ne', 3) | list | length > 0 or not classrooms %}
+            <button class="um-primary-btn" id="btnCrearAula" type="button">+ Crear un aula</button>
             {% endif %}
         </div>
 
@@ -102,7 +101,7 @@
                 </div>
 
                 <div class="um-card__footer">
-                    {% if session.get('user', {}).get('role_id') != 3 %}
+                    {% if aula.role_id != 3 %}
                     <a class="um-link um-link--muted" href="#" data-action="share" data-class-id="{{ aula.id }}"
                         data-class-name="{{ aula.name }}">
                         <span class="um-ico um-ico--share" aria-hidden="true">

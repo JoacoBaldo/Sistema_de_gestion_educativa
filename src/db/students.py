@@ -1,6 +1,6 @@
 from src.db.conexion import obtener_conexion
 from src.db.user import crear_usuario_db, email_existe
-
+from .constantes import ESTUDIANTE
 __all__ = ["crear_usuario_db", "email_existe"]
 
 
@@ -40,3 +40,41 @@ def crear_student_profile(user_id: int, document: str, career_id: int) -> None:
             (user_id, document, career_id),
         )
         conn.commit()
+
+
+def crear_estudiante_completo(
+    username: str,
+    email: str,
+    password_hash: str,
+    document: str,
+    career_id: int,
+    classroom_id: int,
+) -> tuple:
+
+    engine = obtener_conexion()
+    try:
+        with engine.connect() as conn:
+            conn.exec_driver_sql(
+                "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                (username, email, password_hash),
+            )
+            conn.commit()
+
+        user_id = obtener_user_id_por_email(email)
+
+        with engine.connect() as conn:
+            conn.exec_driver_sql(
+                "INSERT INTO student_profiles (user_id, document, career_id) VALUES (%s, %s, %s)",
+                (user_id, document, career_id),
+            )
+
+            conn.exec_driver_sql(
+                "INSERT INTO classroom_users (classroom_id, user_id, role_id) VALUES (%s, %s, %s)",
+                (classroom_id, user_id, ESTUDIANTE),
+            )
+
+            conn.commit()
+
+        return user_id, None
+    except Exception as e:
+        return None, str(e)
