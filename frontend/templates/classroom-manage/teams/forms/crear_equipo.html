@@ -36,6 +36,19 @@
         <p class="glass-field-hint">Selecciona al menos un estudiante inscripto en el aula.</p>
       </div>
 
+      <div class="mb-3">
+        <label class="form-label" for="tm-evaluation-id">📋 Evaluación <span class="text-danger">*</span></label>
+        <select id="tm-evaluation-id" name="evaluation_id" class="glass-input" required>
+          <option value="" disabled selected>Seleccionar evaluación</option>
+          {% for evaluacion in evaluaciones or [] %}
+          <option value="{{ evaluacion.id }}">{{ evaluacion.name }}</option>
+          {% endfor %}
+        </select>
+        {% if not evaluaciones %}
+        <p class="glass-field-hint">No hay evaluaciones configuradas para esta aula.</p>
+        {% endif %}
+      </div>
+
       <div class="action-buttons">
         <button type="button" class="btn-cancelar" id="tm-team-cancel-btn">Cancelar</button>
         <button type="submit" class="btn-crear" id="btnGuardarEquipo">Crear Equipo</button>
