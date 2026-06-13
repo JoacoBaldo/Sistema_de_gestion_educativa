@@ -11,7 +11,12 @@ from src.funciones.errores import (
     NAME_VACIO,
     SESION_INVALIDA,
 )
-from src.funciones.teams import crear_equipo, editar_equipo, eliminar_equipo, obtener_equipos_classroom
+from src.funciones.teams import (
+    crear_equipo,
+    editar_equipo,
+    eliminar_equipo,
+    obtener_equipos_classroom,
+)
 
 from .utils import extraer_token, responder_error
 
@@ -43,11 +48,12 @@ def listar_equipos_api():
         return responder_error(CLASSROOM_NO_ESPECIFICADO)
 
     resultado, error = obtener_equipos_classroom(classroom_id, usuario["id"])
-    
+
     if error:
         return responder_error(error)
 
     return jsonify(resultado), 200
+
 
 @teams_bp.route("/api/v1/teams/<int:team_id>", methods=["PUT"])
 def actualizar_equipo(team_id):
@@ -83,7 +89,9 @@ def actualizar_equipo(team_id):
         except (TypeError, ValueError):
             return responder_error(EVALUATION_ID_REQUERIDO)
 
-    resultado, error = editar_equipo(int(team_id), nombre, member_ids, usuario["id"], evaluation_id)
+    resultado, error = editar_equipo(
+        int(team_id), nombre, member_ids, usuario["id"], evaluation_id
+    )
     if error:
         return responder_error(error)
 
@@ -139,7 +147,9 @@ def crear_equipo_formulario():
     except (TypeError, ValueError):
         return responder_error(EVALUATION_ID_REQUERIDO)
 
-    resultado, error = crear_equipo(nombre, miembros, int(classroom_id), usuario["id"], evaluation_id)
+    resultado, error = crear_equipo(
+        nombre, miembros, int(classroom_id), usuario["id"], evaluation_id
+    )
     if error:
         return responder_error(error)
 

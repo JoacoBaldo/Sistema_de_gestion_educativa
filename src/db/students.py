@@ -64,7 +64,12 @@ def email_existe_otro(email: str, user_id: int) -> bool:
 
 
 def actualizar_estudiante(
-    user_id: int, username: str, email: str, password_hasheada: str, document: str, career_id: int
+    user_id: int,
+    username: str,
+    email: str,
+    password_hasheada: str,
+    document: str,
+    career_id: int,
 ) -> None:
     engine = obtener_conexion()
     with engine.connect() as conn:

@@ -8,7 +8,6 @@ from .errores import (
     EQUIPO_NO_CREADO,
     EQUIPO_NO_EXISTE,
     EVALUACION_NO_EXISTE,
-    EVALUATION_ID_REQUERIDO,
     MIEMBROS_INVALIDOS,
     MIEMBROS_REQUERIDO,
     NAME_VACIO,
@@ -100,7 +99,9 @@ def editar_equipo(
         db_teams.reemplazar_miembros(team_id, member_ids)
 
     if evaluation_id is not None:
-        if not db_evaluations.existe_evaluacion_en_classroom(evaluation_id, classroom_id):
+        if not db_evaluations.existe_evaluacion_en_classroom(
+            evaluation_id, classroom_id
+        ):
             return None, EVALUACION_NO_EXISTE
         miembros_actuales = db_teams.obtener_ids_miembros(team_id)
         db_teams.crear_grades_equipo(evaluation_id, team_id, miembros_actuales)

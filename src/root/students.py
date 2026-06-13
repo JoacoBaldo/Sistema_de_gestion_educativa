@@ -6,7 +6,6 @@ from src.funciones.errores import (
     ARCHIVO_NO_ENVIADO,
     ARCHIVO_VACIO,
     DATOS_ESTUDIANTE_REQUERIDOS,
-    ID_REQUERIDO,
 )
 from src.funciones.students import (
     actualizar_estudiante_en_classroom,

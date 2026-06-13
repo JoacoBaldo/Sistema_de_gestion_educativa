@@ -31,8 +31,14 @@ AULA_NO_VALIDA = {
 CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
 
 CODIGO_REQUERIDO = {"error": "El código de asistencia es requerido", "status": 400}
-CODIGO_INVALIDO = {"error": "El código de asistencia es inválido o ya expiró", "status": 400}
-CODIGO_NO_CORRESPONDE = {"error": "Este código no corresponde a tu usuario", "status": 403}
+CODIGO_INVALIDO = {
+    "error": "El código de asistencia es inválido o ya expiró",
+    "status": 400,
+}
+CODIGO_NO_CORRESPONDE = {
+    "error": "Este código no corresponde a tu usuario",
+    "status": 403,
+}
 DELTA_INVALIDO = {"error": "El campo 'delta' debe ser un entero", "status": 400}
 DELTA_CERO = {"error": "El campo 'delta' no puede ser 0", "status": 400}
 

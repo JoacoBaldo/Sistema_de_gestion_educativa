@@ -1,7 +1,6 @@
 from src.db import classroom as db_classroom
 from src.db import resources as db_resources
 from src.db.classroom import usuario_en_classroom
-from src.db.conexion import obtener_conexion
 
 SIN_ACCESO = {"error": "No tienes acceso a esta aula"}
 
@@ -42,6 +41,7 @@ def eliminar_contenido_classroom(
 
     return {"message": f"Contenido con ID {contenido_id} eliminado correctamente"}, None
 
+
 def editar_contenido_classroom(
     classroom_id: int,
     contenido_id: int,
@@ -51,13 +51,9 @@ def editar_contenido_classroom(
     usuario_id: int,
 ):
     try:
-
         db_resources.actualizar_contenido_db(contenido_id, titulo, tipo, url)
 
         return {"mensaje": "Contenido actualizado con éxito", "id": contenido_id}, None
     except Exception as e:
-        error_estructurado = {
-            "error": f"ERROR_BASE_DE_DATOS: {str(e)}",
-            "status": 500
-        }
+        error_estructurado = {"error": f"ERROR_BASE_DE_DATOS: {str(e)}", "status": 500}
         return None, error_estructurado

@@ -95,6 +95,7 @@ def obtener_estudiantes_classroom_con_email(classroom_id: int) -> list[dict]:
 
 def crear_codigos_por_alumno(attendance_event_id: int, student_ids: list[int]) -> dict:
     import secrets
+
     engine = obtener_conexion()
     codes = {}
     with engine.connect() as conn:

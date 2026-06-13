@@ -296,6 +296,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
         for fila in resultados
     ]
 
+
 def obtener_alumnos(classroom_id: int) -> list:
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -331,7 +332,7 @@ def obtener_alumnos(classroom_id: int) -> list:
             WHERE cu.classroom_id = %s AND cu.role_id = %s
             ORDER BY u.username
             """,
-            (classroom_id, classroom_id, classroom_id, ESTUDIANTE), 
+            (classroom_id, classroom_id, classroom_id, ESTUDIANTE),
         ).fetchall()
 
     return [
@@ -344,7 +345,7 @@ def obtener_alumnos(classroom_id: int) -> list:
             "document": fila[5],
             "career": fila[6],
             "promedio": fila[7] if fila[7] is not None else "-",
-            "inasistencias": fila[8] if fila[8] is not None else 0 
+            "inasistencias": fila[8] if fila[8] is not None else 0,
         }
         for fila in resultados
     ]

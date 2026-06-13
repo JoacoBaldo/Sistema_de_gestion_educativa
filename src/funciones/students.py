@@ -1,7 +1,11 @@
 import bcrypt
 import logging
 
-from src.db.classroom import agregar_usuario_classroom, puede_gestionar_alumnos, usuario_en_classroom
+from src.db.classroom import (
+    agregar_usuario_classroom,
+    puede_gestionar_alumnos,
+    usuario_en_classroom,
+)
 from src.db.constantes import ESTUDIANTE
 from src.db.students import (
     actualizar_estudiante,
@@ -12,7 +16,6 @@ from src.db.students import (
     obtener_user_id_por_email,
 )
 from src.funciones.errores import (
-    DATOS_ESTUDIANTE_REQUERIDOS,
     EMAIL_YA_EXISTE,
     ESTUDIANTE_NO_EN_CLASSROOM,
     SIN_PERMISO_CREAR_ALUMNO,
@@ -97,14 +100,17 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
 
 
 def crear_estudiante_en_classroom(
-    classroom_id: int, caller_id: int, username: str, email: str, document: str, career: str
+    classroom_id: int,
+    caller_id: int,
+    username: str,
+    email: str,
+    document: str,
+    career: str,
 ) -> tuple:
     if not puede_gestionar_alumnos(classroom_id, caller_id):
         return None, SIN_PERMISO_CREAR_ALUMNO
 
-    _, error = create_user(
-        {"username": username, "email": email, "password": document}
-    )
+    _, error = create_user({"username": username, "email": email, "password": document})
     usuario_nuevo = error is None
     if error and error != EMAIL_YA_EXISTE:
         return None, error
@@ -122,8 +128,13 @@ def crear_estudiante_en_classroom(
 
 
 def actualizar_estudiante_en_classroom(
-    classroom_id: int, caller_id: int, user_id: int,
-    username: str, email: str, document: str, career: str
+    classroom_id: int,
+    caller_id: int,
+    user_id: int,
+    username: str,
+    email: str,
+    document: str,
+    career: str,
 ) -> tuple:
     if not puede_gestionar_alumnos(classroom_id, caller_id):
         return None, SIN_PERMISO_EDITAR_ALUMNO

@@ -45,7 +45,9 @@ def registrar_asistencia_aula(classroom_id):
     if delta == 0:
         return responder_error(DELTA_CERO)
 
-    resultado, error = sumar_inasistencia(classroom_id, delta=delta, usuario_id=usuario["id"])
+    resultado, error = sumar_inasistencia(
+        classroom_id, delta=delta, usuario_id=usuario["id"]
+    )
     if error:
         return responder_error(error)
 

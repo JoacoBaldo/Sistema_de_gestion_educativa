@@ -1,9 +1,5 @@
-import logging
 import os
-import smtplib
 from datetime import datetime, timedelta, timezone
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import requests
 
 import bcrypt
@@ -15,10 +11,8 @@ from src.db.user import crear_usuario_db, email_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
-    EMAIL_NO_EXISTE,
     EMAIL_NO_VALIDO,
     EMAIL_YA_EXISTE,
-    ERROR_ENVIO_MAIL,
 )
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
@@ -48,12 +42,12 @@ def send_password_mail(destinatario: str) -> tuple:
     api_key = os.environ.get("BREVO_API_PASSWORD")
     remitente = os.environ.get("EMAIL_REMITENTE")
 
-    url="https://api.brevo.com/v3/smtp/email"
+    url = "https://api.brevo.com/v3/smtp/email"
 
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
-        "api-key": api_key
+        "api-key": api_key,
     }
 
     cuerpo_mail = f"""
@@ -62,20 +56,13 @@ def send_password_mail(destinatario: str) -> tuple:
     un token de validación.  {token}
     """
     payload = {
-        "sender": {
-            "name": "uniManage Soporte", 
-            "email": remitente
-        },
-        "to": [
-            {
-                "email": destinatario
-            }
-        ],
+        "sender": {"name": "uniManage Soporte", "email": remitente},
+        "to": [{"email": destinatario}],
         "subject": "Recuperación de contraseña - uniManage",
-        "textContent": cuerpo_mail
+        "textContent": cuerpo_mail,
     }
 
-    try: 
+    try:
         response = requests.post(url, json=payload, headers=headers)
         if response.status_code == 201:
             return {"message": "Correo enviado"}, None

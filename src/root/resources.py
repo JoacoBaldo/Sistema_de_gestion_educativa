@@ -75,6 +75,7 @@ def eliminar_contenido(classroom_id, contenido_id):
 
     return jsonify(resultado), 200
 
+
 @resources_bp.route(
     "/api/v1/classrooms/<int:classroom_id>/contenidos/<int:contenido_id>",
     methods=["PUT"],

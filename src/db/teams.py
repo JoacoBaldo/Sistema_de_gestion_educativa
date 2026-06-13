@@ -20,10 +20,11 @@ def crear_equipo_con_miembros(
             (nombre, classroom_id),
         )
         conn.commit()
-        
+
         team_id = cursor.lastrowid
 
         return team_id
+
 
 def listar_equipos_classroom(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
