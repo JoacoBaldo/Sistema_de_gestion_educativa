@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
-from src.funciones.evaluations import obtener_evaluaciones, actualizar_evaluacion, crear_evaluacion, eliminar_evaluacion
+from src.funciones.evaluations import cargar_notas_masivas_logic, obtener_evaluaciones, actualizar_evaluacion, crear_evaluacion, eliminar_evaluacion
 
 from .utils import extraer_token, responder_error
 
@@ -121,3 +121,24 @@ def eliminar_evaluacion_root(evaluation_id: int):
         return responder_error(error_del)
 
     return jsonify(resultado), resultado["status"]
+
+@evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/bulk-grades", methods=["POST"])
+def api_bulk_grades(evaluation_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    body = request.get_json(silent=True) or {}
+    classroom_id = body.get("classroom_id")
+    grades = body.get("grades", [])
+
+    if not classroom_id:
+        return responder_error({"error": "El classroom_id es requerido en el payload.", "status": 400})
+
+    resultado, err = cargar_notas_masivas_logic(classroom_id, evaluation_id, grades)
+
+    if err:
+        return responder_error(err)
+        
+    return jsonify(resultado), 200

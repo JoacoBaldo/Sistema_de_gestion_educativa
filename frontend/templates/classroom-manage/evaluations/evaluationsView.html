@@ -72,6 +72,19 @@
                     data-individual="{{ '1' if ev.individual else '0' }}">
                     Editar
                 </button>
+                <button type="button" class="st-btn st-btn-ghost ev-add-grades-btn" data-id="{{ ev.id }}"
+                    data-nombre="{{ ev.name }}">
+                    <span class="st-ghost-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </span>
+                    Añadir notas
+                </button>
                 {% endif %}
                 <p class="ev-card__progress">{% if ev.individual %}Individual{% else %}Grupal{% endif %}</p>
             </footer>
@@ -127,6 +140,47 @@
                         <button type="submit" class="btn-crear">Guardar cambios</button>
 
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="ev-grades-modal" class="cm-modal-overlay hidden"
+        style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="cm-panel"
+            style="width: 100%; max-width: 450px; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0;">Subir Notas Masivas</h3>
+                <button type="button" id="ev-grades-close"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af;">&times;</button>
+            </header>
+
+            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 16px;">
+                Sube un archivo CSV para la evaluación: <strong id="ev-grades-target-name"
+                    style="color: #1f2937;">-</strong>
+            </p>
+
+            <form id="ev-grades-form" method="POST" enctype="multipart/form-data">
+                <div
+                    style="border: 2px dashed #e2e8f0; padding: 30px 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; background: #f8fafc;">
+                    <input type="file" name="file_csv" id="ev-csv-input" accept=".csv" required style="display: none;">
+                    <label for="ev-csv-input" style="cursor: pointer; display: block;">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">📊</span>
+                        <span style="color: #6366f1; font-weight: 600; display: block;">Haz click para
+                            seleccionar</span>
+                        <span id="ev-csv-filename"
+                            style="font-size: 0.8rem; color: #9ca3af; margin-top: 6px; display: block;">Formato
+                            requerido: columna 'documento' o 'email' y columna 'nota'</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" id="ev-grades-cancel" class="st-btn st-btn-ghost">Cancelar</button>
+                    <button type="submit" class="st-btn st-btn-primary"
+                        style="background: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        Procesar
+                        Notas
+                    </button>
                 </div>
             </form>
         </div>

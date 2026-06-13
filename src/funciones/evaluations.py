@@ -7,6 +7,7 @@ from src.db.evaluations import (
     obtener_evaluacion_por_id,
     obtener_evaluaciones_classroom,
     eliminar_evaluacion_db,
+    procesar_notas_masivas_db,
 )
 
 from .errores import (
@@ -150,3 +151,19 @@ def eliminar_evaluacion(evaluation_id: int) -> tuple:
             "status": 500,
         }
         return None, error_estructurado
+
+
+
+def cargar_notas_masivas_logic(classroom_id: int, evaluation_id: int, grades: list[dict]) -> tuple[dict, dict | None]:
+    if not grades:
+        return {}, {"error": "La lista de notas está vacía o el CSV no tenía datos válidos.", "status": 400}
+
+    if not classroom_id or not evaluation_id:
+        return {}, {"error": "Faltan parámetros de aula o evaluación.", "status": 400}
+
+    resultado = procesar_notas_masivas_db(classroom_id, evaluation_id, grades)
+
+    if resultado.get("error"):
+        return {}, {"error": f"Error en base de datos: {resultado['error']}", "status": 500}
+
+    return {"inserted": resultado.get("inserted", 0)}, None

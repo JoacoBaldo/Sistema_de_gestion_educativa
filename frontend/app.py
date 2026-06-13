@@ -1,3 +1,4 @@
+import csv
 import io
 import os
 from pathlib import Path
@@ -470,6 +471,65 @@ def eliminar_evaluacion_aula(classroom_id, evaluation_id):
             "classroom_manage", classroom_id=classroom_id, vista="evaluations"
         )
     )
+
+
+@app.route("/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/subir-notas", methods=["POST"])
+def subir_notas_csv_aula(classroom_id, evaluation_id):
+    usuario, redireccion = requiere_login()
+    if redireccion: return redireccion
+
+    if 'file_csv' not in request.files:
+        flash("No se subió ningún archivo.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+
+    file = request.files['file_csv']
+    if file.filename == '':
+        flash("El nombre de archivo está vacío.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+
+    if not file.filename.endswith('.csv'):
+        flash("El archivo debe ser en formato CSV.", "error")
+        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+
+    try:
+        stream = io.StringIO(file.stream.read().decode("utf-8-sig"), newline=None)
+        reader = csv.DictReader(stream, delimiter=';' if ';' in stream.getvalue() else ',')
+        
+        reader.fieldnames = [f.strip().lower() for f in reader.fieldnames] if reader.fieldnames else []
+        
+        tiene_identificador = 'documento' in reader.fieldnames or 'email' in reader.fieldnames
+        if not tiene_identificador or 'nota' not in reader.fieldnames:
+            flash("Estructura CSV inválida. Debe contener la columna 'nota' y al menos 'documento' o 'email'.", "error")
+            return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+
+        filas_procesadas = []
+        for fila in reader:
+            identificador = fila.get('documento', fila.get('email', '')).strip()
+            nota_str = fila.get('nota', '').strip()
+            
+            if identificador and nota_str:
+                filas_procesadas.append({
+                    "identifier": identificador,
+                    "score": float(nota_str.replace(',', '.')) 
+                })
+
+        payload = {
+            "evaluation_id": evaluation_id,
+            "classroom_id": classroom_id,
+            "grades": filas_procesadas
+        }
+
+        res, error = consumir_api("POST", f"/api/v1/evaluations/{evaluation_id}/bulk-grades", json_data=payload)
+
+        if error:
+            flash(f"Error al procesar notas: {error.get('error', 'Error desconocido')}", "error")
+        else:
+            flash(f"¡Éxito! Se procesaron {res.get('inserted', 0)} notas correctamente.", "success")
+
+    except Exception as e:
+        flash(f"Ocurrió un error al leer el archivo CSV: {str(e)}", "error")
+
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
 
 @app.route("/aulas/<int:classroom_id>/gestionar/asistencia/registrar", methods=["POST"])
 def registrar_asistencia_aula(classroom_id):

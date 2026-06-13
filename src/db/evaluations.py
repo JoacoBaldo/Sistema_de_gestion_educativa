@@ -147,3 +147,50 @@ def eliminar_evaluacion_db(evaluation_id: int) -> dict:
         )
         conn.commit()
     return {"message": "Evaluación eliminada exitosamente", "status": 200}
+
+
+def procesar_notas_masivas_db(classroom_id: int, evaluation_id: int, lista_notas: list[dict]) -> dict:
+    engine = obtener_conexion()
+    inserted_count = 0
+    
+    query_buscar_alumno = """
+        SELECT u.id 
+        FROM users u
+        LEFT JOIN student_profiles sp ON sp.user_id = u.id
+        JOIN classroom_users cu ON cu.user_id = u.id
+        WHERE cu.classroom_id = %s 
+          AND (sp.document = %s OR u.email = %s)
+        LIMIT 1
+    """
+    
+    query_upsert_nota = """
+        INSERT INTO grades (user_id, evaluation_id, score, created_at, updated_at)
+        VALUES (%s, %s, %s, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE 
+            score = VALUES(score),
+            updated_at = NOW()
+    """
+
+    with engine.connect() as conn:
+        transaccion = conn.begin()
+        try:
+            for item in lista_notas:
+                identificador = item['identifier']
+                nota = item['score']
+                
+                alumno = conn.exec_driver_sql(
+                    query_buscar_alumno, 
+                    (classroom_id, identificador, identificador)
+                ).fetchone()
+                
+                if alumno:
+                    user_id = alumno[0]
+                    conn.exec_driver_sql(query_upsert_nota, (user_id, evaluation_id, nota))
+                    inserted_count += 1
+            
+            transaccion.commit()
+            return {"inserted": inserted_count, "error": None}
+            
+        except Exception as e:
+            transaccion.rollback()
+            return {"inserted": 0, "error": str(e)}
