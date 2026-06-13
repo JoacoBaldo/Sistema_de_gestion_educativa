@@ -237,7 +237,7 @@
   vertical-align: middle;
 }
 
-.st-table tbody tr + tr td {
+.st-table tbody tr+tr td {
   box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.12);
 }
 
@@ -344,6 +344,35 @@
 .st-btn-submit {
   background: linear-gradient(90deg, #7b61ff 0%, #3b82f6 100%);
   color: #ffffff;
+}
+
+.st-avg {
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.st-avg-high {
+  color: #2e7d32;
+  background-color: #e8f5e9;
+}
+
+.st-avg-low {
+  color: #c62828;
+  background-color: #ffebee;
+}
+
+.st-avg-null {
+  color: #757575;
+}
+
+.st-absences-count {
+  font-weight: 500;
+  color: #455a64;
+  background-color: #f1f3f4;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
 }
 
 @media (max-width: 980px) {

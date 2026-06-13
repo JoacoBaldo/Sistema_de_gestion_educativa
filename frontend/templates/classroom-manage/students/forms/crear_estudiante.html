@@ -1,52 +1,56 @@
-<div id="st-student-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="st-student-modal-title">
-    <div class="glass-card">
-      
-      <div class="glass-header">
-        <h3 id="st-student-modal-title">✨ Registrar Nuevo Estudiante</h3>
-        <button type="button" class="btn-close-custom" id="st-student-close" aria-label="Cerrar">✕</button>
-      </div>
-      <p class="subtitle">Ingresa los datos del alumno para darlo de alta en el sistema y asignarlo a este curso.</p>
-  
-      <form id="formEstudiante" method="POST" action="{{ url_for('procesar_crear_estudiante', classroom_id=classroom_id) }}" novalidate>
-        
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="form-label" for="st_nombre">👤 Nombre <span class="text-danger">*</span></label>
-            <input type="text" id="st_nombre" name="nombre" class="glass-input" placeholder="Ej: Alan" required>
-          </div>
-          <div class="col-6">
-            <label class="form-label" for="st_apellido">👤 Apellido <span class="text-danger">*</span></label>
-            <input type="text" id="st_apellido" name="apellido" class="glass-input" placeholder="Ej: Turing" required>
-          </div>
-        </div>
-  
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="form-label" for="st_padron">🪪 Padrón / ID <span class="text-danger">*</span></label>
-            <input type="text" id="st_padron" name="padron" class="glass-input" placeholder="Ej: 102456" required>
-          </div>
-          <div class="col-6">
-            <label class="form-label" for="st_email">📧 Correo Electrónico <span class="text-danger">*</span></label>
-            <input type="email" id="st_email" name="email" class="glass-input" placeholder="ejemplo@fi.uba.ar" required>
-          </div>
-        </div>
+<div id="st-student-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+  aria-labelledby="st-student-modal-title">
+  <div class="glass-card">
 
-        <div class="row mb-3">
-          <div class="col-12">
-            <label class="form-label" for="st_career">🎓 Carrera <span class="text-danger">*</span></label>
-            <input type="text" id="st_career" name="career" class="glass-input" placeholder="Ej: Ingeniería en Informática" required>
-          </div>
-        </div>
-  
-        <p class="glass-field-hint">Nota: El número de padrón se asignará como contraseña temporal para el primer inicio de sesión del estudiante.</p>
-  
-        <div class="action-buttons">
-          <button type="button" class="btn-cancelar" id="st-student-cancel-btn">Cancelar</button>
-          <button type="submit" class="btn-crear" id="btnGuardarEstudiante">Registrar Estudiante</button>
-        </div>
-  
-        <div id="st-student-toast" class="glass-toast hidden" role="status" aria-live="polite"></div>
-      </form>
-  
+    <div class="glass-header">
+      <h3 id="st-student-modal-title">✨ Registrar Nuevo Estudiante</h3>
+      <button type="button" class="btn-close-custom" id="st-student-close" aria-label="Cerrar">✕</button>
     </div>
+    <p class="subtitle">Ingresa los datos del alumno para darlo de alta en el sistema y asignarlo a este curso.</p>
+
+    <form id="formEstudiante" method="POST"
+      action="{{ url_for('procesar_crear_estudiante', classroom_id=classroom_id) }}" novalidate>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label" for="st_nombre">👤 Nombre <span class="text-danger">*</span></label>
+          <input type="text" id="st_nombre" name="nombre" class="glass-input" placeholder="Ej: Alan" required>
+        </div>
+        <div class="col-6">
+          <label class="form-label" for="st_apellido">👤 Apellido <span class="text-danger">*</span></label>
+          <input type="text" id="st_apellido" name="apellido" class="glass-input" placeholder="Ej: Turing" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label" for="st_padron">🪪 Documento <span class="text-danger">*</span></label>
+          <input type="text" id="st_padron" name="padron" class="glass-input" placeholder="Ej: 10245670" required>
+        </div>
+        <div class="col-6">
+          <label class="form-label" for="st_email">📧 Correo Electrónico <span class="text-danger">*</span></label>
+          <input type="email" id="st_email" name="email" class="glass-input" placeholder="ejemplo@fi.uba.ar" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-12">
+          <label class="form-label" for="st_career">🎓 Carrera <span class="text-danger">*</span></label>
+          <input type="text" id="st_career" name="career" class="glass-input"
+            placeholder="Ej: Ingeniería en Informática" required>
+        </div>
+      </div>
+
+      <p class="glass-field-hint">Nota: El número de documento se asignará como contraseña temporal para el primer
+        inicio de sesión del estudiante.</p>
+
+      <div class="action-buttons">
+        <button type="button" class="btn-cancelar" id="st-student-cancel-btn">Cancelar</button>
+        <button type="submit" class="btn-crear" id="btnGuardarEstudiante">Registrar Estudiante</button>
+      </div>
+
+      <div id="st-student-toast" class="glass-toast hidden" role="status" aria-live="polite"></div>
+    </form>
+
   </div>
+</div>

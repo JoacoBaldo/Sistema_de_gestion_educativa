@@ -506,14 +506,29 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
             return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
 
         filas_procesadas = []
+        # Validar estructura básica del CSV (Ahora soporta 'equipo')
+        tiene_identificador = any(col in reader.fieldnames for col in ['documento', 'email', 'equipo'])
+        if not tiene_identificador or 'nota' not in reader.fieldnames:
+            flash("Estructura CSV inválida. Debe contener la columna 'nota' y al menos 'documento', 'email' o 'equipo'.", "error")
+            return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations"))
+
+        if 'equipo' in reader.fieldnames:
+            tipo_id = 'equipo'
+        elif 'documento' in reader.fieldnames:
+            tipo_id = 'documento'
+        else:
+            tipo_id = 'email'
+
+        filas_procesadas = []
         for fila in reader:
-            identificador = fila.get('documento', fila.get('email', '')).strip()
+            identificador = fila.get(tipo_id, '').strip()
             nota_str = fila.get('nota', '').strip()
             
             if identificador and nota_str:
                 filas_procesadas.append({
                     "identifier": identificador,
-                    "score": float(nota_str.replace(',', '.')) 
+                    "score": float(nota_str.replace(',', '.')),
+                    "type": tipo_id  # Le pasamos a la DB qué tipo de dato es
                 })
 
         payload = {

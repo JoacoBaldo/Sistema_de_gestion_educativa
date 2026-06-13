@@ -163,6 +163,13 @@ def procesar_notas_masivas_db(classroom_id: int, evaluation_id: int, lista_notas
         LIMIT 1
     """
     
+    query_buscar_equipo = """
+        SELECT tu.user_id 
+        FROM teams t
+        JOIN team_members tu ON tu.team_id = t.id
+        WHERE t.classroom_id = %s AND t.name = %s
+    """
+    
     query_upsert_nota = """
         INSERT INTO grades (user_id, evaluation_id, score, created_at, updated_at)
         VALUES (%s, %s, %s, NOW(), NOW())
@@ -177,16 +184,28 @@ def procesar_notas_masivas_db(classroom_id: int, evaluation_id: int, lista_notas
             for item in lista_notas:
                 identificador = item['identifier']
                 nota = item['score']
+                tipo = item.get('type', 'documento')
                 
-                alumno = conn.exec_driver_sql(
-                    query_buscar_alumno, 
-                    (classroom_id, identificador, identificador)
-                ).fetchone()
-                
-                if alumno:
-                    user_id = alumno[0]
-                    conn.exec_driver_sql(query_upsert_nota, (user_id, evaluation_id, nota))
-                    inserted_count += 1
+                if tipo == 'equipo':
+                    integrantes = conn.exec_driver_sql(
+                        query_buscar_equipo, 
+                        (classroom_id, identificador)
+                    ).fetchall()
+                    
+                    for integrante in integrantes:
+                        user_id = integrante[0]
+                        conn.exec_driver_sql(query_upsert_nota, (user_id, evaluation_id, nota))
+                        inserted_count += 1
+                else:
+                    alumno = conn.exec_driver_sql(
+                        query_buscar_alumno, 
+                        (classroom_id, identificador, identificador)
+                    ).fetchone()
+                    
+                    if alumno:
+                        user_id = alumno[0]
+                        conn.exec_driver_sql(query_upsert_nota, (user_id, evaluation_id, nota))
+                        inserted_count += 1
             
             transaccion.commit()
             return {"inserted": inserted_count, "error": None}
