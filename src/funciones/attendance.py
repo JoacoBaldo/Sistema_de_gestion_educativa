@@ -1,12 +1,28 @@
+import base64
+import io
+import os
+
+import qrcode
+import requests
+
 from src.db import attendance as db_attendance
 from src.db import classroom as db_classroom
 
-from .errores import SIN_ACCESO
+from .errores import (
+    CLASSROOM_NO_EXISTE,
+    CODIGO_INVALIDO,
+    CODIGO_NO_CORRESPONDE,
+    ERROR_ENVIO_MAIL,
+    SIN_ACCESO,
+    SIN_ESTUDIANTES,
+)
 from datetime import datetime
 from src.db.attendance import (
+    crear_codigos_por_alumno,
     crear_evento_asistencia,
     inasistencia_db,
     obtener_estudiantes_classroom,
+    obtener_estudiantes_classroom_con_email,
     obtener_evento_por_codigo,
 )
 from src.db.classroom import existe_classroom
@@ -46,45 +62,110 @@ def sumar_inasistencia(
     fecha: datetime | None = None,
     delta: int = 1,
     usuario_id: int | None = None,
-):
+) -> tuple:
     if fecha is None:
         fecha = datetime.now()
+
     if not existe_classroom(classroom_id):
-        return {"error": "El aula no existe"}, 404
+        return None, CLASSROOM_NO_EXISTE
 
-    if usuario_id and not db_classroom.puede_administrar_classroom(
-        classroom_id, usuario_id
-    ):
-        return {"error": "Sin acceso a este aula"}, 403
+    if usuario_id and not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+        return None, SIN_ACCESO
 
-    nuevo_evento_id = crear_evento_asistencia(
-        classroom_id, "QR_CODE_PLACEHOLDER", fecha
-    )
-    estudiantes_id = obtener_estudiantes_classroom(classroom_id)
-    for student_id in estudiantes_id:
+    nuevo_evento_id = crear_evento_asistencia(classroom_id, "QR_CODE_PLACEHOLDER", fecha)
+    for student_id in obtener_estudiantes_classroom(classroom_id):
         inasistencia_db(student_id, nuevo_evento_id, fecha, delta=delta)
 
-    return {"mensaje": "Inasistencia actualizada correctamente"}, 200
+    return {"mensaje": "Inasistencia actualizada correctamente"}, None
 
 
-def validar_asistencia(classroom_id: int, code: str, usuario_id: int):
-    # 1. Validamos si el código corresponde a un evento real de esa aula
-    evento = obtener_evento_por_codigo(classroom_id, code)
-    if not evento:
-        return {"error": "El código de asistencia es inválido o ya expiró"}, 400
+def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
+    base_url = os.environ.get("BASE_URL", "http://127.0.0.1:5001")
+    link = f"{base_url}/aulas/{classroom_id}/asistencia/validar?code={code}"
+
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(link)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    qr_b64 = base64.b64encode(buffer.getvalue()).decode()
+
+    api_key = os.environ.get("SMTP_PASSWORD")
+    remitente = os.environ.get("EMAIL_REMITENTE")
+
+    payload = {
+        "sender": {"name": "uniManage Soporte", "email": remitente},
+        "to": [{"email": destinatario}],
+        "subject": "Código de asistencia - uniManage",
+        "textContent": (
+            f"Hola,\n\nAdjuntamos tu código QR personal de asistencia.\n"
+            f"También podés acceder directamente desde este enlace:\n{link}\n\n"
+            f"Código: {code}"
+        ),
+        "attachment": [{"name": "qr_asistencia.png", "content": qr_b64}],
+    }
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "api-key": api_key,
+    }
 
     try:
-        from datetime import datetime
-        fecha_actual = datetime.now()
-        
-        inasistencia_db(
-            student_id=usuario_id, 
-            attendance_event_id=evento["id"], 
-            fecha=fecha_actual, 
-            delta=-1
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email", json=payload, headers=headers
         )
-        
-        return {"mensaje": "Asistencia registrada con éxito"}, 200
+        if response.status_code == 201:
+            return {"message": "Correo enviado"}, None
+        return None, ERROR_ENVIO_MAIL
+    except Exception:
+        return None, ERROR_ENVIO_MAIL
 
-    except Exception as e:
-        return {"error": f"Error interno del servidor al registrar: {str(e)}"}, 500
+
+def enviar_qr_a_estudiantes(classroom_id: int, usuario_id: int) -> tuple:
+    if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+        return None, SIN_ACCESO
+
+    estudiantes = obtener_estudiantes_classroom_con_email(classroom_id)
+    if not estudiantes:
+        return None, SIN_ESTUDIANTES
+
+    fecha = datetime.now()
+    evento_id = crear_evento_asistencia(classroom_id, "MULTI_QR", fecha)
+
+    student_ids = [e["user_id"] for e in estudiantes]
+    for student_id in student_ids:
+        inasistencia_db(student_id, evento_id, fecha, delta=1)
+
+    codigos = crear_codigos_por_alumno(evento_id, student_ids)
+
+    enviados = 0
+    fallidos = []
+    for estudiante in estudiantes:
+        _, error = _enviar_mail_qr(
+            estudiante["email"], classroom_id, codigos[estudiante["user_id"]]
+        )
+        if error:
+            fallidos.append(estudiante["email"])
+        else:
+            enviados += 1
+
+    return {"enviados": enviados, "fallidos": fallidos}, None
+
+
+def validar_asistencia(classroom_id: int, code: str, usuario_id: int) -> tuple:
+    evento = obtener_evento_por_codigo(classroom_id, code)
+    if not evento:
+        return None, CODIGO_INVALIDO
+
+    if evento["user_id"] != usuario_id:
+        return None, CODIGO_NO_CORRESPONDE
+
+    inasistencia_db(
+        student_id=usuario_id,
+        attendance_event_id=evento["id"],
+        fecha=datetime.now(),
+        delta=-1,
+    )
+    return {"mensaje": "Asistencia registrada con éxito"}, None

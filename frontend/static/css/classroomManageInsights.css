@@ -297,6 +297,10 @@
   background: rgba(124, 58, 237, 0.1);
 }
 
+.cmr-stat-box--red {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .cmr-stat-box__icon {
   width: 40px;
   height: 40px;

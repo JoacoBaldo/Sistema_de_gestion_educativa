@@ -29,3 +29,8 @@ gunicorn==21.2.0
 
 # PDF Generation
 reportlab==4.2.5
+
+# QR Code Generation
+qrcode==8.2
+Pillow==10.3.0
+requests==2.31.0
