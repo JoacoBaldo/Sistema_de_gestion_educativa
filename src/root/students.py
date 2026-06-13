@@ -2,9 +2,9 @@ from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
 from src.funciones.classroom import obtener_alumnos_classroom
-from src.funciones.errores import ARCHIVO_NO_ENVIADO, ARCHIVO_VACIO
-from src.funciones.students import cargar_estudiantes_csv
-
+from src.funciones.errores import ARCHIVO_NO_ENVIADO, ARCHIVO_VACIO, PADRON_INVALIDO
+from src.funciones.students import cargar_estudiantes_csv, agregar_estudiante_existente_classroom
+from src.db import classroom as db_classroom
 from .utils import extraer_token, responder_error
 
 students_bp = Blueprint("students", __name__)
@@ -65,3 +65,36 @@ def listar_alumnos_paginados(classroom_id):
             "datos": alumnos_paginados,
         }
     ), 200
+
+@students_bp.route(
+    "/api/v1/classrooms/<int:classroom_id>/students/add", methods=["POST"]
+)
+def agregar_estudiante_existente(classroom_id):
+
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+    
+    data = request.get_json(silent=True) or {}
+    student_id = data.get("student_id")
+    email = data.get("email")
+    
+    if isinstance(email, str):
+        email = email.strip() or None
+
+    if student_id and isinstance(student_id, str):
+        try:
+            student_id = int(student_id)
+        except ValueError:
+            return responder_error(PADRON_INVALIDO)
+    
+    resultado, error = agregar_estudiante_existente_classroom(
+        classroom_id, student_id=student_id, email=email
+    )
+    
+    if error:
+        return responder_error(error)
+    
+    return jsonify(resultado), 201
+    

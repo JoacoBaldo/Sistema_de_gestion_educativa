@@ -12,6 +12,7 @@ from flask import (
     request,
     send_file,
     session,
+    jsonify,
     url_for,
 )
 
@@ -538,25 +539,39 @@ def descargar_metricas_pdf(classroom_id):
         download_name=f"metricas_classroom_{classroom_id}.pdf",
     )
 
-@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/crear", methods=["POST"])
-def procesar_crear_estudiante(classroom_id):
+@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/add", methods=["POST"])
+def agregar_estudiante_existente(classroom_id):
     usuario, redireccion = requiere_login()
-    if redireccion: return redireccion
+    if redireccion:
+        return redireccion
+
+    student_id_raw = (request.form.get("student_id") or "").strip()
+    student_id = None
+    if student_id_raw:
+        try:
+            student_id = int(student_id_raw)
+        except ValueError:
+            flash("El ID debe ser un número entero.", "error")
+            return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
 
     payload = {
-        "nombre": request.form.get("nombre"),
-        "apellido": request.form.get("apellido"),
-        "padron": request.form.get("padron"),
-        "email": request.form.get("email"),
+        "student_id": student_id,
+        "email": (request.form.get("email") or "").strip() or None,
     }
 
-    res, error = consumir_api("POST", f"/api/v1/classrooms/{classroom_id}/alumnos", json_data=payload)
-    
-    if error or (res and type(res) is dict and res.get("error")):
-        error_msg = error.get('error') if isinstance(error, dict) else (res.get('error') if isinstance(res, dict) else error)
-        flash(f"Error al vincular el estudiante: {error_msg}", "error")
+    res, error = consumir_api(
+        "POST",
+        f"/api/v1/classrooms/{classroom_id}/students/add",
+        json_data=payload,
+    )
+
+    if error:
+        flash(
+            error.get("error", "No se pudo agregar el estudiante. Verifica los datos ingresados."),
+            "error"
+        )
     else:
-        flash("Estudiante creado y asignado con éxito.", "success")
+        flash(res.get("mensaje", "Estudiante agregado al aula correctamente."), "success")
 
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
 
@@ -665,12 +680,6 @@ def eliminar_recurso_biblioteca(classroom_id, resource_id):
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="library")
     )
-
-
-
-# ===================================================================
-# RUTAS DE EQUIPOS (TEAMS)
-# ===================================================================
 
 @app.route("/aulas/<int:classroom_id>/gestionar/equipos/crear", methods=["POST"])
 def crear_equipo_aula(classroom_id):

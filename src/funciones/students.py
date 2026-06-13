@@ -3,12 +3,11 @@ import logging
 from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
 from src.db.constantes import ESTUDIANTE
 from src.db.students import (
-    crear_student_profile,
     obtener_o_crear_carrera,
     obtener_user_id_por_email,
 )
-from src.funciones.errores import EMAIL_YA_EXISTE
-from src.funciones.user import create_user
+from src.funciones.errores import EMAIL_YA_EXISTE, ERROR_AGREGAR_ESTUDIANTE, ESTUDIANTE_NO_EXISTE, REQUIERE_EMAIL_O_ID, USUARIO_YA_EN_CLASSROOM, ERROR_PROCESAMIENTO_CSV
+from src.funciones.user import create_user, usuario_existe
 
 
 def parsear_csv(contenido_texto: str) -> list[dict]:
@@ -83,3 +82,34 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
         "cantidad_asociados": classroom_id and asociados,
         "errores": errores,
     }, None
+
+
+def agregar_estudiante_existente_classroom(
+    classroom_id: int, student_id: int = None, email: str = None
+) -> tuple:
+    
+    if not student_id and not email:
+        return None, REQUIERE_EMAIL_O_ID
+    
+    if email:
+        student_id = obtener_user_id_por_email(email)
+        if not student_id:
+            return None, ESTUDIANTE_NO_EXISTE
+    elif student_id:
+        usuario, error = usuario_existe(student_id)
+        if error:
+            return None, ESTUDIANTE_NO_EXISTE
+    
+    if usuario_en_classroom(classroom_id, student_id):
+        return None, USUARIO_YA_EN_CLASSROOM
+    
+    try:
+        agregar_usuario_classroom(classroom_id, student_id, ESTUDIANTE)
+        return {
+            "status": 201,
+            "mensaje": "Estudiante agregado al classroom exitosamente",
+        }, None
+    except Exception as e:
+        logging.error("Error al agregar estudiante al classroom: %s", e)
+        return None, ERROR_AGREGAR_ESTUDIANTE
+

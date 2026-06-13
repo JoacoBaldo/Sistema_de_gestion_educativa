@@ -31,12 +31,11 @@ def obtener_o_crear_carrera(name: str) -> int:
         career_id = conn.exec_driver_sql("SELECT LAST_INSERT_ID()").fetchone()[0]
     return career_id
 
-
-def crear_student_profile(user_id: int, document: str, career_id: int) -> None:
+def agregar_usuario_classroom(classroom_id: int, user_id: int, role_id: int) -> None:
     engine = obtener_conexion()
     with engine.connect() as conn:
         conn.exec_driver_sql(
-            "INSERT INTO student_profiles (user_id, document, career_id) VALUES (%s, %s, %s)",
-            (user_id, document, career_id),
+            "INSERT INTO classroom_users (classroom_id, user_id, role_id) VALUES (%s, %s, %s)",
+            (classroom_id, user_id, role_id),
         )
         conn.commit()

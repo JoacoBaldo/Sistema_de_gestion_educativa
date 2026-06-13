@@ -101,3 +101,11 @@ SESION_INVALIDA = {"error": "Sesión inválida. Vuelve a iniciar sesión.", "sta
 MIEMBROS_REQUERIDO = {"error": "Al menos un miembro es requerido", "status": 400}
 CLASSROOM_NO_ESPECIFICADO = {"error": "Classroom no especificado", "status": 400}
 EQUIPO_NO_CREADO = {"error": "No se pudo crear el equipo", "status": 500}
+DATOS_ESTUDIANTE_REQUERIDOS = {
+    "error": "nombre, apellido y padron son requeridos",
+    "status": 400,
+}
+PADRON_INVALIDO = {"error": "El padrón debe ser un número entero", "status": 400}
+ERROR_AGREGAR_ESTUDIANTE = {"error": "Error al agregar el estudiante al classroom", "status": 500}
+REQUIERE_EMAIL_O_ID = {"error": "Se requiere student_id o email", "status": 400}
+ESTUDIANTE_NO_EXISTE = {"error": "El estudiante especificado no existe", "status": 404}
