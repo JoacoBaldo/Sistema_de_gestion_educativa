@@ -66,10 +66,14 @@ def sumar_inasistencia(
     if not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
 
-    if usuario_id and not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+    if usuario_id and not db_classroom.puede_administrar_classroom(
+        classroom_id, usuario_id
+    ):
         return None, SIN_ACCESO
 
-    nuevo_evento_id = crear_evento_asistencia(classroom_id, "QR_CODE_PLACEHOLDER", fecha)
+    nuevo_evento_id = crear_evento_asistencia(
+        classroom_id, "QR_CODE_PLACEHOLDER", fecha
+    )
     for student_id in obtener_estudiantes_classroom(classroom_id):
         inasistencia_db(student_id, nuevo_evento_id, fecha, delta=delta)
 

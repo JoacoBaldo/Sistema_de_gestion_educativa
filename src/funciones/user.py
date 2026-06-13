@@ -40,13 +40,13 @@ def send_password_mail(destinatario: str) -> tuple:
     usuario = obtener_usuario_por_email(destinatario)
     if not usuario:
         return None, USUARIO_NO_ENCONTRADO
-    
+
     user_id = usuario.get("id")
     email = usuario.get("email")
-    
+
     if not user_id or not email:
         return None, USUARIO_NO_ENCONTRADO
-    
+
     token = crear_token_reset_password(int(user_id), str(email))
     api_key = os.environ.get("BREVO_API_PASSWORD")
     remitente = os.environ.get("EMAIL_REMITENTE")

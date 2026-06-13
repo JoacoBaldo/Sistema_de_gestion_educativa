@@ -717,10 +717,17 @@ def enviar_qr_asistencia(classroom_id):
 
     code = request.form.get("code", "").strip()
     if not code:
-        flash("No se pudo obtener el código QR actual. Generá uno nuevo e intentá de nuevo.", "error")
-        return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="asistance"))
+        flash(
+            "No se pudo obtener el código QR actual. Generá uno nuevo e intentá de nuevo.",
+            "error",
+        )
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="asistance")
+        )
 
-    res, error = consumir_api("POST", f"/api/v1/attendance/{classroom_id}/qr", json_data={"code": code})
+    res, error = consumir_api(
+        "POST", f"/api/v1/attendance/{classroom_id}/qr", json_data={"code": code}
+    )
 
     if error:
         flash(error.get("error", "No se pudieron enviar los QRs"), "error")
