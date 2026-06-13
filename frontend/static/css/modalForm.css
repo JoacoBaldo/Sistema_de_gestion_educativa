@@ -254,6 +254,52 @@
   font-size: 0.9rem;
 }
 
+/* ─── Slider de períodos académicos ─── */
+.glass-modal .glass-period-slider {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.35rem 0.15rem;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.glass-modal .glass-period-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.glass-modal .glass-period-slider::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.glass-modal .glass-period-pill {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.glass-modal .glass-period-pill:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.glass-modal .glass-period-pill.is-active {
+  background: rgba(255, 255, 255, 0.92);
+  color: #4c1d95;
+  border-color: rgba(255, 255, 255, 0.92);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
 /* ─── Toggle, acciones y feedback ─── */
 .glass-modal .glass-form-row--toggle {
   display: flex;
@@ -279,7 +325,6 @@
 }
 
 .glass-modal .btn-cancelar {
-  flex: 1;
   background: rgba(255, 255, 255, 0.7);
   color: #333;
   border: none;

@@ -1,13 +1,20 @@
 <section class="st-page" aria-label="Centro de gestión de estudiantes">
     <header class="st-header">
         <div>
+            {% if session.get('user', {}).get('role_id') != 3 %}
             <h1 class="st-title">Centro de gestión de estudiantes</h1>
             <p class="st-subtitle">Administra registros, estado y matrícula de estudiantes</p>
+            {% else %}
+            <h1 class="st-title">Estudiantes</h1>
+            <p class="st-subtitle">Listado de estudiantes inscriptos en esta aula</p>
+            {% endif %}
         </div>
         <div class="st-actions">
+            {% if session.get('user', {}).get('role_id') != 3 %}
             <button class="st-btn st-btn-primary" type="button" id="st-add-btn">
                 + Añadir estudiante
             </button>
+            {% endif %}
         </div>
     </header>
 
@@ -15,9 +22,8 @@
         <div class="st-search">
             <span class="st-search-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-                        stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round" />
                     <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
                 </svg>
             </span>
@@ -44,8 +50,10 @@
         </div>
     </div>
 
+    {% if session.get('user', {}).get('role_id') != 3 %}
     <section class="st-import" aria-label="Importar estudiantes desde CSV">
-        <form method="POST" action="{{ url_for('cargar_csv_estudiantes', classroom_id=classroom_id) }}" enctype="multipart/form-data" id="st-csv-form">
+        <form method="POST" action="{{ url_for('cargar_csv_estudiantes', classroom_id=classroom_id) }}"
+            enctype="multipart/form-data" id="st-csv-form">
             <div class="st-dropzone" id="st-dropzone" tabindex="0" role="button"
                 aria-label="Arrastra y suelta un archivo CSV o haz clic para seleccionar">
                 <div class="st-dropzone-icon" aria-hidden="true">
@@ -53,10 +61,8 @@
                         <path d="M12 16V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                         <path d="M7 8l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                             stroke-linejoin="round" />
-                        <path
-                            d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
-                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                            stroke-linejoin="round" opacity="0.75" />
+                        <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.4"
+                            stroke-linecap="round" stroke-linejoin="round" opacity="0.75" />
                     </svg>
                 </div>
                 <div class="st-dropzone-text">
@@ -68,6 +74,7 @@
             </div>
         </form>
     </section>
+    {% endif %}
 
     <section class="st-table-card" aria-label="Listado de estudiantes">
         <table class="st-table">
@@ -78,7 +85,11 @@
                     <th>Padrón/ID</th>
                     <th class="st-col-email">Email</th>
                     <th>Estado</th>
+                    <th>Promedio</th>
+                    <th>Inasistencias</th>
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <th class="st-col-actions">Acciones</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody id="st-tbody">
@@ -88,7 +99,9 @@
                 {% set apellido = partes[1] if partes|length > 1 else '' %}
                 {% set activo = alumno.status_type_id != 2 %}
                 <tr data-padron="{{ alumno.id }}" data-nombre="{{ nombre }}" data-apellido="{{ apellido }}"
-                    data-email="{{ alumno.email }}" data-status="{{ 'active' if activo else 'abandoned' }}" data-team="">
+                    data-email="{{ alumno.email }}" data-status="{{ 'active' if activo else 'abandoned' }}" data-team=""
+                    data-user-id="{{ alumno.id }}" data-username="{{ alumno.username }}"
+                    data-document="{{ alumno.document or '' }}" data-career="{{ alumno.career or '' }}">
                     <td>{{ nombre }}</td>
                     <td>{{ apellido }}</td>
                     <td>{{ alumno.id }}</td>
@@ -100,22 +113,61 @@
                         <span class="st-badge st-badge-dropped">Abandono</span>
                         {% endif %}
                     </td>
+
+                    <td>
+                        {% if alumno.promedio is not none and alumno.promedio != '-' %}
+                        {% if alumno.promedio >= 4 %}
+                        <span class="st-badge st-badge-active">{{ "%.2f"|format(alumno.promedio) }}</span>
+                        {% else %}
+                        <span class="st-badge st-badge-dropped">{{ "%.2f"|format(alumno.promedio) }}</span>
+                        {% endif %}
+                        {% else %}
+                        <span class="st-badge">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="st-absences-count">{{ alumno.inasistencias }}</span>
+                    </td>
+
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <td class="st-col-actions">
-                        <form method="POST" action="{{ url_for('eliminar_usuario_aula', classroom_id=classroom_id, user_id=alumno.id) }}" style="display:inline;">
+                        <button type="button" class="st-action-btn st-action-btn-edit js-edit-student"
+                            aria-label="Editar estudiante">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="15"
+                                height="15">
+                                <path
+                                    d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+                            </svg>
+                        </button>
+                        <form method="POST"
+                            action="{{ url_for('eliminar_usuario_aula', classroom_id=classroom_id, user_id=alumno.id) }}"
+                            style="display:inline;">
                             <input type="hidden" name="vista" value="students">
-                            <button type="submit" class="st-btn st-btn-ghost" onclick="return confirm('¿Quitar a este estudiante del aula?');">Quitar</button>
+                            <button type="submit" class="st-action-btn st-action-btn-delete"
+                                aria-label="Quitar estudiante"
+                                onclick="return confirm('¿Quitar a este estudiante del aula?');">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                    width="15" height="15">
+                                    <path fill-rule="evenodd"
+                                        d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
                         </form>
                     </td>
+                    {% endif %}
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6">No hay estudiantes inscriptos en esta aula.</td>
+                    <td colspan="8">No hay estudiantes inscriptos en esta aula.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </section>
     {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
+    {% include 'classroom-manage/students/forms/editar_estudiante.html' %}
 
     <script type="module" src="{{ url_for('static', filename='js/studentsModal.js') }}"></script>
 </section>

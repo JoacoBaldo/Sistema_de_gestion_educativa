@@ -2,6 +2,7 @@ TOKEN_INVALIDO = {"error": "Token inválido o expirado", "status": 401}
 SIN_ACCESO = {"error": "No tiene acceso a este classroom", "status": 403}
 NO_ES_ADMIN = {"error": "Se requiere rol Admin", "status": 403}
 USUARIO_NO_EXISTE = {"error": "Usuario no existe en el classroom", "status": 404}
+USUARIO_NO_ENCONTRADO = {"error": "Usuario no encontrado", "status": 404}
 
 EMAIL_NO_EXISTE = {
     "error": "El email ingresado no esta en la base de datos",
@@ -29,6 +30,14 @@ AULA_NO_VALIDA = {
     "status": 400,
 }
 CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
+
+CODIGO_REQUERIDO = {"error": "El código de asistencia es requerido", "status": 400}
+CODIGO_INVALIDO = {
+    "error": "El código de asistencia es inválido o ya expiró",
+    "status": 400,
+}
+DELTA_INVALIDO = {"error": "El campo 'delta' debe ser un entero", "status": 400}
+DELTA_CERO = {"error": "El campo 'delta' no puede ser 0", "status": 400}
 
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {
@@ -75,6 +84,10 @@ ERROR_ENVIO_MAIL = {
     "error": "Hubo un problema interno al intentar enviar el correo",
     "status": 500,
 }
+SIN_ESTUDIANTES = {
+    "error": "No hay estudiantes en el aula",
+    "status": 400,
+}
 SCHEDULE_REQUERIDO = {
     "error": "class_day (int), class_start, class_end y academic_period_id son requeridos",
     "status": 400,
@@ -99,7 +112,24 @@ ARCHIVO_NO_ENVIADO = {
 ARCHIVO_VACIO = {"error": "El nombre del archivo está vacío", "status": 400}
 ERROR_PROCESAMIENTO_CSV = {"error": "Error al procesar el archivo CSV", "status": 500}
 EVALUACION_NO_EXISTE = {"error": "La evaluación especificada no existe", "status": 404}
+EVALUATION_ID_REQUERIDO = {"error": "evaluation_id es requerido", "status": 400}
 SESION_INVALIDA = {"error": "Sesión inválida. Vuelve a iniciar sesión.", "status": 401}
 MIEMBROS_REQUERIDO = {"error": "Al menos un miembro es requerido", "status": 400}
 CLASSROOM_NO_ESPECIFICADO = {"error": "Classroom no especificado", "status": 400}
 EQUIPO_NO_CREADO = {"error": "No se pudo crear el equipo", "status": 500}
+DATOS_ESTUDIANTE_REQUERIDOS = {
+    "error": "username, email, document y career son requeridos",
+    "status": 400,
+}
+SIN_PERMISO_CREAR_ALUMNO = {
+    "error": "Solo PROFESOR, AYUDANTE o ADMINISTRADOR pueden agregar alumnos",
+    "status": 403,
+}
+SIN_PERMISO_EDITAR_ALUMNO = {
+    "error": "Solo PROFESOR, AYUDANTE o ADMINISTRADOR pueden editar alumnos",
+    "status": 403,
+}
+ESTUDIANTE_NO_EN_CLASSROOM = {
+    "error": "El usuario no es un estudiante de este classroom",
+    "status": 404,
+}

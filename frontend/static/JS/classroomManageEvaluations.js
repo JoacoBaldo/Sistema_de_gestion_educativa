@@ -52,14 +52,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!editForm || !editModal || !classroomId) return;
     const evaluationId = btn.dataset.id;
     editForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/actualizar`;
+    const deleteBtn = document.getElementById("ev-edit-delete-btn");
+    if (deleteBtn) {
+      deleteBtn.onclick = null;
+
+      deleteBtn.onclick = function (e) {
+        e.preventDefault();
+        if (confirm("¿Estás seguro de que querés eliminar esta evaluación de forma permanente?")) {
+          editForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/eliminar`;
+          editForm.submit();
+        }
+      };
+    }
+
+
     document.getElementById("ev-edit-name").value = btn.dataset.nombre || "";
     document.getElementById("ev-edit-type").value = btn.dataset.tipo || "parcial";
     document.getElementById("ev-edit-individual").checked = btn.dataset.individual === "1";
+
     editModal.classList.remove("hidden");
   }
 
   grid?.addEventListener("click", (event) => {
-    const editBtn = event.target.closest(".ev-card__edit-btn");
+    const editBtn = event.target.closest(".ev-edit-btn");
     if (!editBtn) return;
     event.preventDefault();
     openEditModal(editBtn);
@@ -76,4 +91,44 @@ document.addEventListener("DOMContentLoaded", () => {
   dateSort?.addEventListener("change", applyFiltersAndSort);
 
   applyFiltersAndSort();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const gradesModal = document.getElementById("ev-grades-modal");
+  const targetNameSpan = document.getElementById("ev-grades-target-name");
+  const gradesForm = document.getElementById("ev-grades-form");
+  const csvInput = document.getElementById("ev-csv-input");
+  const csvFilename = document.getElementById("ev-csv-filename");
+  const closeBtn = document.getElementById("ev-grades-close");
+  const cancelBtn = document.getElementById("ev-grades-cancel");
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".ev-add-grades-btn");
+    if (!btn) return;
+
+    e.preventDefault();
+    const evaluationId = btn.dataset.id;
+    const evaluationName = btn.dataset.nombre;
+
+    const urlParts = window.location.pathname.split('/');
+    const classroomId = urlParts[urlParts.indexOf('aulas') + 1];
+
+    targetNameSpan.textContent = evaluationName;
+    gradesForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/subir-notas`;
+
+    csvInput.value = "";
+    csvFilename.textContent = "Formato requerido: columna 'documento' o 'email' y columna 'nota'";
+    gradesModal.classList.remove("hidden");
+  });
+
+  csvInput?.addEventListener("change", () => {
+    if (csvInput.files.length > 0) {
+      csvFilename.textContent = `Archivo cargado: ${csvInput.files[0].name}`;
+      csvFilename.style.color = "#10b981";
+    }
+  });
+
+  const closeModal = () => gradesModal.classList.add("hidden");
+  closeBtn?.addEventListener("click", closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
 });

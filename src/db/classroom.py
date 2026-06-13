@@ -56,6 +56,20 @@ def puede_administrar_classroom(classroom_id: int, usuario_id: int) -> bool:
     return resultado is not None
 
 
+def puede_gestionar_alumnos(classroom_id: int, usuario_id: int) -> bool:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            """
+            SELECT 1 FROM classroom_users
+            WHERE classroom_id = %s AND user_id = %s AND role_id != %s
+            LIMIT 1
+            """,
+            (classroom_id, usuario_id, ESTUDIANTE),
+        ).fetchone()
+    return resultado is not None
+
+
 def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -241,11 +255,15 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                     c.name,
                     c.department,
                     c.university,
+                    cu.role_id,
                     cs.id AS schedule_id,
                     cs.class_day,
                     cs.class_start,
                     cs.class_end,
-                    cs.academic_period_id
+                    cs.academic_period_id,
+                    (SELECT COUNT(*) 
+                     FROM classroom_users cu2 
+                     WHERE cu2.classroom_id = c.id AND cu2.role_id = 3) AS total_students
                 FROM classroom_users cu
                 JOIN classrooms c ON cu.classroom_id = c.id
                 LEFT JOIN class_schedule cs ON c.id = cs.classroom_id
@@ -263,6 +281,8 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
             "name": fila["name"],
             "department": fila["department"],
             "university": fila["university"],
+            "role_id": fila["role_id"],
+            "total_students": fila["total_students"],
             "schedule": {
                 "id": fila["schedule_id"],
                 "class_day": fila["class_day"],
@@ -282,8 +302,29 @@ def obtener_alumnos(classroom_id: int) -> list:
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT u.id, u.username, u.email, cu.status_type_id, cu.created_at,
-                   sp.document, c.name AS career_name
+            SELECT 
+                u.id, 
+                u.username, 
+                u.email, 
+                cu.status_type_id, 
+                cu.created_at,
+                sp.document, 
+                c.name AS career_name,
+                
+                (SELECT AVG(g.score) 
+                 FROM grades g 
+                 JOIN evaluations e ON g.evaluation_id = e.id
+                 WHERE g.user_id = u.id AND e.classroom_id = %s) AS promedio,
+                
+                -- 👇 ACÁ CORREGIMOS LA ASISTENCIA BASADO EN TU IMAGEN
+                (SELECT COUNT(*) 
+                 FROM attendance a 
+                 -- Unimos con la tabla del evento para saber el aula 
+                 JOIN attendance_events ae ON a.attendance_event_id = ae.id
+                 WHERE a.student_id = u.id 
+                 AND ae.classroom_id = %s 
+                 AND a.absence = 1) AS inasistencias
+                 
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
@@ -291,18 +332,20 @@ def obtener_alumnos(classroom_id: int) -> list:
             WHERE cu.classroom_id = %s AND cu.role_id = %s
             ORDER BY u.username
             """,
-            (classroom_id, ESTUDIANTE),
+            (classroom_id, classroom_id, classroom_id, ESTUDIANTE),
         ).fetchall()
 
     return [
         {
-            "id": f[0],
-            "username": f[1],
-            "email": f[2],
-            "status_type_id": f[3],
-            "created_at": f[4],
-            "document": f[5],
-            "career": f[6],
+            "id": fila[0],
+            "username": fila[1],
+            "email": fila[2],
+            "status_type_id": fila[3],
+            "created_at": fila[4],
+            "document": fila[5],
+            "career": fila[6],
+            "promedio": fila[7] if fila[7] is not None else "-",
+            "inasistencias": fila[8] if fila[8] is not None else 0,
         }
-        for f in resultados
+        for fila in resultados
     ]

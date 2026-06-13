@@ -8,37 +8,20 @@ def crear_equipo_con_miembros(
     nombre: str, miembros: list, classroom_id: int
 ) -> Optional[int]:
     """
-    Crea un nuevo equipo con miembros (nombres).
-    Retorna el ID del equipo creado o None si falla.
+    Crea un nuevo equipo y retorna el ID generado por MySQL de forma segura.
     """
     engine = obtener_conexion()
     with engine.connect() as conn:
-        conn.exec_driver_sql(
+        cursor = conn.exec_driver_sql(
             """
             INSERT INTO teams (name, classroom_id, created_at, updated_at)
-            VALUES (%s, %s, %s, %s)
+            VALUES (%s, %s, NOW(), NOW())
             """,
-            (
-                nombre,
-                classroom_id,
-                datetime.now(timezone.utc),
-                datetime.now(timezone.utc),
-            ),
+            (nombre, classroom_id),
         )
         conn.commit()
 
-        fila = conn.exec_driver_sql(
-            """
-            SELECT id FROM teams WHERE name = %s AND classroom_id = %s
-            ORDER BY created_at DESC LIMIT 1
-            """,
-            (nombre, classroom_id),
-        ).fetchone()
-
-        if fila is None:
-            return None
-
-        team_id = fila[0]
+        team_id = cursor.lastrowid
 
         return team_id
 
@@ -71,7 +54,7 @@ def listar_equipos_classroom(classroom_id: int) -> list[dict]:
                 "updated_at": fila[4],
                 "miembros": [],
             }
-        if fila[5]:  # sí existe un user id
+        if fila[5]:
             equipos_dict[team_id]["miembros"].append(
                 {
                     "id": fila[5],
@@ -80,6 +63,16 @@ def listar_equipos_classroom(classroom_id: int) -> list[dict]:
                 }
             )
     return list(equipos_dict.values())
+
+
+def obtener_ids_miembros(team_id: int) -> list[int]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        filas = conn.exec_driver_sql(
+            "SELECT user_id FROM team_members WHERE team_id = %s",
+            (team_id,),
+        ).fetchall()
+    return [fila[0] for fila in filas]
 
 
 def obtener_miembros_equipo(team_id: int) -> list[dict]:
@@ -169,6 +162,20 @@ def reemplazar_miembros(team_id: int, user_ids: list[int]):
                 VALUES (%s, %s)
                 """,
                 (team_id, user_id),
+            )
+        conn.commit()
+
+
+def crear_grades_equipo(evaluation_id: int, team_id: int, member_ids: list[int]):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        for user_id in member_ids:
+            conn.exec_driver_sql(
+                """
+                INSERT INTO grades (evaluation_id, user_id, team_id, score, feedback)
+                VALUES (%s, %s, %s, NULL, NULL)
+                """,
+                (evaluation_id, user_id, team_id),
             )
         conn.commit()
 

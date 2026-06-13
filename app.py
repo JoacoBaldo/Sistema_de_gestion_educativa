@@ -7,6 +7,7 @@ from src.root.classroom import classroom_bp
 from src.root.evaluations import evaluacion_bp
 from src.root.metrics import metrics_bp
 from src.root.resources import resources_bp
+from src.root.role_types import role_types_bp
 from src.root.students import students_bp
 from src.root.teams import teams_bp
 from src.root.user import user_bp
@@ -23,6 +24,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(attendance_bp)
 app.register_blueprint(metrics_bp)
 app.register_blueprint(resources_bp)
+app.register_blueprint(role_types_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

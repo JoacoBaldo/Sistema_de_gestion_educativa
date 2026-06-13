@@ -1,8 +1,10 @@
+import csv
 import io
 import os
-import sys
 from pathlib import Path
 from dotenv import load_dotenv
+import requests
+
 from flask import (
     Flask,
     flash,
@@ -13,49 +15,14 @@ from flask import (
     session,
     url_for,
 )
-from scripts.pdf_metricas import generar_pdf_metricas
-from src.db.classroom import agregar_usuario_classroom, usuario_en_classroom
-from src.db.constantes import ESTUDIANTE
-from src.db.students import (
-    crear_student_profile,
-    obtener_o_crear_carrera,
-    obtener_user_id_por_email,
-)
-from src.funciones.attendance import obtener_inasistencias_classroom
-from src.funciones.auth import crear_token, validar_credenciales, verificar_token
-from src.funciones.classroom import (
-    crear_nueva_classroom,
-    eliminar_usuario_classroom,
-    obtener_alumnos_classroom,
-    obtener_link_classroom,
-    obtener_lista_classrooms,
-    obtener_periodos_academicos,
-    obtener_profesores_classroom,
-)
-from src.funciones.evaluations import (
-    actualizar_evaluacion,
-    crear_evaluacion,
-    obtener_evaluaciones,
-)
-from src.funciones.metrics import obtener_metricas_classroom
-from src.funciones.resources import listar_recursos, subir_contenido_classroom
-from src.funciones.students import cargar_estudiantes_csv
-from src.funciones.teams import obtener_equipos_classroom
-from src.funciones.user import create_user, send_password_mail
-from src.root.resources import resources_bp
-from src.root.teams import teams_bp
 
 ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 load_dotenv(ROOT / ".env")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
 
-app.register_blueprint(teams_bp)
-app.register_blueprint(resources_bp)
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://127.0.0.1:5000")
 
 TOKEN_SESSION_KEY = "token"
 USER_SESSION_KEY = "user"
@@ -77,36 +44,80 @@ DIAS_A_NUMERO = {
     "Viernes": 4,
     "Sábado": 5,
 }
-
 DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
-EVALUATION_TYPE_IDS = {
-    "parcial": 1,
-    "tp": 2,
-    "recuperatorio": 3,
-    "parcialito": 4,
-}
-
+EVALUATION_TYPE_IDS = {"parcial": 1, "tp": 2, "recuperatorio": 3, "parcialito": 4}
 ROLE_LABELS = {1: "Profesor", 2: "Ayudante", 7: "Administrador"}
 
 
-def obtener_usuario_sesion():
+# -------------------------------------------------------------------
+# COMUNICACIÓN CON LA API
+# -------------------------------------------------------------------
+def consumir_api(metodo, endpoint, json_data=None, data=None, files=None, params=None):
+    url = f"{BACKEND_URL}{endpoint}"
+    headers = {}
+
     token = session.get(TOKEN_SESSION_KEY)
-    if not token:
-        return None
-    usuario, error = verificar_token(token)
-    if error:
-        limpiar_sesion()
-        return None
-    return usuario
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    try:
+        if metodo.upper() == "GET":
+            response = requests.get(url, headers=headers, params=params)
+        elif metodo.upper() == "POST":
+            response = requests.post(
+                url, headers=headers, json=json_data, data=data, files=files
+            )
+        elif metodo.upper() == "PUT":
+            response = requests.put(url, headers=headers, json=json_data, data=data)
+        elif metodo.upper() == "PATCH":
+            response = requests.patch(url, headers=headers, json=json_data, data=data)
+        elif metodo.upper() == "DELETE":
+            response = requests.delete(url, headers=headers, json=json_data)
+        else:
+            return None, {"error": "Método HTTP no soportado"}
+
+        if response.status_code == 401:
+            limpiar_sesion()
+            return None, {
+                "error": "Sesión expirada. Por favor, inicia sesión nuevamente."
+            }
+
+        content_type = response.headers.get("Content-Type", "")
+        if "application/pdf" in content_type:
+            if response.ok:
+                return response.content, None
+            return None, {"error": "Error al generar el archivo en el backend."}
+
+        try:
+            data_json = response.json()
+            if not response.ok:
+                error_msg = data_json.get("error", f"Error HTTP {response.status_code}")
+                return None, {"error": error_msg}
+            return data_json, None
+
+        except ValueError:
+            return None, {
+                "error": f"Error {response.status_code} del backend. Revisá la consola del puerto 5000."
+            }
+
+    except requests.exceptions.RequestException as e:
+        return None, {"error": f"Error de conexión con el servidor: {str(e)}"}
+
+
+# -------------------------------------------------------------------
+# FUNCIONES AUXILIARES
+# -------------------------------------------------------------------
+def obtener_usuario_sesion():
+    return session.get(USER_SESSION_KEY)
 
 
 def guardar_sesion(usuario, token):
     session[TOKEN_SESSION_KEY] = token
     session[USER_SESSION_KEY] = {
-        "id": usuario["id"],
-        "username": usuario["username"],
-        "email": usuario["email"],
+        "id": usuario.get("id"),
+        "username": usuario.get("username"),
+        "email": usuario.get("email"),
     }
 
 
@@ -135,41 +146,30 @@ def formatear_horarios_classroom(aula):
     filas = []
     horario = aula.get("schedule")
     if horario and horario.get("class_day") is not None:
-        dia = (
-            DIAS_NOMBRE[horario["class_day"]]
-            if horario["class_day"] < len(DIAS_NOMBRE)
-            else str(horario["class_day"])
-        )
-        inicio = horario.get("class_start") or ""
-        fin = horario.get("class_end") or ""
+        dia_idx = horario["class_day"]
+        dia = DIAS_NOMBRE[dia_idx] if dia_idx < len(DIAS_NOMBRE) else str(dia_idx)
+        inicio = horario.get("class_start", "")
+        fin = horario.get("class_end", "")
         if inicio or fin:
             filas.append(f"{dia} {inicio}-{fin}".strip())
     return filas
 
 
 def enriquecer_aulas(aulas):
+    if not isinstance(aulas, list):
+        return []
     resultado = []
     for indice, aula in enumerate(aulas):
-        resultado.append(
-            {
-                **aula,
-                "theme": THEMES[indice % len(THEMES)],
-                "schedules": formatear_horarios_classroom(aula),
-                "total_students": aula.get("total_students", 0),
-            }
-        )
+        if isinstance(aula, dict):
+            resultado.append(
+                {
+                    **aula,
+                    "theme": THEMES[indice % len(THEMES)],
+                    "schedules": formatear_horarios_classroom(aula),
+                    "total_students": aula.get("total_students", 0),
+                }
+            )
     return resultado
-
-
-def resolver_periodo_academico(fecha_inicio, fecha_fin, periodos):
-    if not periodos:
-        return None
-    for periodo in periodos:
-        inicio = str(periodo.get("start_date", ""))[:10]
-        fin = str(periodo.get("end_date", ""))[:10]
-        if fecha_inicio and fecha_fin and inicio <= fecha_inicio <= fin:
-            return periodo["id"]
-    return periodos[0]["id"]
 
 
 def datos_vista_gestion(classroom_id, usuario, vista):
@@ -180,68 +180,85 @@ def datos_vista_gestion(classroom_id, usuario, vista):
         "flash_messages": [],
     }
 
+    def extraer_lista(res, err):
+        if err or not res:
+            return []
+        if isinstance(res, list):
+            return res
+        if isinstance(res, dict):
+            if "error" in res:
+                return []
+            for val in res.values():
+                if isinstance(val, list):
+                    return val
+        return []
+
     if vista == "students":
-        alumnos, error = obtener_alumnos_classroom(classroom_id)
-        if error:
-            flash(error.get("error", "No se pudieron cargar los alumnos"), "error")
-            datos["alumnos"] = []
-        else:
-            datos["alumnos"] = alumnos or []
+        res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+        datos["alumnos"] = extraer_lista(res, err)
+        if err:
+            flash("No se pudieron cargar los alumnos", "error")
 
     elif vista == "dashboard":
-        metricas, error_m = obtener_metricas_classroom(classroom_id, usuario["id"])
-        if error_m:
-            flash(error_m.get("error", "No se pudieron cargar métricas"), "error")
-            datos["metricas"] = None
-        else:
-            datos["metricas"] = metricas
+        res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
+        datos["metricas"] = res_m if not err_m and isinstance(res_m, dict) else None
 
-        profesores, error_p = obtener_profesores_classroom(classroom_id, usuario["id"])
-        if error_p:
-            flash(error_p.get("error", "No se pudieron cargar colaboradores"), "error")
-            datos["profesores"] = []
-        else:
-            datos["profesores"] = profesores or []
+        res_p, err_p = consumir_api(
+            "GET", f"/api/v1/classrooms/{classroom_id}/professors"
+        )
+        datos["profesores"] = extraer_lista(res_p, err_p)
 
-        alumnos, error_a = obtener_alumnos_classroom(classroom_id)
-        datos["alumnos"] = alumnos or [] if not error_a else []
+        res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+        datos["alumnos"] = extraer_lista(res_a, err_a)
 
     elif vista == "asistance":
-        asistencia, error = obtener_inasistencias_classroom(classroom_id, usuario["id"])
-        if error:
-            flash(error.get("error", "No se pudo cargar asistencia"), "error")
-            datos["asistencia"] = None
+        res, error = consumir_api("GET", f"/api/v1/attendance/{classroom_id}")
+
+        if error or not res or not isinstance(res, dict):
+            datos["asistencia"] = {
+                "total_events": 0,
+                "average_absences": 0.0,
+                "attendance_percentage": 100.0,
+                "students": [],
+            }
         else:
-            datos["asistencia"] = asistencia
+            datos["asistencia"] = res
 
     elif vista == "teams":
-        equipos, error_t = obtener_equipos_classroom(classroom_id, usuario["id"])
-        if error_t:
-            flash(error_t.get("error", "No se pudieron cargar equipos"), "error")
-            datos["equipos"] = []
+        res_t, err_t = consumir_api("GET", f"/api/v1/teams?classroom_id={classroom_id}")
+        if err_t or not res_t:
+            # Fallback a métricas
+            res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
+            if err_m:
+                flash(
+                    f"No se pudieron obtener los equipos desde métricas: {err_m.get('error')}",
+                    "error",
+                )
+                datos["equipos"] = []
+            else:
+                datos["equipos"] = (
+                    res_m.get("equipos", []) if isinstance(res_m, dict) else []
+                )
         else:
-            datos["equipos"] = equipos or []
+            datos["equipos"] = extraer_lista(res_t, err_t)
 
-        alumnos, error_a = obtener_alumnos_classroom(classroom_id)
-        datos["alumnos"] = alumnos or [] if not error_a else []
+        res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+        datos["alumnos"] = extraer_lista(res_a, err_a)
+
+        res_e, err_e = consumir_api(
+            "GET", f"/api/v1/classroom/{classroom_id}/evaluaciones"
+        )
+        datos["evaluaciones"] = extraer_lista(res_e, err_e)
 
     elif vista == "evaluations":
-        evaluaciones, error_e = obtener_evaluaciones(classroom_id)
-        if error_e:
-            flash(error_e.get("error", "No se pudieron cargar evaluaciones"), "error")
-            datos["evaluaciones"] = []
-        else:
-            datos["evaluaciones"] = evaluaciones or []
+        res, err = consumir_api("GET", f"/api/v1/classroom/{classroom_id}/evaluaciones")
+        datos["evaluaciones"] = extraer_lista(res, err)
 
     elif vista == "library":
-        recursos, error_r = listar_recursos(classroom_id, usuario["id"])
-        if error_r:
-            flash(
-                "No se pudieron cargar los recursos públicos de la biblioteca.", "error"
-            )
-            datos["recursos"] = []
-        else:
-            datos["recursos"] = recursos or []
+        res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/resources")
+        datos["recursos"] = extraer_lista(res, err)
+        if err:
+            flash("No se pudieron cargar los recursos", "error")
 
     return datos
 
@@ -249,6 +266,29 @@ def datos_vista_gestion(classroom_id, usuario, vista):
 @app.context_processor
 def inyectar_globales():
     usuario = session.get(USER_SESSION_KEY)
+
+    if usuario and isinstance(usuario, dict):
+        if "role_id" not in usuario:
+            classroom_id = (
+                request.view_args.get("classroom_id") if request.view_args else None
+            )
+
+            if classroom_id:
+                res, err = consumir_api(
+                    "GET", f"/api/v1/classrooms/{classroom_id}/professors"
+                )
+                if not err and isinstance(res, list):
+                    prof_match = next(
+                        (p for p in res if p.get("id") == usuario.get("id")), None
+                    )
+                    usuario["role_id"] = (
+                        prof_match.get("role_id", 1) if prof_match else 3
+                    )
+                else:
+                    usuario["role_id"] = 3
+            else:
+                usuario["role_id"] = 3
+
     return {
         "user": usuario,
         "user_initials": iniciales_usuario(usuario.get("username") if usuario else ""),
@@ -257,6 +297,9 @@ def inyectar_globales():
     }
 
 
+# -------------------------------------------------------------------
+# RUTAS DE LA APP
+# -------------------------------------------------------------------
 @app.route("/auth", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
@@ -267,41 +310,48 @@ def login():
     accion = request.form.get("accion", "login")
 
     if accion == "register":
-        username = (request.form.get("full_name") or "").strip()
-        email = (request.form.get("email") or "").strip()
-        password = request.form.get("password") or ""
-        resultado, error = create_user(
-            {"username": username, "email": email, "password": password}
-        )
-        if error:
-            flash(error.get("error", "No se pudo registrar la cuenta"), "error")
+        payload = {
+            "username": (request.form.get("full_name") or "").strip(),
+            "email": (request.form.get("email") or "").strip(),
+            "password": request.form.get("password") or "",
+        }
+        res, error = consumir_api("POST", "/api/v1/register", json_data=payload)
+
+        if error or (res and type(res) is dict and res.get("error")):
+            flash(error.get("error") if error else res.get("error"), "error")
         else:
-            flash(resultado.get("message", "Cuenta creada. Inicia sesión."), "success")
+            flash("Cuenta creada. Inicia sesión.", "success")
         return redirect(url_for("login"))
 
     if accion == "recover":
-        email = (request.form.get("email") or "").strip()
-        if not email:
+        payload = {"email": (request.form.get("email") or "").strip()}
+        if not payload["email"]:
             flash("El correo es obligatorio", "error")
             return redirect(url_for("login"))
-        resultado, error = send_password_mail(email)
-        if error:
-            flash(error.get("error", "No se pudo enviar el correo"), "error")
+
+        res, error = consumir_api("POST", "/recuperar-password", json_data=payload)
+        if error or (res and type(res) is dict and res.get("error")):
+            flash("No se pudo enviar el correo", "error")
         else:
-            flash(
-                resultado.get("message", "Revisa tu correo para el token."), "success"
-            )
+            flash("Revisa tu correo para el token.", "success")
         return redirect(url_for("login"))
 
-    email = (request.form.get("email") or "").strip()
-    password = request.form.get("password") or ""
-    usuario, error = validar_credenciales(email, password)
-    if error:
-        flash(error.get("error", "Credenciales inválidas"), "error")
+    payload = {
+        "email": (request.form.get("email") or "").strip(),
+        "password": request.form.get("password") or "",
+    }
+    res, error = consumir_api("POST", "/api/v1/users/login", json_data=payload)
+
+    if error or not isinstance(res, dict) or not res.get("token"):
+        flash(
+            res.get("error", "Credenciales inválidas")
+            if isinstance(res, dict)
+            else "Error de servidor",
+            "error",
+        )
         return redirect(url_for("login"))
 
-    token = crear_token(usuario)
-    guardar_sesion(usuario, token)
+    guardar_sesion(res, res.get("token"))
     return redirect(url_for("classrooms"))
 
 
@@ -317,18 +367,22 @@ def classrooms():
     if redireccion:
         return redireccion
 
-    aulas, error = obtener_lista_classrooms(usuario["id"])
-    if error:
-        flash(error.get("error", "No se pudieron cargar las aulas"), "error")
-        aulas = []
+    aulas_res, err_aulas = consumir_api("GET", f"/api/v1/classrooms/{usuario['id']}")
+    periodos_res, err_periodos = consumir_api("GET", "/api/v1/academic-periods")
+    roles_res, _ = consumir_api("GET", "/api/v1/role_types")
 
-    periodos, _ = obtener_periodos_academicos()
+    aulas = aulas_res if not err_aulas and isinstance(aulas_res, list) else []
+    periodos = (
+        periodos_res if not err_periodos and isinstance(periodos_res, list) else []
+    )
+    role_types = roles_res if isinstance(roles_res, list) else []
     join_link = session.pop("join_link", None)
 
     return render_template(
         "main/classroomsGrid.html",
-        classrooms=enriquecer_aulas(aulas or []),
-        periodos=periodos or [],
+        classrooms=enriquecer_aulas(aulas),
+        periodos=periodos,
+        role_types=role_types,
         join_link=join_link,
     )
 
@@ -339,49 +393,32 @@ def crear_aula():
     if redireccion:
         return redireccion
 
-    name = (request.form.get("nombre") or "").strip()
-    department = (request.form.get("catedra") or "").strip()
-    university = (request.form.get("universidad") or "").strip()
-    fecha_inicio = request.form.get("fecha_inicio") or ""
-    fecha_fin = request.form.get("fecha_fin") or ""
-
     dias = request.form.getlist("dia")
     inicios = request.form.getlist("h_inicio")
     fines = request.form.getlist("h_fin")
-
-    if not name or not department or not university:
-        flash("Completa nombre, cátedra y universidad.", "error")
-        return redirect(url_for("classrooms"))
+    academic_period_id = request.form.get("academic_period_id")
 
     if not dias or not inicios or not fines:
         flash("Agrega al menos un horario.", "error")
         return redirect(url_for("classrooms"))
 
-    periodos, _ = obtener_periodos_academicos()
-    academic_period_id = resolver_periodo_academico(
-        fecha_inicio, fecha_fin, periodos or []
-    )
     if not academic_period_id:
-        flash("No hay períodos académicos configurados.", "error")
+        flash("Seleccioná un período académico.", "error")
         return redirect(url_for("classrooms"))
 
-    dia = dias[0]
-    class_day = DIAS_A_NUMERO.get(dia, 0)
-    class_start = inicios[0]
-    class_end = fines[0]
+    payload = {
+        "name": (request.form.get("nombre") or "").strip(),
+        "department": (request.form.get("catedra") or "").strip(),
+        "university": (request.form.get("universidad") or "").strip(),
+        "class_day": DIAS_A_NUMERO.get(dias[0], 0),
+        "class_start": inicios[0],
+        "class_end": fines[0],
+        "academic_period_id": int(academic_period_id),
+    }
 
-    _, error = crear_nueva_classroom(
-        name,
-        department,
-        university,
-        usuario["id"],
-        class_day,
-        class_start,
-        class_end,
-        int(academic_period_id),
-    )
-    if error:
-        flash(error.get("error", "No se pudo crear el aula"), "error")
+    res, error = consumir_api("POST", "/api/v1/classrooms", json_data=payload)
+    if error or (res and type(res) is dict and res.get("error")):
+        flash("No se pudo crear el aula", "error")
     else:
         flash("Aula creada correctamente.", "success")
 
@@ -395,22 +432,18 @@ def compartir_clase():
         return redireccion
 
     classroom_id = request.form.get("classId") or request.form.get("class_id")
-    rol = request.form.get("rol") or "Editor"
-    role_map = {"Lector": 2, "Editor": 1}
-    role_id = role_map.get(rol, 1)
+    role_id = request.form.get("role_id", 1)
 
-    try:
-        classroom_id = int(classroom_id)
-    except (TypeError, ValueError):
-        flash("Selecciona un aula válida.", "error")
-        return redirect(url_for("classrooms"))
+    res, error = consumir_api(
+        "GET", f"/api/v1/classrooms/{classroom_id}/link", params={"role_id": role_id}
+    )
 
-    resultado, error = obtener_link_classroom(classroom_id, usuario["id"], role_id)
-    if error:
-        flash(error.get("error", "No se pudo generar el enlace"), "error")
+    if error or not isinstance(res, dict) or not res.get("join_link"):
+        flash("No se pudo generar el enlace", "error")
     else:
-        session["join_link"] = resultado.get("join_link", "")
-        flash("Enlace de invitación generado.", "success")
+        raw = res["join_link"]
+        token = raw.split("token=")[-1]
+        session["join_link"] = f"{request.host_url.rstrip('/')}/auth?token={token}"
 
     return redirect(url_for("classrooms"))
 
@@ -442,9 +475,11 @@ def eliminar_usuario_aula(classroom_id, user_id):
     if redireccion:
         return redireccion
 
-    _, error = eliminar_usuario_classroom(classroom_id, user_id, usuario["id"])
+    res, error = consumir_api(
+        "DELETE", f"/api/v1/classrooms/{classroom_id}/user/{user_id}"
+    )
     if error:
-        flash(error.get("error", "No se pudo quitar el acceso"), "error")
+        flash("No se pudo quitar el acceso", "error")
     else:
         flash("Acceso revocado.", "success")
 
@@ -458,22 +493,19 @@ def crear_evaluacion_aula(classroom_id):
     if redireccion:
         return redireccion
 
-    nombre = (request.form.get("name") or "").strip()
-    tipo_str = request.form.get("evaluation_type_id") or ""
+    payload = {
+        "name": (request.form.get("name") or "").strip(),
+        "evaluation_type_id": EVALUATION_TYPE_IDS.get(
+            request.form.get("evaluation_type_id")
+        ),
+        "individual": 1 if request.form.get("individual") else 0,
+    }
 
-    evaluation_type_id = EVALUATION_TYPE_IDS.get(tipo_str, None)
-    individual = 1 if request.form.get("individual") else 0
-
-    print(
-        f"DEBUG FRONTEND -> nombre: '{nombre}', tipo: '{tipo_str}', tipo_id: {evaluation_type_id}"
+    res, error = consumir_api(
+        "POST", f"/api/v1/classroom/{classroom_id}/evaluaciones", json_data=payload
     )
-
-    _, error = crear_evaluacion(
-        classroom_id, nombre, evaluation_type_id, None, individual
-    )
-
     if error:
-        flash(error.get("error", "No se pudo crear la evaluación"), "error")
+        flash("No se pudo crear la evaluación", "error")
     else:
         flash("Evaluación creada correctamente.", "success")
 
@@ -491,23 +523,165 @@ def actualizar_evaluacion_aula(classroom_id, evaluation_id):
     if redireccion:
         return redireccion
 
-    nombre = (request.form.get("nombre") or "").strip() or None
-    tipo = request.form.get("tipo") or ""
-    evaluation_type_id = EVALUATION_TYPE_IDS.get(tipo) if tipo else None
-    individual = 1 if request.form.get("individual") else 0
+    tipo = request.form.get("tipo")
+    payload = {
+        "name": (request.form.get("nombre") or "").strip() or None,
+        "evaluation_type_id": EVALUATION_TYPE_IDS.get(tipo) if tipo else None,
+        "individual": 1 if request.form.get("individual") else 0,
+    }
 
-    _, error = actualizar_evaluacion(
-        classroom_id,
-        nombre,
-        evaluation_type_id,
-        None,
-        individual,
-        evaluation_id,
+    res, error = consumir_api(
+        "PATCH", f"/api/v1/evaluaciones/{evaluation_id}", json_data=payload
     )
     if error:
-        flash(error.get("error", "No se pudo actualizar la evaluación"), "error")
+        flash("No se pudo actualizar la evaluación", "error")
     else:
         flash("Evaluación actualizada.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+    )
+
+
+# Esto deberia ser un metodo DELETE pero al no poderse usar fetch, y los from solo envian post o get, se opto por esta solucion. El endpoint de la api si es DELETE
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/eliminar",
+    methods=["POST"],
+)
+def eliminar_evaluacion_aula(classroom_id, evaluation_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    res, error = consumir_api("DELETE", f"/api/v1/evaluaciones/{evaluation_id}")
+
+    if error:
+        error_msg = error.get("error", "No se pudo eliminar la evaluación.")
+        flash(f"Error: {error_msg}", "error")
+    else:
+        flash("Evaluación eliminada correctamente.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+    )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/subir-notas",
+    methods=["POST"],
+)
+def subir_notas_csv_aula(classroom_id, evaluation_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    if "file_csv" not in request.files:
+        flash("No se subió ningún archivo.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+        )
+
+    file = request.files["file_csv"]
+    if file.filename == "":
+        flash("El nombre de archivo está vacío.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+        )
+
+    if not file.filename.endswith(".csv"):
+        flash("El archivo debe ser en formato CSV.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+        )
+
+    try:
+        stream = io.StringIO(file.stream.read().decode("utf-8-sig"), newline=None)
+        reader = csv.DictReader(
+            stream, delimiter=";" if ";" in stream.getvalue() else ","
+        )
+
+        reader.fieldnames = (
+            [f.strip().lower() for f in reader.fieldnames] if reader.fieldnames else []
+        )
+
+        tiene_identificador = (
+            "documento" in reader.fieldnames or "email" in reader.fieldnames
+        )
+        if not tiene_identificador or "nota" not in reader.fieldnames:
+            flash(
+                "Estructura CSV inválida. Debe contener la columna 'nota' y al menos 'documento' o 'email'.",
+                "error",
+            )
+            return redirect(
+                url_for(
+                    "classroom_manage", classroom_id=classroom_id, vista="evaluations"
+                )
+            )
+
+        filas_procesadas = []
+        # Validar estructura básica del CSV (Ahora soporta 'equipo')
+        tiene_identificador = any(
+            col in reader.fieldnames for col in ["documento", "email", "equipo"]
+        )
+        if not tiene_identificador or "nota" not in reader.fieldnames:
+            flash(
+                "Estructura CSV inválida. Debe contener la columna 'nota' y al menos 'documento', 'email' o 'equipo'.",
+                "error",
+            )
+            return redirect(
+                url_for(
+                    "classroom_manage", classroom_id=classroom_id, vista="evaluations"
+                )
+            )
+
+        if "equipo" in reader.fieldnames:
+            tipo_id = "equipo"
+        elif "documento" in reader.fieldnames:
+            tipo_id = "documento"
+        else:
+            tipo_id = "email"
+
+        filas_procesadas = []
+        for fila in reader:
+            identificador = fila.get(tipo_id, "").strip()
+            nota_str = fila.get("nota", "").strip()
+
+            if identificador and nota_str:
+                filas_procesadas.append(
+                    {
+                        "identifier": identificador,
+                        "score": float(nota_str.replace(",", ".")),
+                        "type": tipo_id,  # Le pasamos a la DB qué tipo de dato es
+                    }
+                )
+
+        payload = {
+            "evaluation_id": evaluation_id,
+            "classroom_id": classroom_id,
+            "grades": filas_procesadas,
+        }
+
+        res, error = consumir_api(
+            "POST",
+            f"/api/v1/evaluations/{evaluation_id}/bulk-grades",
+            json_data=payload,
+        )
+
+        if error:
+            flash(
+                f"Error al procesar notas: {error.get('error', 'Error desconocido')}",
+                "error",
+            )
+        else:
+            flash(
+                f"¡Éxito! Se procesaron {res.get('inserted', 0)} notas correctamente.",
+                "success",
+            )
+
+    except Exception as e:
+        flash(f"Ocurrió un error al leer el archivo CSV: {str(e)}", "error")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
@@ -520,20 +694,92 @@ def registrar_asistencia_aula(classroom_id):
     if redireccion:
         return redireccion
 
-    from src.funciones.asistencia import sumar_inasistencia
+    payload = {"delta": 1}
+    res, error = consumir_api(
+        "POST", f"/api/v1/attendance/{classroom_id}", json_data=payload
+    )
 
-    resultado = sumar_inasistencia(classroom_id)
-    if isinstance(resultado, tuple):
-        body, codigo = resultado
-        if codigo != 200 or (isinstance(body, dict) and body.get("error")):
-            flash(body.get("error", "No se pudo registrar asistencia"), "error")
-        else:
-            flash("Evento de asistencia registrado.", "success")
+    if error or (res and type(res) is dict and res.get("error")):
+        flash("No se pudo registrar asistencia", "error")
     else:
-        flash("Evento de asistencia registrado.", "success")
+        flash("Evento de asistencia registrado con éxito.", "success")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="asistance")
+    )
+
+
+@app.route("/aulas/<int:classroom_id>/gestionar/asistencia/enviar-qr", methods=["POST"])
+def enviar_qr_asistencia(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    code = request.form.get("code", "").strip()
+    if not code:
+        flash(
+            "No se pudo obtener el código QR actual. Generá uno nuevo e intentá de nuevo.",
+            "error",
+        )
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="asistance")
+        )
+
+    res, error = consumir_api(
+        "POST", f"/api/v1/attendance/{classroom_id}/qr", json_data={"code": code}
+    )
+
+    if error:
+        flash(error.get("error", "No se pudieron enviar los QRs"), "error")
+    else:
+        enviados = res.get("enviados", 0)
+        fallidos = res.get("fallidos", [])
+        msg = f"QRs enviados a {enviados} estudiante{'s' if enviados != 1 else ''}."
+        if fallidos:
+            msg += f" No se pudo enviar a: {', '.join(fallidos)}."
+        flash(msg, "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="asistance")
+    )
+
+
+@app.route("/aulas/<int:classroom_id>/asistencia/validar", methods=["GET", "POST"])
+def validar_asistencia_alumno(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    if request.method == "POST":
+        code = request.form.get("code")
+
+        payload = {"code": code}
+        res, error = consumir_api(
+            "POST", f"/api/v1/attendance/{classroom_id}/validar", json_data=payload
+        )
+
+        if error:
+            flash(
+                f"Error al registrar asistencia: {error.get('error', 'Código inválido o expirado')}",
+                "error",
+            )
+            return redirect(
+                url_for(
+                    "validar_asistencia_alumno", classroom_id=classroom_id, code=code
+                )
+            )
+        else:
+            flash("¡Asistencia registrada con éxito! Ya tenés tu presente.", "success")
+
+            return redirect(url_for("classroom_manage", classroom_id=classroom_id))
+
+    code = request.args.get("code", "")
+
+    return render_template(
+        "classroom-manage/asistance/validar_asistencia.html",
+        classroom_id=classroom_id,
+        code=code,
+        usuario=usuario,
     )
 
 
@@ -543,27 +789,19 @@ def descargar_metricas_pdf(classroom_id):
     if redireccion:
         return redireccion
 
-    metricas, error = obtener_metricas_classroom(classroom_id, usuario["id"])
-    if error:
-        flash(error.get("error", "No se pudieron generar las métricas"), "error")
-        return redirect(
-            url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard")
-        )
-
-    pdf_bytes, error_pdf = generar_pdf_metricas(
-        classroom_id=classroom_id,
-        usuario_id=usuario["id"],
-        datos_metricas=metricas or {},
-        filter=request.form.get("filter"),
+    payload = {"filter": request.form.get("filter")}
+    res, error = consumir_api(
+        "POST", f"/api/v1/metrics/{classroom_id}/pdf", data=payload
     )
-    if error_pdf:
-        flash(error_pdf.get("error", "No se pudo generar el PDF"), "error")
+
+    if error:
+        flash("No se pudo generar el PDF", "error")
         return redirect(
             url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard")
         )
 
     return send_file(
-        io.BytesIO(pdf_bytes),
+        io.BytesIO(res),
         mimetype="application/pdf",
         as_attachment=True,
         download_name=f"metricas_classroom_{classroom_id}.pdf",
@@ -576,37 +814,78 @@ def procesar_crear_estudiante(classroom_id):
     if redireccion:
         return redireccion
 
-    nombre = request.form.get("nombre")
-    apellido = request.form.get("apellido")
-    padron = request.form.get("padron")
-    email = request.form.get("email")
+    nombre = (request.form.get("nombre") or "").strip()
+    apellido = (request.form.get("apellido") or "").strip()
+    padron = (request.form.get("padron") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    career = (request.form.get("career") or "").strip()
 
-    username = f"{nombre} {apellido}".strip()
+    payload = {
+        "username": f"{nombre} {apellido}",
+        "email": email,
+        "document": padron,
+        "career": career,
+    }
 
-    _, error = create_user(
-        {
-            "username": username,
-            "email": email,
-            "password": padron,
-        }
+    res, error = consumir_api(
+        "POST", f"/api/v1/classrooms/{classroom_id}/student", json_data=payload
     )
 
-    if error and error != "EMAIL_YA_EXISTE":
-        flash(f"Error al crear usuario: {error}", "error")
+    if error or (res and type(res) is dict and res.get("error")):
+        error_msg = (
+            error.get("error")
+            if isinstance(error, dict)
+            else (res.get("error") if isinstance(res, dict) else error)
+        )
+        flash(f"Error al vincular el estudiante: {error_msg}", "error")
     else:
-        try:
-            user_id = obtener_user_id_por_email(email)
-            career_id = obtener_o_crear_carrera("Ingeniería")
+        flash("Estudiante creado y asignado con éxito.", "success")
 
-            crear_student_profile(user_id, padron, career_id)
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+    )
 
-            if not usuario_en_classroom(classroom_id, user_id):
-                agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
-                flash("Estudiante creado y asignado con éxito.", "success")
-            else:
-                flash("El estudiante ya estaba en el aula.", "warning")
-        except Exception as e:
-            flash(f"Error al vincular el estudiante: {str(e)}", "error")
+
+@app.route("/aulas/<int:classroom_id>/gestionar/estudiantes/editar", methods=["POST"])
+def procesar_editar_estudiante(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    nombre = (request.form.get("nombre") or "").strip()
+    apellido = (request.form.get("apellido") or "").strip()
+    padron = (request.form.get("padron") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    career = (request.form.get("career") or "").strip()
+    user_id = request.form.get("user_id")
+
+    if not user_id:
+        flash("Datos incompletos para editar el estudiante.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+        )
+
+    payload = {
+        "user_id": int(user_id),
+        "username": f"{nombre} {apellido}",
+        "email": email,
+        "document": padron,
+        "career": career,
+    }
+
+    res, error = consumir_api(
+        "PUT", f"/api/v1/classrooms/{classroom_id}/student", json_data=payload
+    )
+
+    if error or (res and type(res) is dict and res.get("error")):
+        error_msg = (
+            error.get("error")
+            if isinstance(error, dict)
+            else (res.get("error") if isinstance(res, dict) else error)
+        )
+        flash(f"Error al editar el estudiante: {error_msg}", "error")
+    else:
+        flash("Estudiante actualizado con éxito.", "success")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="students")
@@ -626,15 +905,20 @@ def cargar_csv_estudiantes(classroom_id):
             url_for("classroom_manage", classroom_id=classroom_id, vista="students")
         )
 
-    resultado, error = cargar_estudiantes_csv(archivo, classroom_id)
+    files = {"csv_file": (archivo.filename, archivo.stream, archivo.mimetype)}
+    res, error = consumir_api(
+        "POST", f"/api/v1/classrooms/{classroom_id}/students/import", files=files
+    )
 
-    if error:
-        flash(f"Error al procesar CSV: {error}", "error")
-    else:
-        flash(
-            f"CSV procesado: {resultado['cantidad_creados']} creados, {resultado['cantidad_asociados']} asociados al aula.",
-            "success",
+    if error or (res and type(res) is dict and res.get("error")):
+        error_msg = (
+            error.get("error")
+            if isinstance(error, dict)
+            else (res.get("error") if isinstance(res, dict) else error)
         )
+        flash(f"Error al procesar CSV: {error_msg}", "error")
+    else:
+        flash("CSV procesado correctamente.", "success")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="students")
@@ -647,48 +931,220 @@ def subir_recurso_biblioteca(classroom_id):
     if redireccion:
         return redireccion
 
-    titulo = request.form.get("titulo")
-    url = request.form.get("url")
-    tipo = request.form.get("tipo") or "link"  # Capturamos el tipo del select
+    payload = {
+        "titulo": request.form.get("titulo"),
+        "url": request.form.get("url"),
+        "tipo": request.form.get("tipo"),
+        "user_id": usuario["id"],
+    }
 
-    if not titulo or not url:
+    print(
+        f"DEBUG CREAR -> Titulo: {payload['titulo']}, URL: {payload['url']}, Tipo recibido: {payload['tipo']}"
+    )
+
+    if not payload["titulo"] or not payload["url"]:
         flash("El título y el link del recurso son obligatorios.", "error")
         return redirect(
             url_for("classroom_manage", classroom_id=classroom_id, vista="library")
         )
 
-    _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"], tipo)
+    res, error = consumir_api(
+        "POST", f"/api/v1/classrooms/{classroom_id}/contenidos", json_data=payload
+    )
 
     if error:
-        flash("No se pudo publicar el recurso en la base de datos.", "error")
+        flash("No se pudo publicar el recurso.", "error")
     else:
         flash("Recurso publicado con éxito en la biblioteca.", "success")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="library")
     )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/recursos/<int:resource_id>/actualizar",
+    methods=["POST"],
+)
+def actualizar_recurso_biblioteca(classroom_id, resource_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
 
-    titulo = request.form.get("titulo")
-    url = request.form.get("url")
+    payload = {
+        "titulo": request.form.get("titulo"),
+        "tipo": request.form.get("tipo"),
+        "url": request.form.get("url"),
+    }
 
-    if not titulo or not url:
-        flash("El título y el link del recurso son obligatorios.", "error")
+    if not payload["titulo"] or not payload["url"] or not payload["tipo"]:
+        flash("Todos los campos son obligatorios.", "error")
         return redirect(
             url_for("classroom_manage", classroom_id=classroom_id, vista="library")
         )
 
-    _, error = subir_contenido_classroom(classroom_id, titulo, url, usuario["id"])
+    res, error = consumir_api(
+        "PUT",
+        f"/api/v1/classrooms/{classroom_id}/contenidos/{resource_id}",
+        json_data=payload,
+    )
 
     if error:
-        flash("No se pudo publicar el recurso en la base de datos.", "error")
+        error_msg = error.get("error", "No se pudo modificar el recurso.")
+        flash(error_msg, "error")
     else:
-        flash("Recurso publicado con éxito en la biblioteca.", "success")
+        flash("Recurso modificado exitosamente.", "success")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="library")
+    )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/recursos/<int:resource_id>/eliminar",
+    methods=["POST"],
+)
+def eliminar_recurso_biblioteca(classroom_id, resource_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    res, error = consumir_api(
+        "DELETE", f"/api/v1/classrooms/{classroom_id}/contenidos/{resource_id}"
+    )
+
+    if error:
+        error_msg = error.get("error", "No se pudo eliminar el recurso.")
+        flash(error_msg, "error")
+    else:
+        flash("El recurso ha sido eliminado correctamente.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="library")
+    )
+
+
+# ===================================================================
+# RUTAS DE EQUIPOS (TEAMS)
+# ===================================================================
+
+
+@app.route("/aulas/<int:classroom_id>/gestionar/equipos/crear", methods=["POST"])
+def crear_equipo_aula(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    evaluation_id_str = request.form.get("evaluation_id", "")
+    payload = {
+        "name": request.form.get("nombre_equipo", "").strip(),
+        "classroom_id": classroom_id,
+        "member_ids": request.form.getlist("miembros"),
+        "evaluation_id": int(evaluation_id_str)
+        if evaluation_id_str.isdigit()
+        else None,
+    }
+
+    res, error = consumir_api("POST", "/api/v1/teams", json_data=payload)
+
+    if error:
+        flash(
+            f"No se pudo crear el equipo: {error.get('error', 'Error desconocido')}",
+            "error",
+        )
+    else:
+        flash("Equipo creado con éxito.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="teams")
+    )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/actualizar",
+    methods=["POST"],
+)
+def actualizar_equipo_aula(classroom_id, team_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    evaluation_id_str = request.form.get("evaluation_id", "")
+    payload = {
+        "name": request.form.get("nombre_equipo", "").strip(),
+        "member_ids": request.form.getlist("miembros"),
+    }
+    if evaluation_id_str.isdigit():
+        payload["evaluation_id"] = int(evaluation_id_str)
+
+    res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)
+
+    if error:
+        flash(
+            f"No se pudo actualizar el equipo: {error.get('error', 'Error desconocido')}",
+            "error",
+        )
+    else:
+        flash("Equipo actualizado con éxito.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="teams")
+    )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/eliminar",
+    methods=["POST", "DELETE"],
+)
+def eliminar_equipo_aula(classroom_id, team_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    res, error = consumir_api("DELETE", f"/api/v1/teams/{team_id}")
+
+    if error:
+        flash("No se pudo eliminar el equipo.", "error")
+    else:
+        flash("Equipo eliminado correctamente.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="teams")
+    )
+
+
+@app.route("/aulas/<int:classroom_id>/gestionar/metricas/pdf")
+def descargar_pdf_dashboard(classroom_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    filtro = request.args.get("filter", "students")
+    res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
+    if err_m or not res_m:
+        flash("No se pudieron obtener las métricas base para armar el PDF.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard")
+        )
+
+    pdf_content, err_pdf = consumir_api(
+        "POST", f"/api/v1/metrics/{classroom_id}/pdf?filter={filtro}", json_data=res_m
+    )
+
+    if err_pdf:
+        flash(
+            f"Error al generar el PDF: {err_pdf.get('error', 'Error desconocido')}",
+            "error",
+        )
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="dashboard")
+        )
+
+    return send_file(
+        io.BytesIO(pdf_content),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"reporte_{filtro}_aula_{classroom_id}.pdf",
     )
 
 

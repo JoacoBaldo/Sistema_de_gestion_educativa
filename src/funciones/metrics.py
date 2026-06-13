@@ -44,6 +44,9 @@ def _calcular_promedio_aprobados(scores_data: list[dict]) -> float | None:
 
     aprobados: int = 0
     for _, scores in user_scores.items():
+        scores = [s for s in scores if s is not None]
+        if not scores:
+            continue
         promedio_usuario = sum(scores) / len(scores)
         if promedio_usuario >= MIN_APROBACION:
             aprobados += 1

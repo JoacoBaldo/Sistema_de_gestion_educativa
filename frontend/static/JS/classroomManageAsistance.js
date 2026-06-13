@@ -12,10 +12,6 @@ import { requireAuth } from "./common/auth.js";
   const sessionDateEl = document.getElementById("at-session-date");
   const recordsTbody = document.getElementById("at-records-tbody");
   const searchInput = document.getElementById("at-search");
-  const emailModal = document.getElementById("at-email-modal");
-  const emailForm = document.getElementById("at-email-form");
-  const emailTo = document.getElementById("at-email-to");
-  const emailPreview = document.getElementById("at-email-code-preview");
   const autoRefreshCheck = document.getElementById("at-auto-refresh");
   
   const QRCodeLib = globalThis.QRCode;
@@ -60,7 +56,7 @@ import { requireAuth } from "./common/auth.js";
     const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
     currentToken = `ATT-${classroomId}-${randomHash}`;
 
-    const qrContent = `${window.location.origin}/asistencia/registrar?aula=${classroomId}&token=${currentToken}`;
+    const qrContent = `${window.location.origin}/aulas/${classroomId}/asistencia/validar?code=${randomHash}`;
 
     new QRCodeLib(qrContainer, {
       text: qrContent,
@@ -73,7 +69,8 @@ import { requireAuth } from "./common/auth.js";
 
     if (codeText) codeText.textContent = currentToken;
     if (sessionDateEl) sessionDateEl.textContent = formatSessionDate();
-    if (emailPreview) emailPreview.textContent = currentToken;
+    const sendCodeInput = document.getElementById("at-send-code");
+    if (sendCodeInput) sendCodeInput.value = currentToken;
   }
 
   function setupAutoRefresh() {
@@ -109,32 +106,5 @@ import { requireAuth } from "./common/auth.js";
     }
   });
 
-  function openEmailModal() {
-    emailModal?.classList.remove("hidden");
-  }
-
-  function closeEmailModal() {
-    emailModal?.classList.add("hidden");
-  }
-
-  document.getElementById("at-send-email")?.addEventListener("click", openEmailModal);
-  document.getElementById("at-email-all")?.addEventListener("click", openEmailModal);
-  document.getElementById("at-email-cancel")?.addEventListener("click", closeEmailModal);
-  
-  emailModal?.addEventListener("click", (e) => {
-    if (e.target === emailModal) closeEmailModal();
-  });
-
-  emailForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const to = emailTo?.value?.trim();
-    if (!to) return;
-    
-    console.log(`Petición de envío de token ${currentToken} a ${to}`);
-    
-    closeEmailModal();
-    emailForm.reset();
-    showToast(`Código QR enviado con éxito a ${to}`);
-  });
 
 })();
