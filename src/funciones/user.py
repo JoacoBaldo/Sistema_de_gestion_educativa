@@ -4,6 +4,7 @@ import smtplib
 from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import requests
 
 import bcrypt
 from jose import jwt
@@ -42,39 +43,48 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 
 def send_password_mail(destinatario: str) -> tuple:
-    servidor_smtp = os.environ.get("SMTP_SERVER")
-    puerto_smtp = int(os.environ.get("SMTP_PORT", 587))
-    usuario_smtp = os.environ.get("SMTP_USER")
-    password_smtp = os.environ.get("SMTP_PASSWORD")
+    usuario = obtener_usuario_por_email(destinatario)
+    token = crear_token_reset_password(usuario.get("id"), usuario.get("email"))
+    api_key = os.environ.get("BREVO_API_PASSWORD")
     remitente = os.environ.get("EMAIL_REMITENTE")
 
-    if remitente is None or password_smtp is None:
-        return None, ERROR_ENVIO_MAIL
+    url="https://api.brevo.com/v3/smtp/email"
 
-    usuario = obtener_usuario_por_email(destinatario)
-    if usuario is None:
-        return None, EMAIL_NO_EXISTE
-    id_usuario = usuario["id"]
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "api-key": api_key
+    }
 
-    token = crear_token_reset_password(id_usuario, destinatario)
+    cuerpo_mail = f"""
+    Hola,
+    Recibimos una solicitud para restablecer la contraseña de tu cuenta. Este mail contiene
+    un token de validación.  {token}
+    """
+    payload = {
+        "sender": {
+            "name": "uniManage Soporte", 
+            "email": remitente
+        },
+        "to": [
+            {
+                "email": destinatario
+            }
+        ],
+        "subject": "Recuperación de contraseña - uniManage",
+        "textContent": cuerpo_mail
+    }
 
-    mensaje = MIMEMultipart()
-    mensaje["From"] = f"uniManage Soporte <{remitente}>"
-    mensaje["To"] = destinatario
-    mensaje["Subject"] = "Recuperación de contraseña - uniManage"
-    mensaje.attach(MIMEText(f"Token para recuperar contraseña: {token}", "plain"))
+    try: 
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 201:
+            return {"message": "Correo enviado"}, None
+        else:
+            return None, {"error": "No se acepto la solicitud.", "status": 401}
 
-    try:
-        servidor = smtplib.SMTP(servidor_smtp, puerto_smtp)
-        servidor.starttls()
-        servidor.login(usuario_smtp, password_smtp)
-        servidor.sendmail(remitente, destinatario, mensaje.as_string())
-        servidor.quit()
-        return True, None
-
-    except Exception as e:
-        print(f"Error al enviar el correo: {e}")
-        return False, ERROR_ENVIO_MAIL
+    except Exception:
+        error = {"error": "La conexión fallo", "status": 500}
+        return None, error
 
 
 def create_user(user: dict) -> tuple:

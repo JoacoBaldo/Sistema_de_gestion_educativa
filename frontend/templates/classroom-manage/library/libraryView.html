@@ -1,19 +1,27 @@
-<section class="cmr-page st-page" aria-label="Biblioteca pública de recursos" id="lb-page" data-classroom-id="{{ classroom_id }}">    <header class="st-header">
+<section class="cmr-page st-page" aria-label="Biblioteca pública de recursos" id="lb-page"
+    data-classroom-id="{{ classroom_id }}">
+    <header class="st-header">
         <div>
             <h1 class="st-title">Biblioteca de recursos públicos</h1>
             <p class="st-subtitle">Materiales de curso visibles para todos los estudiantes</p>
         </div>
         <div class="st-actions">
-            <button class="st-btn st-btn-primary" type="button" id="lb-upload-btn">
+            {% if session.get('user', {}).get('role_id') != 3 %} <button class="st-btn st-btn-primary" type="button"
+                id="lb-upload-btn">
                 + Subir recurso
             </button>
+            {% endif %}
         </div>
     </header>
 
     <div class="st-toolbar" role="region" aria-label="Búsqueda y filtros">
         <div class="st-search">
             <span class="st-search-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor"
+                        stroke-width="1.6" />
+                    <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
             </span>
             <input id="lb-search" type="search" placeholder="Buscar por título..." aria-label="Buscar recursos">
         </div>
@@ -21,33 +29,148 @@
             <button type="button" class="cmr-pill is-active" data-type="all">Todos</button>
             <button type="button" class="cmr-pill" data-type="pdf">PDF</button>
             <button type="button" class="cmr-pill" data-type="video">Video</button>
-            <button type="button" class="cmr-pill" data-type="link">Enlace</button>
+            <button type="button" class="cmr-pill" data-type="enlace">Enlace</button>
+            <button type="button" class="cmr-pill" data-type="presentacion">Presentación</button>
+            <button type="button" class="cmr-pill" data-type="documento">Documento</button>
         </div>
     </div>
 
     <div class="lb-grid" id="lb-grid" aria-live="polite">
         {% for rec in recursos or [] %}
-        {% set tipo_recurso = rec.type | lower %}
-        <article class="lb-card st-card" data-type="{{ tipo_recurso }}" data-title="{{ rec.name }}">
+        {% set raw_type = (rec.resource_type or 'enlace') | lower %}
+
+        {% if raw_type == 'pdf' %}
+        {% set tipo_recurso = 'pdf' %}
+        {% elif raw_type == 'video' %}
+        {% set tipo_recurso = 'video' %}
+        {% elif raw_type == 'presentacion' %}
+        {% set tipo_recurso = 'presentacion' %}
+        {% elif raw_type == 'documento' %}
+        {% set tipo_recurso = 'documento' %}
+        {% else %}
+        {% set tipo_recurso = 'enlace' %}
+        {% endif %}
+
+        <article class="lb-card ev-card" data-id="rec-{{ rec.id }}" data-resource-id="{{ rec.id }}"
+            data-type="{{ tipo_recurso }}" data-title="{{ rec.name }}" data-url="{{ rec.link }}">
+
             <a href="{{ rec.link }}" target="_blank" rel="noopener noreferrer" class="lb-card__link">
                 <div class="lb-card__icon lb-card__icon--{{ tipo_recurso }}">
                     {% if tipo_recurso == 'pdf' %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="17" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
                     {% elif tipo_recurso == 'video' %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    {% elif tipo_recurso == 'presentacion' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                        <path d="M12 7v5l3 2"></path>
+                    </svg>
+                    {% elif tipo_recurso == 'documento' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
                     {% else %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
                     {% endif %}
                 </div>
-                <h2 class="lb-card__title">{{ rec.name }}</h2>
+                <div class="lb-card__body">
+                    <h2 class="lb-card__title">{{ rec.name }}</h2>
+                </div>
             </a>
+
+            <footer class="lb-card__footer">
+                {% if session.get('user', {}).get('role_id') != 3 %} <button type="button"
+                    class="ev-icon-btn st-btn st-btn-ghost lb-edit-btn" aria-label="Editar recurso"
+                    data-id="{{ rec.id }}" data-nombre="{{ rec.name }}" data-tipo="{{ tipo_recurso }}"
+                    data-url="{{ rec.link }}">
+                    Editar
+                </button>
+                {% endif %}
+
+            </footer>
         </article>
         {% endfor %}
     </div>
-    
+
     <p class="cmr-empty" id="lb-empty" {% if recursos %}hidden{% endif %}>No se encontraron recursos.</p>
 </section>
 
 {% include "classroom-manage/library/forms/subir_recurso.html" %}
+
+<div id="lb-edit-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+    aria-labelledby="lb-edit-modal-title">
+    <div class="glass-card">
+        <div class="glass-header">
+            <h3 id="lb-edit-modal-title">Editar Recurso</h3>
+            <button type="button" class="btn-close-custom" id="lb-edit-close" aria-label="Cerrar">✕</button>
+        </div>
+
+        <form id="lb-edit-form" method="POST" action="" novalidate>
+            <div class="mb-3">
+                <label class="form-label" for="lb-edit-name">📄 Nombre del recurso</label>
+                <input type="text" id="lb-edit-name" name="titulo" class="glass-input" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="lb-edit-type">📁 Tipo de archivo</label>
+                <select id="lb-edit-type" name="tipo" class="glass-input" required>
+                    <option value="pdf">PDF</option>
+                    <option value="video">Video</option>
+                    <option value="enlace">Enlace</option>
+                    <option value="presentacion">Presentación</option>
+                    <option value="documento">Documento</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="lb-edit-url">🔗 Link del recurso</label>
+                <input type="url" id="lb-edit-url" name="url" class="glass-input" required>
+            </div>
+
+            <div class="action-buttons"
+                style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="submit" id="lb-edit-delete-btn" class="btn-cancelar"
+                        style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); height: 100%; max-width: 48px;"
+                        formmethod="POST" formaction="" title="Eliminar recurso">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="display: block;">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                    <button type="button" class="btn-cancelar" id="lb-edit-cancel">Cancelar</button>
+                    <button type="submit" class="btn-crear">Guardar cambios</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
 
 <script type="module" src="{{ url_for('static', filename='js/classroomManageLibrary.js') }}"></script>

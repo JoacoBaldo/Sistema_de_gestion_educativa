@@ -2,6 +2,15 @@ from src.db import attendance as db_attendance
 from src.db import classroom as db_classroom
 
 from .errores import SIN_ACCESO
+from datetime import datetime
+from src.db.attendance import (
+    crear_evento_asistencia,
+    inasistencia_db,
+    obtener_estudiantes_classroom,
+    obtener_evento_por_codigo,
+)
+from src.db.classroom import existe_classroom
+
 
 FULL_ASISTENCIA = 100
 FULL_INASISTENCIA = 0
@@ -30,3 +39,52 @@ def obtener_inasistencias_classroom(classroom_id: int, usuario_id: int) -> tuple
         "attendance_percentage": porcentaje_asistencia,
         "students": alumnos,
     }, None
+
+
+def sumar_inasistencia(
+    classroom_id: int,
+    fecha: datetime | None = None,
+    delta: int = 1,
+    usuario_id: int | None = None,
+):
+    if fecha is None:
+        fecha = datetime.now()
+    if not existe_classroom(classroom_id):
+        return {"error": "El aula no existe"}, 404
+
+    if usuario_id and not db_classroom.puede_administrar_classroom(
+        classroom_id, usuario_id
+    ):
+        return {"error": "Sin acceso a este aula"}, 403
+
+    nuevo_evento_id = crear_evento_asistencia(
+        classroom_id, "QR_CODE_PLACEHOLDER", fecha
+    )
+    estudiantes_id = obtener_estudiantes_classroom(classroom_id)
+    for student_id in estudiantes_id:
+        inasistencia_db(student_id, nuevo_evento_id, fecha, delta=delta)
+
+    return {"mensaje": "Inasistencia actualizada correctamente"}, 200
+
+
+def validar_asistencia(classroom_id: int, code: str, usuario_id: int):
+    # 1. Validamos si el código corresponde a un evento real de esa aula
+    evento = obtener_evento_por_codigo(classroom_id, code)
+    if not evento:
+        return {"error": "El código de asistencia es inválido o ya expiró"}, 400
+
+    try:
+        from datetime import datetime
+        fecha_actual = datetime.now()
+        
+        inasistencia_db(
+            student_id=usuario_id, 
+            attendance_event_id=evento["id"], 
+            fecha=fecha_actual, 
+            delta=-1
+        )
+        
+        return {"mensaje": "Asistencia registrada con éxito"}, 200
+
+    except Exception as e:
+        return {"error": f"Error interno del servidor al registrar: {str(e)}"}, 500

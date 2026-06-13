@@ -20,10 +20,8 @@ def obtener_metricas_classroom(classroom_id: int, usuario_id: int) -> tuple:
     scores_raw = db_metrics.obtener_promedio_aprobados(classroom_id)
     promedio_aprobados = _calcular_promedio_aprobados(scores_raw)
 
-    ingresos_raw = db_metrics.obtener_ingresos_por_año(classroom_id)
+    ingresos_raw, conteos = db_metrics.obtener_estudiantes_datos(classroom_id)
     ingresos_por_año = _agrupar_ingresos_por_año(ingresos_raw)
-
-    conteos = db_metrics.obtener_conteos_estudiantes(classroom_id)
 
     return {
         "promedio_aprobados": round(promedio_aprobados * 100, 2)

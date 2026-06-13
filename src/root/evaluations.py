@@ -1,12 +1,25 @@
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
-from src.funciones.evaluaciones import actualizar_evaluacion, crear_evaluacion
+from src.funciones.evaluations import obtener_evaluaciones, actualizar_evaluacion, crear_evaluacion, eliminar_evaluacion
 
 from .utils import extraer_token, responder_error
 
 evaluacion_bp = Blueprint("evaluacion", __name__)
 
+@evaluacion_bp.route("/api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["GET"])
+def listar_evaluaciones_aula(classroom_id):
+    token = extraer_token()
+    usuario, error_token = verificar_token(token)
+    if error_token:
+        return responder_error(error_token)
+
+    evaluaciones, error = obtener_evaluaciones(classroom_id)
+    
+    if error:
+        return responder_error(error)
+        
+    return jsonify(evaluaciones), 200
 
 @evaluacion_bp.route(
     "/api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["POST"]
@@ -17,7 +30,6 @@ def crear_evaluacion_root(classroom_id: int):
     if error:
         return responder_error(error)
 
-    # SOPORTE DUAL: Lee tanto de JSON (fetch) como de Formulario Nativo HTML
     if request.is_json:
         body = request.get_json(silent=True) or {}
     else:
@@ -29,7 +41,6 @@ def crear_evaluacion_root(classroom_id: int):
 
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
-        # Validamos estrictamente que no sea None para permitir el 0 (Parcial)
         evaluation_type_id = (
             int(evaluation_type_raw) if evaluation_type_raw is not None else None
         )
@@ -87,15 +98,26 @@ def actualizar_evaluacion_root(evaluation_id: int):
 
     resultado, error = actualizar_evaluacion(
         classroom_id,
-        name,  # type: ignore[arg-type]
-        evaluation_type_id,  # type: ignore[arg-type]
-        name,  # type: ignore[arg-type]
-        evaluation_type_id,  # type: ignore[arg-type]
+        name, 
+        evaluation_type_id,  
         referenced_eval_id,
         individual,
         evaluation_id,
     )
     if error:
         return responder_error(error)
+
+    return jsonify(resultado), resultado["status"]
+
+@evaluacion_bp.route("/api/v1/evaluaciones/<int:evaluation_id>", methods=["DELETE"])
+def eliminar_evaluacion_root(evaluation_id: int):
+    token = extraer_token()
+    _, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    resultado, error_del = eliminar_evaluacion(evaluation_id)
+    if error_del:
+        return responder_error(error_del)
 
     return jsonify(resultado), resultado["status"]

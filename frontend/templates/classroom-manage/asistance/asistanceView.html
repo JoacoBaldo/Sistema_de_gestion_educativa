@@ -1,4 +1,4 @@
-{% set att = asistencia or {} %}
+{% set att = asistencia if asistencia is mapping else {} %}
 <section class="cmr-page st-page" aria-label="Centro de control de asistencia" id="at-page">
     <header class="st-header">
         <div>
@@ -6,10 +6,15 @@
             <p class="st-subtitle">Códigos QR dinámicos para registrar asistencia del aula</p>
         </div>
         <div class="st-actions">
-            <form method="POST" action="{{ url_for('registrar_asistencia_aula', classroom_id=classroom_id) }}" style="display:inline;">
-                <button class="st-btn st-btn-primary" type="submit" onclick="return confirm('¿Registrar un nuevo evento de asistencia para hoy?');">
+            <form method="POST" action="{{ url_for('registrar_asistencia_aula', classroom_id=classroom_id) }}"
+                style="display:inline;">
+                <button class="st-btn st-btn-primary" type="submit"
+                    onclick="return confirm('¿Registrar un nuevo evento de asistencia para hoy?');">
                     <span class="st-ghost-icon" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24"><path fill="#ffffff" d="M4 20q-.825 0-1.413-.588T2 18V6q0-.825.588-1.413T4 4h16q.825 0 1.413.588T22 6v12q0 .825-.588 1.413T20 20H4Zm8-7l8-5V6l-8 5l-8-5v2l8 5Z"/></svg>                    </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24">
+                            <path fill="#ffffff"
+                                d="M4 20q-.825 0-1.413-.588T2 18V6q0-.825.588-1.413T4 4h16q.825 0 1.413.588T22 6v12q0 .825-.588 1.413T20 20H4Zm8-7l8-5V6l-8 5l-8-5v2l8 5Z" />
+                        </svg> </span>
                     Registrar evento de asistencia
                 </button>
             </form>
@@ -20,7 +25,8 @@
     <div class="cmr-grid-2 cmr-grid-2--equal">
         <section class="cm-panel cmr-qr-panel" aria-label="Generador de código QR">
             <h2 class="cmr-qr-panel__title">Generador de QR</h2>
-            <p class="cmr-hint">Código de sesión vinculado al aula y la fecha actual. Se regenera automáticamente cada 30 s.</p>
+            <p class="cmr-hint">Código de sesión vinculado al aula y la fecha actual. Se regenera automáticamente cada
+                30 s.</p>
             <label class="cmr-check">
                 <input type="checkbox" id="at-auto-refresh" checked>
                 Auto-refresco cada 30 segundos
@@ -30,7 +36,10 @@
                 <div class="cmr-qr-flex__controls">
                     <button class="st-btn st-btn-primary" type="button" id="at-generate">
                         <span class="st-ghost-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 1 1-2.64-6.36" stroke="currentColor" stroke-width="1.6"/><path d="M21 3v6h-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M21 12a9 9 0 1 1-2.64-6.36" stroke="currentColor" stroke-width="1.6" />
+                                <path d="M21 3v6h-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            </svg>
                         </span>
                         Generar nuevo QR
                     </button>
@@ -57,7 +66,11 @@
             <div class="cmr-stats-stack">
                 <div class="cmr-stat-box cmr-stat-box--blue">
                     <div class="cmr-stat-box__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="1.6"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11" stroke="currentColor"
+                                stroke-width="1.6" />
+                        </svg>
                     </div>
                     <div>
                         <div class="cmr-stat-box__value" id="at-stat-events">{{ att.get('total_events', 0) }}</div>
@@ -66,16 +79,24 @@
                 </div>
                 <div class="cmr-stat-box cmr-stat-box--green">
                     <div class="cmr-stat-box__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor"
+                                stroke-width="1.5" />
+                            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" />
+                        </svg>
                     </div>
                     <div>
-                        <div class="cmr-stat-box__value" id="at-stat-rate">{{ att.get('attendance_percentage', 0) }}%</div>
+                        <div class="cmr-stat-box__value" id="at-stat-rate">{{ att.get('attendance_percentage', 0) }}%
+                        </div>
                         <div class="cmr-stat-box__label">Tasa de asistencia</div>
                     </div>
                 </div>
                 <div class="cmr-stat-box">
                     <div class="cmr-stat-box__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 9v4M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor"
+                                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
                     </div>
                     <div>
                         <div class="cmr-stat-box__value">{{ att.get('average_absences', 0) }}</div>
@@ -91,7 +112,11 @@
             <h2>Inasistencias por alumno</h2>
             <div class="st-search" style="max-width:320px; flex:1;">
                 <span class="st-search-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor"
+                            stroke-width="1.6" />
+                        <path d="M21 21l-4.2-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
                 </span>
                 <input id="at-search" type="search" placeholder="Buscar alumno..." aria-label="Buscar registros">
             </div>
@@ -131,7 +156,8 @@
                 <label for="at-email-to">Correo de destino</label>
                 <input type="email" id="at-email-to" required placeholder="destino@universidad.edu">
             </div>
-            <p class="cmr-hint">Se adjuntará el código <strong id="at-email-code-preview">—</strong> de la sesión actual.</p>
+            <p class="cmr-hint">Se adjuntará el código <strong id="at-email-code-preview">—</strong> de la sesión
+                actual.</p>
             <div class="st-actions" style="justify-content:flex-end; margin-top:1rem;">
                 <button type="button" class="st-btn st-btn-secondary" id="at-email-cancel">Cancelar</button>
                 <button type="submit" class="st-btn st-btn-primary">Enviar</button>

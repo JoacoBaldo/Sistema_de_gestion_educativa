@@ -7,15 +7,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManage.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageStudents.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/modalForm.css') }}">
-{% if vista == 'evaluations' %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageEvaluations.css') }}">
-{% endif %}
-{% if vista == 'teams' %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageTeams.css') }}">
-{% endif %}
-{% if vista in ['dashboard', 'asistance', 'library'] %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/classroomManageInsights.css') }}">
-{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -51,8 +45,11 @@
             </div>
         </header>
 
+
         <nav class="cm-nav">
-            <a class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard"
+
+            {% if session.get('user', {}).get('role_id') != 3 %} <a
+                class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard"
                 data-vista="dashboard">
                 <span class="cm-nav-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -62,6 +59,7 @@
                 </span>
                 <span class="cm-nav-label">Tablero</span>
             </a>
+            {% endif %}
 
             <a class="cm-nav-item{% if vista == 'students' %} is-active{% endif %}" href="?vista=students"
                 data-vista="students">
@@ -84,7 +82,8 @@
                 <span class="cm-nav-label">Equipos</span>
             </a>
 
-            <a class="cm-nav-item{% if vista == 'asistance' %} is-active{% endif %}" href="?vista=asistance"
+            {% if session.get('user', {}).get('role_id') != 3 %} <a
+                class="cm-nav-item{% if vista == 'asistance' %} is-active{% endif %}" href="?vista=asistance"
                 data-vista="asistance">
                 <span class="cm-nav-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" aria-hidden="true">
@@ -96,6 +95,7 @@
                 </span>
                 <span class="cm-nav-label">Asistencia</span>
             </a>
+            {% endif %}
 
             <a class="cm-nav-item{% if vista == 'library' %} is-active{% endif %}" href="?vista=library"
                 data-vista="library">

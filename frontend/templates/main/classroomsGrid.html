@@ -56,7 +56,10 @@
                 <p class="um-subtitle">Selecciona un aula para gestionar</p>
             </div>
 
-            <button class="um-primary-btn" id="btnCrearAula" type="button">+ Crear un aula</button>
+            {% if session.get('user', {}).get('role_id') != 3 %} <button class="um-primary-btn" id="btnCrearAula"
+                type="button">+ Crear un
+                aula</button>
+            {% endif %}
         </div>
 
         <div id="classroomsGrid" class="um-grid" aria-label="Listado de aulas">
@@ -99,6 +102,7 @@
                 </div>
 
                 <div class="um-card__footer">
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <a class="um-link um-link--muted" href="#" data-action="share" data-class-id="{{ aula.id }}"
                         data-class-name="{{ aula.name }}">
                         <span class="um-ico um-ico--share" aria-hidden="true">
@@ -110,6 +114,7 @@
                         </span>
                         <span>Compartir</span>
                     </a>
+                    {% endif %}
 
                     <a class="um-link um-link--primary" href="/aulas/{{ aula.id }}/gestionar">
                         <span>Abrir aula</span>

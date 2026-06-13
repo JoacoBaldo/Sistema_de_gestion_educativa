@@ -8,75 +8,60 @@ def crear_equipo_con_miembros(
     nombre: str, miembros: list, classroom_id: int
 ) -> Optional[int]:
     """
-    Crea un nuevo equipo con miembros (nombres).
-    Retorna el ID del equipo creado o None si falla.
+    Crea un nuevo equipo y retorna el ID generado por MySQL de forma segura.
     """
     engine = obtener_conexion()
     with engine.connect() as conn:
-        # Insertar el equipo
-        conn.exec_driver_sql(
+        cursor = conn.exec_driver_sql(
             """
             INSERT INTO teams (name, classroom_id, created_at, updated_at)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (
-                nombre,
-                classroom_id,
-                datetime.now(timezone.utc),
-                datetime.now(timezone.utc),
-            ),
-        )
-        conn.commit()
-
-        # Obtener el ID del equipo creado
-        fila = conn.exec_driver_sql(
-            """
-            SELECT id FROM teams WHERE name = %s AND classroom_id = %s
-            ORDER BY created_at DESC LIMIT 1
+            VALUES (%s, %s, NOW(), NOW())
             """,
             (nombre, classroom_id),
-        ).fetchone()
-
-        if fila is None:
-            return None
-
-        team_id = fila[0]
-
-        # Aquí podrías almacenar los miembros como nombres en un campo JSON
-        # o en una tabla separada. Por ahora, dejamos el equipo sin miembros.
-        # Los miembros se pueden asociar después según tu estructura de BD.
+        )
+        conn.commit()
+        
+        team_id = cursor.lastrowid
 
         return team_id
-
 
 def listar_equipos_classroom(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
-        resultados = conn.exec_driver_sql(
+        equipos_raw = conn.exec_driver_sql(
             """
-            SELECT id, name, classroom_id, created_at, updated_at
-            FROM teams
-            WHERE classroom_id = %s
-            ORDER BY name
+            SELECT t.id, t.name, t.classroom_id, t.created_at, t.updated_at,
+            u.id, u.username, u.email
+            FROM teams t
+            LEFT JOIN team_members tm ON tm.team_id = t.id
+            LEFT JOIN users u ON u.id = tm.user_id
+            WHERE t.classroom_id = %s
+            ORDER BY t.name, u.username
             """,
             (classroom_id,),
         ).fetchall()
 
-    equipos = []
-    for fila in resultados:
+    equipos_dict = {}
+    for fila in equipos_raw:
         team_id = fila[0]
-        miembros = obtener_miembros_equipo(team_id)
-        equipos.append(
-            {
+        if team_id not in equipos_dict:
+            equipos_dict[team_id] = {
                 "id": team_id,
                 "name": fila[1],
                 "classroom_id": fila[2],
                 "created_at": fila[3],
                 "updated_at": fila[4],
-                "miembros": miembros,
+                "miembros": [],
             }
-        )
-    return equipos
+        if fila[5]:
+            equipos_dict[team_id]["miembros"].append(
+                {
+                    "id": fila[5],
+                    "username": fila[6],
+                    "email": fila[7],
+                }
+            )
+    return list(equipos_dict.values())
 
 
 def obtener_miembros_equipo(team_id: int) -> list[dict]:
