@@ -52,10 +52,10 @@ def crear_evaluacion_root(classroom_id: int):
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
         evaluation_type_id = (
-            int(evaluation_type_raw) if evaluation_type_raw is not None else None
+            int(evaluation_type_raw) if evaluation_type_raw is not None else 0
         )
     except (TypeError, ValueError):
-        evaluation_type_id = None
+        evaluation_type_id = 0
 
     referenced_eval_raw = body.get("referenced_eval_id")
     try:
@@ -70,6 +70,9 @@ def crear_evaluacion_root(classroom_id: int):
         individual = int(individual_raw)
     except (TypeError, ValueError):
         individual = 1
+
+    if not isinstance(evaluation_type_id, int) or evaluation_type_id == 0:
+        return responder_error({"mensaje": "evaluation_type_id requerido"})
 
     resultado, error = crear_evaluacion(
         classroom_id, name, evaluation_type_id, referenced_eval_id, individual

@@ -42,9 +42,10 @@
                         </span>
                         Generar nuevo QR
                     </button>
-                    <form method="POST" action="{{ url_for('enviar_qr_asistencia', classroom_id=classroom_id) }}" style="display:inline;">
+                    <form method="POST" action="{{ url_for('enviar_qr_asistencia', classroom_id=classroom_id) }}" style="display:inline;" id="at-send-email-form">
+                        <input type="hidden" name="code" id="at-send-code">
                         <button class="st-btn st-btn-ghost" type="submit"
-                            onclick="return confirm('¿Enviar un QR de asistencia personal a cada estudiante del aula?');">
+                            onclick="return confirm('¿Enviar el QR de asistencia actual a todos los estudiantes del aula?');">
                             Enviar por correo
                         </button>
                     </form>

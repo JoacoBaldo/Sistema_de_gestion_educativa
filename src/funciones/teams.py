@@ -55,8 +55,8 @@ def crear_equipo(
         return None, EVALUACION_NO_EXISTE
 
     member_ids, error = _parsear_ids_miembros(miembros)
-    if error:
-        return None, error
+    if error or member_ids is None:
+        return None, error or MIEMBROS_INVALIDOS
 
     if not db_teams.miembros_pertenecen_aula(classroom_id, member_ids):
         return None, MIEMBROS_INVALIDOS

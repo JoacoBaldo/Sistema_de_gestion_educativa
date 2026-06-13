@@ -7,7 +7,7 @@ from jose import jwt
 
 from src.db.auth import obtener_usuario_por_email
 from src.db.user import crear_usuario_db, email_existe
-
+from .errores import USUARIO_NO_ENCONTRADO
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
@@ -38,7 +38,16 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 def send_password_mail(destinatario: str) -> tuple:
     usuario = obtener_usuario_por_email(destinatario)
-    token = crear_token_reset_password(usuario.get("id"), usuario.get("email"))
+    if not usuario:
+        return None, USUARIO_NO_ENCONTRADO
+    
+    user_id = usuario.get("id")
+    email = usuario.get("email")
+    
+    if not user_id or not email:
+        return None, USUARIO_NO_ENCONTRADO
+    
+    token = crear_token_reset_password(int(user_id), str(email))
     api_key = os.environ.get("BREVO_API_PASSWORD")
     remitente = os.environ.get("EMAIL_REMITENTE")
 
