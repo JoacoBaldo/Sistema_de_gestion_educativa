@@ -30,6 +30,12 @@ AULA_NO_VALIDA = {
 }
 CLASSROOM_NO_EXISTE = {"error": "El classroom especificado no existe", "status": 404}
 
+CODIGO_REQUERIDO = {"error": "El código de asistencia es requerido", "status": 400}
+CODIGO_INVALIDO = {"error": "El código de asistencia es inválido o ya expiró", "status": 400}
+CODIGO_NO_CORRESPONDE = {"error": "Este código no corresponde a tu usuario", "status": 403}
+DELTA_INVALIDO = {"error": "El campo 'delta' debe ser un entero", "status": 400}
+DELTA_CERO = {"error": "El campo 'delta' no puede ser 0", "status": 400}
+
 EQUIPO_NO_EXISTE = {"error": "Equipo no encontrado", "status": 404}
 MIEMBROS_INVALIDOS = {
     "error": "Uno o más miembros no pertenecen al aula",
@@ -74,6 +80,10 @@ REFERENCED_EVAL_NO_EXISTE = {
 ERROR_ENVIO_MAIL = {
     "error": "Hubo un problema interno al intentar enviar el correo",
     "status": 500,
+}
+SIN_ESTUDIANTES = {
+    "error": "No hay estudiantes en el aula",
+    "status": 400,
 }
 SCHEDULE_REQUERIDO = {
     "error": "class_day (int), class_start, class_end y academic_period_id son requeridos",

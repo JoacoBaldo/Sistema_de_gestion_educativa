@@ -78,6 +78,40 @@ def obtener_estudiantes_classroom(classroom_id):
     return resultados_devolver
 
 
+def obtener_estudiantes_classroom_con_email(classroom_id: int) -> list[dict]:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultados = conn.exec_driver_sql(
+            """
+            SELECT cu.user_id, u.email, u.username
+            FROM classroom_users cu
+            JOIN users u ON u.id = cu.user_id
+            WHERE cu.classroom_id = %s AND cu.role_id = %s
+            """,
+            (classroom_id, ESTUDIANTE),
+        ).fetchall()
+    return [{"user_id": f[0], "email": f[1], "username": f[2]} for f in resultados]
+
+
+def crear_codigos_por_alumno(attendance_event_id: int, student_ids: list[int]) -> dict:
+    import secrets
+    engine = obtener_conexion()
+    codes = {}
+    with engine.connect() as conn:
+        for student_id in student_ids:
+            code = secrets.token_urlsafe(12)
+            conn.exec_driver_sql(
+                """
+                INSERT INTO attendance_event_codes (attendance_event_id, user_id, code)
+                VALUES (%s, %s, %s)
+                """,
+                (attendance_event_id, student_id, code),
+            )
+            codes[student_id] = code
+        conn.commit()
+    return codes
+
+
 def inasistencia_db(student_id, attendance_event_id, fecha, delta: int = 1):
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -100,19 +134,19 @@ def obtener_evento_por_codigo(classroom_id: int, code: str) -> dict | None:
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
             """
-            SELECT id, classroom_id 
-            FROM attendance_events 
-            WHERE classroom_id = %s
-            ORDER BY id DESC
-            LIMIT 1
+            SELECT ae.id, ae.classroom_id, aec.user_id
+            FROM attendance_event_codes aec
+            JOIN attendance_events ae ON ae.id = aec.attendance_event_id
+            WHERE ae.classroom_id = %s AND aec.code = %s
             """,
-            (classroom_id,),
+            (classroom_id, code),
         ).fetchone()
-        
+
         if resultado:
             return {
                 "id": resultado[0],
                 "classroom_id": resultado[1],
-                "code": code
+                "user_id": resultado[2],
+                "code": code,
             }
         return None
