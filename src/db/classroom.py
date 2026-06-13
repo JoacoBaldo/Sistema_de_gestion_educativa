@@ -56,6 +56,20 @@ def puede_administrar_classroom(classroom_id: int, usuario_id: int) -> bool:
     return resultado is not None
 
 
+def puede_gestionar_alumnos(classroom_id: int, usuario_id: int) -> bool:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            """
+            SELECT 1 FROM classroom_users
+            WHERE classroom_id = %s AND user_id = %s AND role_id != %s
+            LIMIT 1
+            """,
+            (classroom_id, usuario_id, ESTUDIANTE),
+        ).fetchone()
+    return resultado is not None
+
+
 def eliminar_usuario_classroom(classroom_id: int, usuario_id: int):
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -241,6 +255,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
                     c.name,
                     c.department,
                     c.university,
+                    cu.role_id,
                     cs.id AS schedule_id,
                     cs.class_day,
                     cs.class_start,
@@ -263,6 +278,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
             "name": fila["name"],
             "department": fila["department"],
             "university": fila["university"],
+            "role_id": fila["role_id"],
             "schedule": {
                 "id": fila["schedule_id"],
                 "class_day": fila["class_day"],

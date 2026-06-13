@@ -22,15 +22,26 @@
         <input type="text" id="universidad" name="universidad" class="glass-input" placeholder="Ejemplo: Universidad Nacional" required>
       </div>
 
-      <div class="row mb-3">
-        <div class="col-6">
-          <label class="form-label" for="fecha_inicio">📅 Fecha de Inicio <span class="text-danger">*</span></label>
-          <input type="date" id="fecha_inicio" name="fecha_inicio" class="glass-input" required>
+      <div class="mb-3">
+        <label class="form-label">📅 Período Académico <span class="text-danger">*</span></label>
+        {% if periodos %}
+        <div class="glass-period-slider" id="ca-period-slider" role="radiogroup" aria-label="Período académico">
+          {% for periodo in periodos %}
+          <button type="button"
+                  class="glass-period-pill {% if loop.first %}is-active{% endif %}"
+                  data-period-id="{{ periodo.id }}"
+                  role="radio"
+                  aria-checked="{% if loop.first %}true{% else %}false{% endif %}">
+            {{ periodo.name }}
+          </button>
+          {% endfor %}
         </div>
-        <div class="col-6">
-          <label class="form-label" for="fecha_fin">📅 Fecha de Fin <span class="text-danger">*</span></label>
-          <input type="date" id="fecha_fin" name="fecha_fin" class="glass-input" required>
-        </div>
+        <input type="hidden" name="academic_period_id" id="ca-academic-period-id"
+               value="{{ periodos[0].id }}" required>
+        {% else %}
+        <p class="glass-field-hint">No hay períodos académicos configurados.</p>
+        <input type="hidden" name="academic_period_id" id="ca-academic-period-id" value="">
+        {% endif %}
       </div>
 
       <div class="mb-3">

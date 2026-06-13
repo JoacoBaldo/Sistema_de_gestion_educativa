@@ -103,3 +103,19 @@ SESION_INVALIDA = {"error": "Sesión inválida. Vuelve a iniciar sesión.", "sta
 MIEMBROS_REQUERIDO = {"error": "Al menos un miembro es requerido", "status": 400}
 CLASSROOM_NO_ESPECIFICADO = {"error": "Classroom no especificado", "status": 400}
 EQUIPO_NO_CREADO = {"error": "No se pudo crear el equipo", "status": 500}
+DATOS_ESTUDIANTE_REQUERIDOS = {
+    "error": "username, email, document y career son requeridos",
+    "status": 400,
+}
+SIN_PERMISO_CREAR_ALUMNO = {
+    "error": "Solo PROFESOR, AYUDANTE o ADMINISTRADOR pueden agregar alumnos",
+    "status": 403,
+}
+SIN_PERMISO_EDITAR_ALUMNO = {
+    "error": "Solo PROFESOR, AYUDANTE o ADMINISTRADOR pueden editar alumnos",
+    "status": 403,
+}
+ESTUDIANTE_NO_EN_CLASSROOM = {
+    "error": "El usuario no es un estudiante de este classroom",
+    "status": 404,
+}

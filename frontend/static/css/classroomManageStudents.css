@@ -81,6 +81,40 @@
   font-size: 0.95rem;
 }
 
+.st-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.st-action-btn:active {
+  transform: translateY(1px);
+}
+
+.st-action-btn-edit {
+  background: rgba(123, 97, 255, 0.12);
+  color: #7b61ff;
+}
+
+.st-action-btn-edit:hover {
+  background: rgba(123, 97, 255, 0.25);
+}
+
+.st-action-btn-delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.st-action-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
 .st-toolbar {
   display: flex;
   align-items: center;

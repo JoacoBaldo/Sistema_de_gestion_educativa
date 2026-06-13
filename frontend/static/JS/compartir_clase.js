@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const classIdEl = document.getElementById("classId");
   const cancelBtn = document.getElementById("cc-share-cancel-btn");
   const closeBtn = document.getElementById("cc-share-close");
-  const linkResult = document.getElementById("cc-share-link-result");
+  const linkInput = document.getElementById("cc-share-link-input");
+  const copyBtn = document.getElementById("cc-copy-btn");
 
   if (!modal || !form) return;
 
@@ -29,31 +30,28 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("hidden");
   }
 
-  function resetForm() {
-    form.reset();
-    if (classIdEl) classIdEl.value = "";
-    if (titleEl) titleEl.textContent = "Compartir Clase";
-  }
-
-  function openShareModal({ classId = "", className = "" } = {}) {
-    resetForm();
-    openModal(classId, className);
-  }
-
   bindModalButtons({ cancelBtn, closeBtn, onClose: closeModal });
   bindModalDismiss(modal, closeModal);
 
-  onAppEvent(APP_EVENTS.SHARE_MODAL_OPEN, openShareModal);
+  onAppEvent(APP_EVENTS.SHARE_MODAL_OPEN, ({ classId = "", className = "" } = {}) => {
+    openModal(classId, className);
+  });
 
   if (getQueryParam("accion") === "compartir") {
     const nombre = getQueryParam("nombre") || "";
-    openShareModal({
-      classId: getQueryParam("id") || "",
-      className: nombre ? decodeURIComponent(nombre) : "",
-    });
+    openModal(getQueryParam("id") || "", nombre ? decodeURIComponent(nombre) : "");
   }
 
-  if (linkResult && linkResult.textContent.trim()) {
+  // Si hay enlace generado (post-redirect), reabrir el modal automáticamente
+  if (linkInput) {
     openModal();
   }
+
+  copyBtn?.addEventListener("click", () => {
+    if (!linkInput?.value) return;
+    navigator.clipboard.writeText(linkInput.value).then(() => {
+      copyBtn.textContent = "✓ Copiado";
+      setTimeout(() => (copyBtn.textContent = "Copiar"), 2000);
+    });
+  });
 });
