@@ -1,11 +1,14 @@
 from typing import List, Optional
 
 from src.db import classroom as db_classroom
+from src.db import evaluations as db_evaluations
 from src.db import teams as db_teams
 
 from .errores import (
     EQUIPO_NO_CREADO,
     EQUIPO_NO_EXISTE,
+    EVALUACION_NO_EXISTE,
+    EVALUATION_ID_REQUERIDO,
     MIEMBROS_INVALIDOS,
     MIEMBROS_REQUERIDO,
     NAME_VACIO,
@@ -38,6 +41,7 @@ def crear_equipo(
     miembros: List[str],
     classroom_id: int,
     usuario_id: int,
+    evaluation_id: int,
 ) -> tuple:
     if not nombre or not nombre.strip():
         return None, NAME_VACIO
@@ -47,6 +51,9 @@ def crear_equipo(
 
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, NO_ES_ADMIN
+
+    if not db_evaluations.existe_evaluacion_en_classroom(evaluation_id, classroom_id):
+        return None, EVALUACION_NO_EXISTE
 
     member_ids, error = _parsear_ids_miembros(miembros)
     if error:
@@ -65,6 +72,7 @@ def crear_equipo(
         return None, EQUIPO_NO_CREADO
 
     db_teams.reemplazar_miembros(equipo_id, member_ids)
+    db_teams.crear_grades_equipo(evaluation_id, equipo_id, member_ids)
     return {"message": "Team created", "id": equipo_id}, None
 
 
@@ -73,6 +81,7 @@ def editar_equipo(
     nombre: Optional[str],
     member_ids: Optional[List[int]],
     usuario_id: int,
+    evaluation_id: Optional[int] = None,
 ) -> tuple:
     equipo = db_teams.obtener_equipo(team_id)
     if equipo is None:
@@ -89,6 +98,12 @@ def editar_equipo(
         if not db_teams.miembros_pertenecen_aula(classroom_id, member_ids):
             return None, MIEMBROS_INVALIDOS
         db_teams.reemplazar_miembros(team_id, member_ids)
+
+    if evaluation_id is not None:
+        if not db_evaluations.existe_evaluacion_en_classroom(evaluation_id, classroom_id):
+            return None, EVALUACION_NO_EXISTE
+        miembros_actuales = db_teams.obtener_ids_miembros(team_id)
+        db_teams.crear_grades_equipo(evaluation_id, team_id, miembros_actuales)
 
     return {"message": "Team updated", "id": team_id}, None
 

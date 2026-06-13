@@ -106,6 +106,16 @@
                     <div id="edit-miembros-list" class="glass-dynamic-list"></div>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label" for="edit-evaluation-id">📋 Evaluación</label>
+                    <select id="edit-evaluation-id" name="evaluation_id" class="glass-input">
+                        <option value="">Sin cambiar</option>
+                        {% for evaluacion in evaluaciones or [] %}
+                        <option value="{{ evaluacion.id }}">{{ evaluacion.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <div class="action-buttons">
                     <button type="button" class="btn-cancelar" id="tm-edit-team-cancel-btn">Cancelar</button>
                     <button type="submit" class="btn-crear" id="btnActualizarEquipo">Guardar Cambios</button>

@@ -206,9 +206,12 @@ def datos_vista_gestion(classroom_id, usuario, vista):
                 datos["equipos"] = res_m.get("equipos", []) if isinstance(res_m, dict) else []
         else:
             datos["equipos"] = extraer_lista(res_t, err_t)
-        
+
         res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
         datos["alumnos"] = extraer_lista(res_a, err_a)
+
+        res_e, err_e = consumir_api("GET", f"/api/v1/classroom/{classroom_id}/evaluaciones")
+        datos["evaluaciones"] = extraer_lista(res_e, err_e)
 
     elif vista == "evaluations":
         res, err = consumir_api("GET", f"/api/v1/classroom/{classroom_id}/evaluaciones")
@@ -772,10 +775,12 @@ def crear_equipo_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
+    evaluation_id_str = request.form.get("evaluation_id", "")
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
         "classroom_id": classroom_id,
-        "member_ids": request.form.getlist("miembros") # Lista de strings de IDs
+        "member_ids": request.form.getlist("miembros"),
+        "evaluation_id": int(evaluation_id_str) if evaluation_id_str.isdigit() else None,
     }
 
     res, error = consumir_api("POST", "/api/v1/teams", json_data=payload)
@@ -793,10 +798,13 @@ def actualizar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()
     if redireccion: return redireccion
 
+    evaluation_id_str = request.form.get("evaluation_id", "")
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
-        "member_ids": request.form.getlist("miembros")
+        "member_ids": request.form.getlist("miembros"),
     }
+    if evaluation_id_str.isdigit():
+        payload["evaluation_id"] = int(evaluation_id_str)
     
     res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)
     
