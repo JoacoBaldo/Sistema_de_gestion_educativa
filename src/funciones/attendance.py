@@ -110,15 +110,12 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
     )
 
     try:
-        print(f"📧 Intentando enviar correo: [Desde: {remitente}] ➡️ [Hacia: {destinatario}]")
         with smtplib.SMTP(host, port) as server:
             server.starttls()
             server.login(user, password)
             server.send_message(msg)
-        print("📬 ¡Correo enviado con éxito al Sandbox de Mailtrap!")
         return {"message": "Correo enviado"}, None
     except Exception as e:
-        print(f"📭 Error SMTP Mailtrap: {e}")
         return None, ERROR_ENVIO_MAIL
 
 

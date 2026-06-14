@@ -66,14 +66,12 @@ def send_password_mail(destinatario: str) -> tuple:
     )
 
     try:
-        print(f"📧 Intentando enviar correo: [Desde: {remitente}] ➡️ [Hacia: {destinatario}]")
         with smtplib.SMTP(host, port) as server:
             server.starttls()
             server.login(user, password)
             server.send_message(msg)
         return {"message": "Correo enviado"}, None
     except Exception as e:
-        print(f"📭 Error SMTP Mailtrap: {e}")
         return None, {"error": "La conexión falló", "status": 500}
 
 
