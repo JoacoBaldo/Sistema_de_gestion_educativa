@@ -71,7 +71,7 @@ def send_password_mail(destinatario: str) -> tuple:
             server.login(user, password)
             server.send_message(msg)
         return {"message": "Correo enviado"}, None
-    except Exception as e:
+    except Exception:
         return None, {"error": "La conexión falló", "status": 500}
 
 

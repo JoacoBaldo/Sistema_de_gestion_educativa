@@ -86,5 +86,3 @@ def create_user_route():
         return responder_error(error)
 
     return jsonify(resultado), resultado["status"]
-
-
