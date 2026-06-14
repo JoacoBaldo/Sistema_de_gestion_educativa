@@ -79,7 +79,9 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
         try:
             user_id = obtener_user_id_por_email(str(email))
             if not user_id:
-                errores.append({"usuario": email, "error": "No se pudo obtener el ID del usuario"})
+                errores.append(
+                    {"usuario": email, "error": "No se pudo obtener el ID del usuario"}
+                )
                 continue
 
             if usuario_nuevo:
