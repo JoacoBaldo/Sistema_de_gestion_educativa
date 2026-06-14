@@ -329,7 +329,7 @@ def login():
             flash("El correo es obligatorio", "error")
             return redirect(url_for("login"))
 
-        res, error = consumir_api("POST", "/recuperar-password", json_data=payload)
+        res, error = consumir_api("POST", "/api/v1/forgot-password", json_data=payload)
         if error or (res and type(res) is dict and res.get("error")):
             flash("No se pudo enviar el correo", "error")
         else:
