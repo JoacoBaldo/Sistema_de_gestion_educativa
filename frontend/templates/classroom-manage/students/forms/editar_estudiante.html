@@ -1,0 +1,53 @@
+<div id="st-edit-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="st-edit-modal-title">
+    <div class="glass-card">
+
+      <div class="glass-header">
+        <h3 id="st-edit-modal-title">Editar Estudiante</h3>
+        <button type="button" class="btn-close-custom" id="st-edit-close" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="subtitle">Modificá los datos del estudiante. Cambiar el padrón también actualiza la contraseña.</p>
+
+      <form id="formEditarEstudiante" method="POST" action="" novalidate>
+        <input type="hidden" id="st_edit_user_id" name="user_id">
+
+        <div class="row mb-3">
+          <div class="col-6">
+            <label class="form-label" for="st_edit_nombre">👤 Nombre <span class="text-danger">*</span></label>
+            <input type="text" id="st_edit_nombre" name="nombre" class="glass-input" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="st_edit_apellido">👤 Apellido <span class="text-danger">*</span></label>
+            <input type="text" id="st_edit_apellido" name="apellido" class="glass-input" required>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-6">
+            <label class="form-label" for="st_edit_padron">🪪 Padrón / ID <span class="text-danger">*</span></label>
+            <input type="text" id="st_edit_padron" name="padron" class="glass-input" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="st_edit_email">📧 Correo Electrónico <span class="text-danger">*</span></label>
+            <input type="email" id="st_edit_email" name="email" class="glass-input" required>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-12">
+            <label class="form-label" for="st_edit_career">🎓 Carrera <span class="text-danger">*</span></label>
+            <input type="text" id="st_edit_career" name="career" class="glass-input" required>
+          </div>
+        </div>
+
+        <p class="glass-field-hint">Nota: Si modificás el padrón, la contraseña del estudiante también se actualizará.</p>
+
+        <div class="action-buttons">
+          <button type="button" class="btn-cancelar" id="st-edit-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn-crear">Guardar Cambios</button>
+        </div>
+
+        <div id="st-edit-toast" class="glass-toast hidden" role="status" aria-live="polite"></div>
+      </form>
+
+    </div>
+</div>

@@ -5,23 +5,38 @@
             <p class="st-subtitle">Consultas, estadísticas y exportación de informes en PDF</p>
         </div>
         <div class="st-actions cmr-report-actions">
-            <button class="st-btn st-btn-primary" type="button" id="db-pdf-students" data-pdf="students">
+            <a href="{{ url_for('descargar_pdf_dashboard', classroom_id=classroom_id, filter='students') }}"
+                class="st-btn st-btn-primary">
                 <span class="st-ghost-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 384 512"><path fill="#ffffff" d="M0 64C0 28.7 28.7 0 64 0h160v128c0 17.7 14.3 32 32 32h128v288c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384 64H256V0l128 128z"/></svg>                </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 384 512">
+                        <path fill="#ffffff"
+                            d="M0 64C0 28.7 28.7 0 64 0h160v128c0 17.7 14.3 32 32 32h128v288c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384 64H256V0l128 128z" />
+                    </svg>
+                </span>
                 PDF alumnos
-            </button>
-            <button class="st-btn st-btn-ghost" type="button" id="db-pdf-stats" data-pdf="stats">
+            </a>
+            <a href="{{ url_for('descargar_pdf_dashboard', classroom_id=classroom_id, filter='students_passed') }}"
+                class="st-btn st-btn-ghost">
                 <span class="st-ghost-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M10 19V9M16 19v-6M22 19V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 19V5M10 19V9M16 19v-6M22 19V3" stroke="currentColor" stroke-width="1.6"
+                            stroke-linecap="round" />
+                    </svg>
                 </span>
                 PDF aprobación
-            </button>
-            <button class="st-btn st-btn-ghost" type="button" id="db-pdf-teams" data-pdf="teams">
+            </a>
+            <a href="{{ url_for('descargar_pdf_dashboard', classroom_id=classroom_id, filter='teams') }}"
+                class="st-btn st-btn-ghost">
                 <span class="st-ghost-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" />
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
                 </span>
                 PDF equipos
-            </button>
+            </a>
         </div>
     </header>
 
@@ -37,7 +52,10 @@
         <article class="cmr-kpi cm-panel">
             <div class="cmr-kpi__top">
                 <div class="cmr-kpi__icon cmr-kpi__icon--violet" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6" />
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6" />
+                    </svg>
                 </div>
             </div>
             <div class="cmr-kpi__value" id="db-kpi-total">{{ total }}</div>
@@ -46,7 +64,10 @@
         <article class="cmr-kpi cm-panel">
             <div class="cmr-kpi__top">
                 <div class="cmr-kpi__icon cmr-kpi__icon--teal" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="1.6"/><path d="M22 4 12 14.01l-3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="1.6" />
+                        <path d="M22 4 12 14.01l-3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
                 </div>
             </div>
             <div class="cmr-kpi__value" id="db-kpi-active">{{ activos }}</div>
@@ -55,7 +76,10 @@
         <article class="cmr-kpi cm-panel">
             <div class="cmr-kpi__top">
                 <div class="cmr-kpi__icon cmr-kpi__icon--blue" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M10 19V9M16 19v-6M22 19V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 19V5M10 19V9M16 19v-6M22 19V3" stroke="currentColor" stroke-width="1.6"
+                            stroke-linecap="round" />
+                    </svg>
                 </div>
             </div>
             <div class="cmr-kpi__value" id="db-kpi-approval">{{ '%.1f'|format(aprobacion) }}%</div>
@@ -64,7 +88,11 @@
         <article class="cmr-kpi cm-panel">
             <div class="cmr-kpi__top">
                 <div class="cmr-kpi__icon cmr-kpi__icon--amber" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M22 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6" />
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6" />
+                        <path d="M22 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
                 </div>
             </div>
             <div class="cmr-kpi__value" id="db-kpi-dropout">{{ '%.1f'|format(abandono_pct) }}%</div>
@@ -81,13 +109,31 @@
                 </div>
             </div>
             <div class="cmr-card-body">
-                <div class="cmr-chart-wrap" id="db-enrollment-chart" role="img" aria-label="Gráfico de barras de matrícula">
+                <div class="cmr-chart-wrap" id="db-enrollment-chart" role="img"
+                    aria-label="Gráfico de barras de matrícula">
                     {% if m.get('ingresos_por_año') %}
-                    <ul class="cmr-bar-list">
+                    {# Encontramos el valor máximo para escalar proporcionalmente el ancho de las barras #}
+                    {% set max_total = 1 %}
+                    {% for item in m.ingresos_por_año %}
+                    {% if item.total > max_total %}
+                    {% set max_total = item.total %}
+                    {% endif %}
+                    {% endfor %}
+
+                    <div class="cmr-bar-chart-container">
                         {% for item in m.ingresos_por_año %}
-                        <li><strong>{{ item.year }}</strong>: {{ item.total }} estudiante(s)</li>
+                        {# Porcentaje relativo del ancho de la barra #}
+                        {% set item_pct = (item.total / max_total * 100) if max_total else 0 %}
+                        <div class="cmr-bar-row">
+                            <span class="cmr-bar-year">{{ item.year }}</span>
+                            <div class="cmr-bar-track">
+                                <div class="cmr-bar-fill" style="--bar-width: {{ item_pct }}%;"> <span
+                                        class="cmr-bar-qty">{{ item.total }}</span>
+                                </div>
+                            </div>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                     {% else %}
                     <p class="cmr-empty-inline">Sin datos de matrícula.</p>
                     {% endif %}
@@ -101,27 +147,31 @@
                     <h2>Estadísticas de aprobación</h2>
                     <p>Distribución por estado académico</p>
                 </div>
-                <button class="st-btn st-btn-ghost" type="button" id="db-pdf-stats-inline" data-pdf="stats">Exportar</button>
+                <a class="st-btn st-btn-ghost" id="db-pdf-stats-inline"
+                    href="{{ url_for('descargar_pdf_dashboard', classroom_id=classroom_id, filter='students_passed') }}">
+                    Exportar
+                </a>
             </div>
             <div class="cmr-card-body">
                 <div class="cmr-donut">
-                    <div class="cmr-donut__ring" aria-hidden="true">
-                        <div class="cmr-donut__center" id="db-donut-center">{{ '%.0f'|format(aprobacion) }}%<span>Aprobación</span></div>
+                    {# Inyección dinámica de la tasa de aprobación al degradado cónico CSS #}
+                    <div class="cmr-donut__ring" style="--chart-value: {{ aprobacion }}%;">
+                        <div class="cmr-donut__center" id="db-donut-center">
+                            {{ '%.0f'|format(aprobacion) }}%
+                            <span>Aprobación</span>
+                        </div>
                     </div>
                     <div class="cmr-legend" id="db-approval-legend">
-                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#10b981"></span> Activos: {{ activos }}</span>
-                        <span class="cmr-legend__item"><span class="cmr-legend__dot" style="background:#f43f5e"></span> Abandonaron: {{ abandonaron }}</span>
+                        <span class="cmr-legend__item">
+                            <span class="cmr-legend__dot" style="background:#10b981"></span>
+                            Activos: {{ activos }}
+                        </span>
+                        <span class="cmr-legend__item">
+                            <span class="cmr-legend__dot" style="background:#f43f5e"></span>
+                            Abandonaron: {{ abandonaron }}
+                        </span>
                     </div>
                 </div>
             </div>
         </section>
     </div>
-
-    <section class="st-table-card" aria-label="Listado de alumnos para informes">
-        <div class="cmr-table-head">
-            <h2>Listado de alumnos</h2>
-            <button class="st-btn st-btn-primary" type="button" id="db-pdf-students-inline" data-pdf="students">Descargar PDF</button>
-        </div>
-
-        <div class="cmr-filter-panel" role="region" aria-label="Filtros del listado">
-            <div class="st-search" style="flex:2; min-width:200px;">

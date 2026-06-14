@@ -1,11 +1,13 @@
 from src.db.classroom import existe_classroom
-from src.db.evaluaciones import (
+from src.db.evaluations import (
     actualizar_evaluacion_db,
     crear_evaluacion_db,
     existe_evaluacion_en_classroom,
     existe_evaluation_type,
     obtener_evaluacion_por_id,
     obtener_evaluaciones_classroom,
+    eliminar_evaluacion_db,
+    procesar_notas_masivas_db,
 )
 
 from .errores import (
@@ -130,3 +132,46 @@ def actualizar_evaluacion(
         individual,
         evaluation_id,
     ), None
+
+
+def eliminar_evaluacion(evaluation_id: int) -> tuple:
+    try:
+        evaluacion = obtener_evaluacion_por_id(evaluation_id)
+        if evaluacion is None:
+            return None, {
+                "error": "La evaluación especificada no existe",
+                "status": 404,
+            }
+
+        resultado = eliminar_evaluacion_db(evaluation_id)
+        return resultado, None
+
+    except Exception as e:
+        error_estructurado = {
+            "error": f"ERROR_BASE_DE_DATOS: {str(e)}",
+            "status": 500,
+        }
+        return None, error_estructurado
+
+
+def cargar_notas_masivas_logic(
+    classroom_id: int, evaluation_id: int, grades: list[dict]
+) -> tuple[dict, dict | None]:
+    if not grades:
+        return {}, {
+            "error": "La lista de notas está vacía o el CSV no tenía datos válidos.",
+            "status": 400,
+        }
+
+    if not classroom_id or not evaluation_id:
+        return {}, {"error": "Faltan parámetros de aula o evaluación.", "status": 400}
+
+    resultado = procesar_notas_masivas_db(classroom_id, evaluation_id, grades)
+
+    if resultado.get("error"):
+        return {}, {
+            "error": f"Error en base de datos: {resultado['error']}",
+            "status": 500,
+        }
+
+    return {"inserted": resultado.get("inserted", 0)}, None

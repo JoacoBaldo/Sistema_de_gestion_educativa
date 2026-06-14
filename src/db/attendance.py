@@ -83,12 +83,36 @@ def inasistencia_db(student_id, attendance_event_id, fecha, delta: int = 1):
     with engine.connect() as conn:
         conn.exec_driver_sql(
             """
-            UPDATE attendance
-            SET student_id = %s, attendance_event_id = %s, absence = GREATEST(0, absence + %s), updated_at = %s
+            INSERT INTO attendance (student_id, attendance_event_id, absence)
+            VALUES (%s, %s, GREATEST(0, %s))
+            ON DUPLICATE KEY UPDATE
+                absence = GREATEST(0, absence + %s)
             """,
-            (student_id, attendance_event_id, delta, fecha),
+            (student_id, attendance_event_id, delta, delta),
         )
         conn.commit()
-        conn.close()
 
     return {"mensaje": "Inasistencia actualizada correctamente", "status_code": 200}
+
+
+def obtener_evento_por_codigo(classroom_id: int, code: str) -> dict | None:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        resultado = conn.exec_driver_sql(
+            """
+            SELECT id, classroom_id
+            FROM attendance_events
+            WHERE classroom_id = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (classroom_id,),
+        ).fetchone()
+
+        if resultado:
+            return {
+                "id": resultado[0],
+                "classroom_id": resultado[1],
+                "code": code,
+            }
+        return None

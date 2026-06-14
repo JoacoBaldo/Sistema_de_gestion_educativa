@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelBtn = document.getElementById("tm-team-cancel-btn");
   const closeBtn = document.getElementById("tm-team-close");
   const memberTemplate = document.getElementById("tm-member-select-template");
+  const evaluationSelect = document.getElementById("tm-evaluation-id");
 
   if (!modal || !form) return;
 
@@ -94,6 +95,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!miembros.length) {
       showToast("Selecciona al menos un miembro del aula.");
+      event.preventDefault();
+      return;
+    }
+
+    if (!evaluationSelect?.value) {
+      showToast("Seleccioná una evaluación.");
       event.preventDefault();
     }
   });
