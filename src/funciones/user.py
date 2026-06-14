@@ -1,6 +1,7 @@
 import os
+import smtplib
 from datetime import datetime, timedelta, timezone
-import requests
+from email.message import EmailMessage
 
 import bcrypt
 from jose import jwt
@@ -43,44 +44,35 @@ def send_password_mail(destinatario: str) -> tuple:
 
     user_id = usuario.get("id")
     email = usuario.get("email")
-
     if not user_id or not email:
         return None, USUARIO_NO_ENCONTRADO
 
     token = crear_token_reset_password(int(user_id), str(email))
-    api_key = os.environ.get("BREVO_API_PASSWORD")
+
+    host = os.environ.get("MAILTRAP_HOST")
+    port = int(os.environ.get("MAILTRAP_PORT", "2525"))
+    user = os.environ.get("MAILTRAP_USER")
+    password = os.environ.get("MAILTRAP_PASSWORD")
     remitente = os.environ.get("EMAIL_REMITENTE")
 
-    url = "https://api.brevo.com/v3/smtp/email"
-
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "api-key": api_key,
-    }
-
-    cuerpo_mail = f"""
-    Hola,
-    Recibimos una solicitud para restablecer la contraseña de tu cuenta. Este mail contiene
-    un token de validación.  {token}
-    """
-    payload = {
-        "sender": {"name": "uniManage Soporte", "email": remitente},
-        "to": [{"email": destinatario}],
-        "subject": "Recuperación de contraseña - uniManage",
-        "textContent": cuerpo_mail,
-    }
+    msg = EmailMessage()
+    msg["Subject"] = "Recuperación de contraseña - uniManage"
+    msg["From"] = f"uniManage Soporte <{remitente}>"
+    msg["To"] = destinatario
+    msg.set_content(
+        "Hola,\n\n"
+        "Recibimos una solicitud para restablecer la contraseña de tu cuenta.\n"
+        f"Token de validación: {token}\n"
+    )
 
     try:
-        response = requests.post(url, json=payload, headers=headers)
-        if response.status_code == 201:
-            return {"message": "Correo enviado"}, None
-        else:
-            return None, {"error": "No se acepto la solicitud.", "status": 401}
-
-    except Exception:
-        error = {"error": "La conexión fallo", "status": 500}
-        return None, error
+        with smtplib.SMTP(host, port) as server:
+            server.starttls()
+            server.login(user, password)
+            server.send_message(msg)
+        return {"message": "Correo enviado"}, None
+    except Exception as e:
+        return None, {"error": "La conexión falló", "status": 500}
 
 
 def create_user(user: dict) -> tuple:
