@@ -1,8 +1,7 @@
 from src.db import classroom as db_classroom
 from src.db import resources as db_resources
 from src.db.classroom import usuario_en_classroom
-
-SIN_ACCESO = {"error": "No tienes acceso a esta aula"}
+from src.funciones.errores import ERROR_CONEXION, SIN_ACCESO
 
 
 def listar_recursos(classroom_id: int, usuario_id: int) -> tuple:
@@ -24,11 +23,9 @@ def subir_contenido_classroom(
         nuevo_id = db_resources.guardar_contenido_classroom(
             classroom_id, titulo, tipo_recurso, url, usuario_id
         )
-        # Retornamos el éxito
         return {"message": "Recurso subido", "id": nuevo_id}, None
-    except Exception as e:
-        # Agregamos 'status' para evitar el KeyError en utils.py
-        return None, {"error": str(e), "status": 500}
+    except Exception:
+        return None, ERROR_CONEXION
 
 
 def eliminar_contenido_classroom(
@@ -54,6 +51,5 @@ def editar_contenido_classroom(
         db_resources.actualizar_contenido_db(contenido_id, titulo, tipo, url)
 
         return {"mensaje": "Contenido actualizado con éxito", "id": contenido_id}, None
-    except Exception as e:
-        error_estructurado = {"error": f"ERROR_BASE_DE_DATOS: {str(e)}", "status": 500}
-        return None, error_estructurado
+    except Exception:
+        return None, ERROR_CONEXION

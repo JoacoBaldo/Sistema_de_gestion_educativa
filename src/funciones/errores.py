@@ -111,9 +111,36 @@ ARCHIVO_NO_ENVIADO = {
 }
 ARCHIVO_VACIO = {"error": "El nombre del archivo está vacío", "status": 400}
 ERROR_PROCESAMIENTO_CSV = {"error": "Error al procesar el archivo CSV", "status": 500}
+ERROR_CONEXION = {"error": "La conexión falló", "status": 500}
+CSV_ID_USUARIO_NO_ENCONTRADO = {
+    "error": "No se pudo obtener el ID del usuario",
+    "status": 500,
+}
+CSV_ERROR_PROCESAMIENTO_FILA = {
+    "error": "Error al procesar el estudiante",
+    "status": 500,
+}
 EVALUACION_NO_EXISTE = {"error": "La evaluación especificada no existe", "status": 404}
+NOTAS_VACIAS = {
+    "error": "La lista de notas está vacía o el CSV no tenía datos válidos.",
+    "status": 400,
+}
+PARAMETROS_NOTAS_REQUERIDOS = {
+    "error": "Faltan parámetros de aula o evaluación.",
+    "status": 400,
+}
+ERROR_BASE_DE_DATOS = {"error": "Error en base de datos", "status": 500}
 EVALUATION_ID_REQUERIDO = {"error": "evaluation_id es requerido", "status": 400}
 SESION_INVALIDA = {"error": "Sesión inválida. Vuelve a iniciar sesión.", "status": 401}
+TOKEN_REQUERIDO = {"error": "token es requerido", "status": 400}
+TOKEN_RESET_INVALIDO = {
+    "error": "Token de recuperación inválido o expirado",
+    "status": 401,
+}
+TOKEN_RESET_TIPO_INVALIDO = {
+    "error": "El token no es de recuperación de contraseña",
+    "status": 401,
+}
 MIEMBROS_REQUERIDO = {"error": "Al menos un miembro es requerido", "status": 400}
 CLASSROOM_NO_ESPECIFICADO = {"error": "Classroom no especificado", "status": 400}
 EQUIPO_NO_CREADO = {"error": "No se pudo crear el equipo", "status": 500}
