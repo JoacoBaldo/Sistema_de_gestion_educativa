@@ -91,11 +91,11 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
 
-    host = os.environ.get("MAILTRAP_HOST")
+    host = os.environ.get("MAILTRAP_HOST", "")
     port = int(os.environ.get("MAILTRAP_PORT", "2525"))
-    user = os.environ.get("MAILTRAP_USER")
-    password = os.environ.get("MAILTRAP_PASSWORD")
-    remitente = os.environ.get("EMAIL_REMITENTE")
+    user = os.environ.get("MAILTRAP_USER", "")
+    password = os.environ.get("MAILTRAP_PASSWORD", "")
+    remitente = os.environ.get("EMAIL_REMITENTE", "")
 
     msg = EmailMessage()
     msg["Subject"] = "Código de asistencia - uniManage"

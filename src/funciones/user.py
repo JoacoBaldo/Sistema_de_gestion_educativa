@@ -19,8 +19,8 @@ from .errores import (
     ERROR_CONEXION
 )
 
-TOKEN_KEY = os.environ.get("TOKEN_KEY")
-TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
+TOKEN_KEY = os.environ.get("TOKEN_KEY", "")
+TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM", "HS256")
 
 
 def crear_token_reset_password(user_id: int, email: str) -> str:
@@ -52,11 +52,11 @@ def send_password_mail(destinatario: str) -> tuple:
 
     token = crear_token_reset_password(int(user_id), str(email))
 
-    host = os.environ.get("MAILTRAP_HOST")
+    host = os.environ.get("MAILTRAP_HOST", "")
     port = int(os.environ.get("MAILTRAP_PORT", "2525"))
-    user = os.environ.get("MAILTRAP_USER")
-    password = os.environ.get("MAILTRAP_PASSWORD")
-    remitente = os.environ.get("EMAIL_REMITENTE")
+    user = os.environ.get("MAILTRAP_USER", "")
+    password = os.environ.get("MAILTRAP_PASSWORD", "")
+    remitente = os.environ.get("EMAIL_REMITENTE", "")
 
     msg = EmailMessage()
     msg["Subject"] = "Recuperación de contraseña - uniManage"
