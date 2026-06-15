@@ -6,7 +6,7 @@ from src.funciones.attendance import (
     validar_asistencia,
 )
 from src.funciones.auth import verificar_token
-from src.funciones.errores import CODIGO_REQUERIDO, DELTA_CERO, DELTA_INVALIDO, SIN_ESTUDIANTES
+from src.funciones.errores import CODIGO_REQUERIDO, DELTA_CERO, DELTA_INVALIDO
 
 from .utils import extraer_token, responder_error
 
