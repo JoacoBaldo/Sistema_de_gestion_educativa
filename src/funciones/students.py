@@ -26,6 +26,7 @@ from src.funciones.errores import (
 )
 from src.funciones.user import create_user
 
+
 def parsear_csv(contenido_texto: str) -> list[dict]:
     lineas = contenido_texto.split("\n")
     titulos = lineas[0].strip().split(",")
