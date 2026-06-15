@@ -7,7 +7,7 @@ import bcrypt
 from jose import jwt, JWTError
 
 from src.db.auth import obtener_usuario_por_email
-from src.db.user import actualizar_password_db, crear_usuario_db, email_existe
+from src.db.user import actualizar_contraseña, crear_usuario_db, email_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
@@ -93,7 +93,7 @@ def restablecer_password(token: str, nueva_password: str) -> tuple:
     password_hash = bcrypt.hashpw(
         nueva_password.encode("utf-8"), bcrypt.gensalt()
     ).decode("utf-8")
-    resultado = actualizar_password_db(user_id, password_hash)
+    resultado = actualizar_contraseña(user_id, password_hash)
     return resultado, None
 
 

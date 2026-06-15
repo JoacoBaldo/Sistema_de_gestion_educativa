@@ -12,7 +12,7 @@ def crear_usuario_db(user: dict) -> dict:
     return {"message": "User created successfully", "status": 201}
 
 
-def actualizar_password_db(user_id: int, password_hash: str) -> dict:
+def actualizar_contraseña(user_id: int, password_hash: str) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
         conn.exec_driver_sql(
