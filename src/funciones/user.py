@@ -16,6 +16,7 @@ from .errores import (
     TOKEN_RESET_INVALIDO,
     TOKEN_RESET_TIPO_INVALIDO,
     USUARIO_NO_ENCONTRADO,
+    ERROR_CONEXION
 )
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
@@ -73,8 +74,8 @@ def send_password_mail(destinatario: str) -> tuple:
             server.login(user, password)
             server.send_message(msg)
         return {"message": "Correo enviado"}, None
-    except Exception as e:
-        return None, {"error": "La conexión falló", "status": 500}
+    except Exception:
+        return None, ERROR_CONEXION
 
 
 def restablecer_password(token: str, nueva_password: str) -> tuple:
