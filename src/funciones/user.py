@@ -16,7 +16,7 @@ from .errores import (
     TOKEN_RESET_INVALIDO,
     TOKEN_RESET_TIPO_INVALIDO,
     USUARIO_NO_ENCONTRADO,
-    ERROR_CONEXION
+    ERROR_CONEXION,
 )
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
