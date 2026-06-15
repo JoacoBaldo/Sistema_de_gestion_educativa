@@ -336,6 +336,18 @@ def login():
             flash("Revisa tu correo para el token.", "success")
         return redirect(url_for("login"))
 
+    if accion == "reset":
+        payload = {
+            "token": (request.form.get("token") or "").strip(),
+            "password": request.form.get("password") or "",
+        }
+        res, error = consumir_api("PATCH", "/api/v1/users/password", json_data=payload)
+        if error:
+            flash(error.get("error", "No se pudo restablecer la contraseña"), "error")
+        else:
+            flash("Contraseña actualizada. Inicia sesión.", "success")
+        return redirect(url_for("login"))
+
     payload = {
         "email": (request.form.get("email") or "").strip(),
         "password": request.form.get("password") or "",

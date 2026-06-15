@@ -91,6 +91,19 @@
                 </div>
                 <button type="submit" class="btn-token" id="send-token-btn">Enviar token</button>
             </form>
+            <form action="{{ url_for('login') }}" method="POST" class="auth-form hidden" id="reset-form">
+                <input type="hidden" name="accion" value="reset">
+                <div class="input-group">
+                    <label for="reset-token">Token recibido por correo</label>
+                    <input type="text" id="reset-token" name="token" required placeholder="Pegá el token aquí">
+                </div>
+                <div class="input-group">
+                    <label for="reset-password">Nueva contraseña</label>
+                    <input type="password" id="reset-password" name="password" required
+                        minlength="6" placeholder="••••••••" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-gradient">Restablecer contraseña</button>
+            </form>
             <div class="auth-footer">
                 <a href="#" id="back-to-login-from-recover">Volver a iniciar sesión</a>
             </div>

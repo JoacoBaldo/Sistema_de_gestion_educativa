@@ -4,16 +4,18 @@ from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 
 import bcrypt
-from jose import jwt
+from jose import jwt, JWTError
 
 from src.db.auth import obtener_usuario_por_email
-from src.db.user import crear_usuario_db, email_existe
-from .errores import USUARIO_NO_ENCONTRADO
+from src.db.user import actualizar_password_db, crear_usuario_db, email_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
     EMAIL_NO_VALIDO,
     EMAIL_YA_EXISTE,
+    TOKEN_RESET_INVALIDO,
+    TOKEN_RESET_TIPO_INVALIDO,
+    USUARIO_NO_ENCONTRADO,
 )
 
 TOKEN_KEY = os.environ.get("TOKEN_KEY")
@@ -73,6 +75,26 @@ def send_password_mail(destinatario: str) -> tuple:
         return {"message": "Correo enviado"}, None
     except Exception as e:
         return None, {"error": "La conexión falló", "status": 500}
+
+
+def restablecer_password(token: str, nueva_password: str) -> tuple:
+    if len(nueva_password) < MIN_CARACTERES_PASSWORD:
+        return None, CONTRASENA_DEBIL
+
+    try:
+        payload = jwt.decode(token, TOKEN_KEY, algorithms=[TOKEN_ALGORITHM])
+    except JWTError:
+        return None, TOKEN_RESET_INVALIDO
+
+    if payload.get("tipo") != "reset_password":
+        return None, TOKEN_RESET_TIPO_INVALIDO
+
+    user_id = int(payload["sub"])
+    password_hash = bcrypt.hashpw(
+        nueva_password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    resultado = actualizar_password_db(user_id, password_hash)
+    return resultado, None
 
 
 def create_user(user: dict) -> tuple:

@@ -12,6 +12,17 @@ def crear_usuario_db(user: dict) -> dict:
     return {"message": "User created successfully", "status": 201}
 
 
+def actualizar_password_db(user_id: int, password_hash: str) -> dict:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            "UPDATE users SET password = %s WHERE id = %s",
+            (password_hash, user_id),
+        )
+        conn.commit()
+    return {"message": "Password updated successfully", "status": 200}
+
+
 def email_existe(email: str) -> bool:
     engine = obtener_conexion()
     with engine.connect() as conn:
