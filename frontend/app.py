@@ -1,10 +1,8 @@
 import csv
 import io
 import os
-from pathlib import Path
-from dotenv import load_dotenv
 import requests
-
+from dotenv import load_dotenv
 from flask import (
     Flask,
     flash,
@@ -16,8 +14,7 @@ from flask import (
     url_for,
 )
 
-ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(ROOT / ".env")
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
