@@ -10,8 +10,8 @@
             {% endif %}
         </div>
         <div class="ev-actions">
-            {% if session.get('user', {}).get('role_id') != 3 %} <a class="st-btn st-btn-primary ev-btn-new"
-                href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
+            {% if session.get('user', {}).get('role_id') != 3 %}
+            <a class="st-btn st-btn-primary ev-btn-new" href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
                 + Nueva Evaluación
             </a>
             {% endif %}
@@ -56,11 +56,11 @@
     <div class="ev-grid" id="ev-grid" aria-live="polite">
         {% for ev in evaluaciones or [] %}
         <article class="ev-card" data-id="ev-{{ ev.id }}" data-evaluation-id="{{ ev.id }}"
-            data-type="{{ ev.tipo_slug }}" data-date="{{ ev.fecha }}" data-nombre="{{ ev.name }}"
+            data-type="{{ ev.tipo_slug }}" data-date="{{ ev.fecha or ev.due_date }}" data-nombre="{{ ev.name }}"
             data-individual="{{ 'true' if ev.individual else 'false' }}">
             <div class="ev-card__top">
                 <span class="ev-badge ev-badge--{{ ev.tipo_slug }}">{{ ev.tipo_nombre }}</span>
-                <time class="ev-card__date">{{ ev.fecha or '—' }}</time>
+                <time class="ev-card__date">📅 {{ ev.fecha or ev.due_date or 'Sin fecha' }}</time>
             </div>
             <div class="ev-card__body">
                 <h2 class="ev-card__title">{{ ev.name }}</h2>
@@ -70,11 +70,13 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn"
                         aria-label="Editar evaluación" data-id="{{ ev.id }}" data-nombre="{{ ev.name }}"
-                        data-tipo="{{ ev.tipo_slug }}" data-individual="{{ '1' if ev.individual else '0' }}">
+                        data-tipo="{{ ev.tipo_slug }}" data-individual="{{ '1' if ev.individual else '0' }}"
+                        data-date="{{ ev.due_date }}">
                         Editar
                     </button>
                     <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-add-grades-btn"
-                        data-id="{{ ev.id }}" data-nombre="{{ ev.name }}">
+                        data-id="{{ ev.id }}" data-nombre="{{ ev.name }}"
+                        data-individual="{{ '1' if ev.individual else '0' }}">
                         + Notas
                     </button>
                 </div>
@@ -82,6 +84,8 @@
                 <p class="ev-card__progress">{% if ev.individual %}Individual{% else %}Grupal{% endif %}</p>
             </footer>
         </article>
+        {% else %}
+        <p class="ev-empty" id="ev-empty">No hay evaluaciones cargadas. Usá «Nueva Evaluación» para registrar una.</p>
         {% endfor %}
     </div>
 
@@ -108,19 +112,22 @@
                         <option value="recuperatorio">Recuperatorio</option>
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label" for="ev-edit-due-date">📅 Fecha de entrega (Opcional)</label>
+                    <input type="date" id="ev-edit-due-date" name="due_date" class="glass-input">
+                </div>
                 <div class="glass-form-row--toggle mb-3">
-                    <label class="form-label mb-0" for="ev-edit-individual">Individual</label>
+                    <label class="form-label mb-0" for="ev-edit-individual">👤 Individual</label>
                     <input type="checkbox" id="ev-edit-individual" name="individual">
                 </div>
                 <div class="action-buttons">
                     <div style="display: flex; gap: 10px; align-items: center;">
-
                         <button type="button" id="ev-edit-delete-btn" class="btn-cancelar"
                             style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); height: 100%; max-width: 48px;"
                             formmethod="POST" formaction="" title="Eliminar evaluacion">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" style="display: block;">
+                                stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path
                                     d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
@@ -131,7 +138,6 @@
                         </button>
                         <button type="button" class="btn-cancelar" id="ev-edit-cancel">Cancelar</button>
                         <button type="submit" class="btn-crear">Guardar cambios</button>
-
                     </div>
                 </div>
             </form>
@@ -142,41 +148,84 @@
         aria-labelledby="ev-grades-modal-title">
         <div class="glass-card">
             <div class="glass-header">
-                <h3 id="ev-grades-modal-title">Subir Notas Masivas</h3>
+                <h3 id="ev-grades-modal-title">Cargar Notas</h3>
                 <button type="button" class="btn-close-custom" id="ev-grades-close" aria-label="Cerrar">✕</button>
             </div>
 
-            <p class="subtitle" style="margin-bottom: 24px;">
-                Sube un archivo CSV para la evaluación: <strong id="ev-grades-target-name"
-                    style="color: #fff;">-</strong>
+            <p class="subtitle" style="margin-bottom: 20px;">
+                Evaluación: <strong id="ev-grades-target-name" style="color: #fff;">-</strong>
             </p>
 
-            <form id="ev-grades-form" method="POST" enctype="multipart/form-data">
-                <div
-                    style="border: 2px dashed rgba(255, 255, 255, 0.4); padding: 30px 20px; text-align: center; border-radius: 12px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.05); transition: all 0.3s ease;">
-                    <input type="file" name="file_csv" id="ev-csv-input" accept=".csv" required style="display: none;">
-                    <label for="ev-csv-input" style="cursor: pointer; display: block;">
-                        <span style="font-size: 2.5rem; display: block; margin-bottom: 12px;">📊</span>
-                        <span style="color: #fff; font-weight: 600; display: block; font-size: 1.1rem;">Haz click para
-                            seleccionar archivo</span>
-                        <span id="ev-csv-filename"
-                            style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-top: 8px; display: block;">
-                            Formato requerido: columna 'documento', 'email' o 'equipo' y columna 'nota'
-                        </span>
-                    </label>
-                </div>
+            <div
+                style="display: flex; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 12px; margin-bottom: 20px;">
+                <button type="button" id="tab-btn-csv" class="tab-btn active"
+                    style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;">📄
+                    Subir CSV</button>
+                <button type="button" id="tab-btn-manual" class="tab-btn"
+                    style="background: transparent; color: rgba(255,255,255,0.7); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;">✍️
+                    Carga Manual</button>
+            </div>
 
-                <div class="action-buttons" style="justify-content: flex-end;">
-                    <button type="button" id="ev-grades-cancel" class="btn-cancelar">Cancelar</button>
-                    <button type="submit" class="btn-crear">Procesar Notas</button>
-                </div>
-            </form>
+            <div id="tab-content-csv">
+                <form id="ev-grades-form" method="POST" enctype="multipart/form-data">
+                    <div
+                        style="border: 2px dashed rgba(255, 255, 255, 0.4); padding: 30px 20px; text-align: center; border-radius: 12px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.05); transition: all 0.3s ease;">
+                        <input type="file" name="file_csv" id="ev-csv-input" accept=".csv" required
+                            style="display: none;">
+                        <label for="ev-csv-input" style="cursor: pointer; display: block;">
+                            <span style="font-size: 2.5rem; display: block; margin-bottom: 12px;">📊</span>
+                            <span style="color: #fff; font-weight: 600; display: block; font-size: 1.1rem;">Haz click
+                                para seleccionar archivo</span>
+                            <span id="ev-csv-filename"
+                                style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-top: 8px; display: block;">
+                                Formato requerido: columna 'documento', 'email' o 'equipo' y columna 'nota'
+                            </span>
+                        </label>
+                    </div>
+                    <div class="action-buttons" style="justify-content: flex-end;">
+                        <button type="button" id="ev-grades-cancel-csv" class="btn-cancelar">Cancelar</button>
+                        <button type="submit" class="btn-crear">Procesar Notas CSV</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="tab-content-manual" class="hidden">
+                <form id="ev-manual-grades-form" method="POST">
+
+                    <div id="ev-container-student" class="mb-3 hidden">
+                        <label class="form-label">Seleccionar Alumno</label>
+                        <select id="ev-select-student" name="user_id" class="glass-input ev-manual-select">
+                            <option value="" disabled selected>Elegir alumno...</option>
+                            {% for alumno in estudiantes %}
+                            <option value="{{ alumno.id }}">{{ alumno.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="ev-container-team" class="mb-3 hidden">
+                        <label class="form-label">Seleccionar Equipo</label>
+                        <select id="ev-select-team" name="team_id" class="glass-input ev-manual-select">
+                            <option value="" disabled selected>Elegir equipo...</option>
+                            {% for equipo in equipos %}
+                            <option value="{{ equipo.id }}">
+                                {{ equipo.nombre if equipo.nombre else equipo.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nota (1 a 10)</label>
+                        <input type="number" id="ev-manual-score" name="score" step="0.1" min="1" max="10" required
+                            placeholder="Ej: 8.5" class="glass-input" style="text-align: center; font-weight: bold;">
+                    </div>
+
+                    <div class="action-buttons" style="justify-content: flex-end; margin-top: 24px;">
+                        <button type="button" id="ev-grades-cancel-manual" class="btn-cancelar">Cancelar</button>
+                        <button type="submit" class="btn-crear">Guardar Nota Manual</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-
-    {% if not evaluaciones %}
-    <p class="ev-empty" id="ev-empty">No hay evaluaciones cargadas. Usá «Nueva Evaluación» para registrar una.</p>
-    {% else %}
-    <p class="ev-empty hidden" id="ev-empty">No hay evaluaciones que coincidan con los filtros.</p>
-    {% endif %}
 </section>

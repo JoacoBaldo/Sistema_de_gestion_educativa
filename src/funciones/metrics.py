@@ -64,3 +64,4 @@ def _agrupar_ingresos_por_año(ingresos_data: list[dict]) -> list[dict]:
     return [
         {"year": año, "total": total} for año, total in sorted(ingresos_por_año.items())
     ]
+

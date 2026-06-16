@@ -1,13 +1,20 @@
 from flask import Blueprint, jsonify, request
 
+import csv
+import io
+
 from src.funciones.auth import verificar_token
 from src.funciones.evaluations import (
+    actualizar_nota_estudiante,
     cargar_notas_masivas_logic,
+    eliminar_nota_estudiante,
     obtener_evaluaciones,
     actualizar_evaluacion,
     crear_evaluacion,
     eliminar_evaluacion,
+    crear_nota_individual_o_grupal,
 )
+
 
 from .utils import extraer_token, responder_error
 
@@ -49,6 +56,10 @@ def crear_evaluacion_root(classroom_id: int):
     if not isinstance(name, str):
         name = ""
 
+    due_date = body.get("due_date")
+    if not isinstance(due_date, str):
+        due_date = None
+
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
         evaluation_type_id = (
@@ -75,7 +86,7 @@ def crear_evaluacion_root(classroom_id: int):
         return responder_error({"mensaje": "evaluation_type_id requerido"})
 
     resultado, error = crear_evaluacion(
-        classroom_id, name, evaluation_type_id, referenced_eval_id, individual
+        classroom_id, name, evaluation_type_id, referenced_eval_id, individual, due_date
     )
     if error:
         return responder_error(error)
@@ -87,27 +98,22 @@ def crear_evaluacion_root(classroom_id: int):
 def actualizar_evaluacion_root(evaluation_id: int):
     token = extraer_token()
     _, error = verificar_token(token)
-    if error:
-        return responder_error(error)
+    if error: return responder_error(error)
 
-    if request.is_json:
-        body = request.get_json(silent=True) or {}
-    else:
-        body = request.form or {}
+    body = request.get_json(silent=True) if request.is_json else request.form or {}
 
     classroom_id = body.get("classroom_id")
     name = body.get("name") or body.get("nombre")
-
+    
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
-        evaluation_type_id = (
-            int(evaluation_type_raw) if evaluation_type_raw is not None else None
-        )
+        evaluation_type_id = int(evaluation_type_raw) if evaluation_type_raw is not None else None
     except (TypeError, ValueError):
         evaluation_type_id = None
 
     referenced_eval_id = body.get("referenced_eval_id")
     individual = body.get("individual")
+    due_date = body.get("due_date")
 
     resultado, error = actualizar_evaluacion(
         classroom_id,
@@ -115,12 +121,11 @@ def actualizar_evaluacion_root(evaluation_id: int):
         evaluation_type_id,
         referenced_eval_id,
         individual,
+        due_date,
         evaluation_id,
     )
-    if error:
-        return responder_error(error)
-
-    return jsonify(resultado), resultado["status"]
+    if error: return responder_error(error)
+    return jsonify(resultado), 200
 
 
 @evaluacion_bp.route("/api/v1/evaluaciones/<int:evaluation_id>", methods=["DELETE"])
@@ -143,21 +148,99 @@ def eliminar_evaluacion_root(evaluation_id: int):
 def api_bulk_grades(evaluation_id):
     token = extraer_token()
     usuario, error = verificar_token(token)
+    if error: return responder_error(error)
+
+    if 'file_csv' in request.files:
+        file = request.files['file_csv']
+        stream = io.StringIO(file.stream.read().decode("utf-8"), newline="")
+        reader = csv.DictReader(stream)
+        
+        grades = []
+        for row in reader:
+            tipo = "equipo" if "equipo" in row else "documento"
+            identificador = row.get("equipo") or row.get("documento") or row.get("email")
+            
+            grades.append({
+                "identifier": identificador,
+                "score": float(row["nota"]),
+                "type": tipo
+            })
+        
+        classroom_id = request.form.get("classroom_id")
+    else:
+        body = request.get_json(silent=True) or {}
+        classroom_id = body.get("classroom_id")
+        grades = body.get("grades", [])
+
+    if not classroom_id:
+        return responder_error({"error": "El classroom_id es requerido.", "status": 400})
+
+    resultado, err = cargar_notas_masivas_logic(int(classroom_id), evaluation_id, grades)
+
+    if err: return responder_error(err)
+    return jsonify(resultado), 200
+
+@evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/grades/<int:user_id>", methods=["PUT"])
+def api_actualizar_nota(evaluation_id: int, user_id: int):
+    token = extraer_token()
+    _, error = verificar_token(token)
     if error:
         return responder_error(error)
 
     body = request.get_json(silent=True) or {}
-    classroom_id = body.get("classroom_id")
-    grades = body.get("grades", [])
+    score = body.get("score")
 
-    if not classroom_id:
-        return responder_error(
-            {"error": "El classroom_id es requerido en el payload.", "status": 400}
+    resultado, error_logica = actualizar_nota_estudiante(evaluation_id, user_id, score)
+    if error_logica:
+        return responder_error(error_logica)
+
+    return jsonify(resultado), resultado["status"]
+
+@evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/grades/<int:user_id>", methods=["DELETE"])
+def api_eliminar_nota(evaluation_id: int, user_id: int):
+    token = extraer_token()
+    _, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    resultado, error_logica = eliminar_nota_estudiante(evaluation_id, user_id)
+    if error_logica:
+        return responder_error(error_logica)
+
+    return jsonify(resultado), resultado["status"]
+
+from flask import request, redirect, url_for, flash
+
+@evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/grades", methods=["POST"])
+def cargar_nota_manual_tradicional(evaluation_id: int):
+    data = request.get_json() or {}
+    
+    score_raw = data.get("score")
+    user_id_raw = data.get("user_id")
+    team_id_raw = data.get("team_id")
+
+    try:
+        score = float(score_raw) if score_raw is not None else None
+        user_id = int(user_id_raw) if user_id_raw else None
+        team_id = int(team_id_raw) if team_id_raw else None
+
+        if score is None or (score < 1 or score > 10):
+            return jsonify({"error": "La nota debe ser un número válido entre 1 y 10."}), 400
+
+        resultado, error_logica = crear_nota_individual_o_grupal(
+            evaluation_id=evaluation_id, 
+            score=score, 
+            user_id=user_id, 
+            team_id=team_id
         )
 
-    resultado, err = cargar_notas_masivas_logic(classroom_id, evaluation_id, grades)
+        if error_logica:
+            msg = error_logica.get("error", "Ocurrió un error al procesar la nota.")
+            return jsonify({"error": msg}), 400
+        
+        return jsonify({"message": "¡Calificación registrada con éxito!", "data": resultado}), 200
 
-    if err:
-        return responder_error(err)
-
-    return jsonify(resultado), 200
+    except ValueError:
+        return jsonify({"error": "Los identificadores de estudiante o equipo no tienen un formato válido."}), 400
+    except Exception as e:
+        return jsonify({"error": f"Error interno del servidor: {str(e)}"}), 500

@@ -34,7 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     form.reset();
     if (typeSelect) typeSelect.value = "";
     if (individualInput) individualInput.checked = false;
-    if (modalTitle) modalTitle.textContent = "Nueva Evaluaci?n";
+
+    // Solución al error de codificación usando la secuencia de escape unicode para la ó (\u00f3)
+    if (modalTitle) modalTitle.textContent = "Nueva Evaluaci\u00f3n";
     if (saveBtn) saveBtn.textContent = "Guardar";
   }
 
@@ -55,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (event) => {
     const nombre = nameInput?.value.trim();
     const tipo = typeSelect?.value;
-    
+
     if (!nombre || !tipo) {
       event.preventDefault();
       showToast("Completa nombre y tipo antes de guardar.");

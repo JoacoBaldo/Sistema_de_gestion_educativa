@@ -17,8 +17,8 @@ from reportlab.platypus import (  # type: ignore[import-untyped]
 )
 
 from src.db import classroom as db_classroom
-from src.db import metrics as db_metrics
-from src.db.constantes import ADMINISTRADOR, AYUDANTE, PROFESOR, STATUS_ACTIVO
+from src.db.conexion import obtener_conexion
+from src.db.constantes import ADMINISTRADOR, AYUDANTE, PROFESOR, STATUS_ACTIVO, ESTUDIANTE
 from src.funciones.errores import (
     BODY_INVALIDO,
     CLASSROOM_NO_EXISTE,
@@ -27,7 +27,6 @@ from src.funciones.errores import (
     SIN_ACCESO,
 )
 
-# ── Constantes ────────────────────────────────────────────────────────────────
 
 FILTROS_VALIDOS = {"students", "students_passed", "teams", "colaborators"}
 
@@ -37,32 +36,19 @@ NOMBRE_ROL = {
     ADMINISTRADOR: "Administrador",
 }
 
-COLOR_HEADER = colors.HexColor("#1a3557")
-COLOR_FILA_PAR = colors.HexColor("#eaf0f8")
-COLOR_BORDE = colors.HexColor("#a0b4cc")
+COLOR_PRIMARIO = colors.HexColor("#4F46E5")  # Indigo
+COLOR_HEADER = colors.HexColor("#1F2937")    # Dark Charcoal
+COLOR_TEXTO = colors.HexColor("#374151")     # Gray
+COLOR_LINEA = colors.HexColor("#E5E7EB")     # Light Gray
 
-
-# ── Punto de entrada público ──────────────────────────────────────────────────
 
 
 def generar_pdf_metricas(
-    classroom_id: int,
-    usuario_id: int,
-    datos_metricas: dict,
-    filtro: str | None,
-) -> tuple:
-    if filtro is not None and filtro not in FILTROS_VALIDOS:
+    classroom_id: int, usuario_id: int, datos_metricas: dict, filtro: str | None
+) -> tuple[bytes | None, dict | None]:
+    
+    if not filtro or filtro not in FILTROS_VALIDOS:
         return None, FILTRO_INVALIDO
-
-    campos_requeridos = {
-        "promedio_aprobados",
-        "ingresos_por_año",
-        "total_estudiantes",
-        "total_activos",
-        "total_abandonaron",
-    }
-    if not campos_requeridos.issubset(datos_metricas.keys()):
-        return None, BODY_INVALIDO
 
     if not db_classroom.existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
@@ -73,194 +59,292 @@ def generar_pdf_metricas(
     if not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
         return None, NO_ES_ADMIN
 
-    tabla_extra, titulo_extra, columnas_extra = _obtener_datos_filtro(
-        classroom_id, filtro
-    )
+    if not isinstance(datos_metricas, dict):
+        return None, BODY_INVALIDO
 
-    pdf_bytes = _construir_pdf(
-        classroom_id=classroom_id,
-        datos_metricas=datos_metricas,
-        tabla_extra=tabla_extra,
-        titulo_extra=titulo_extra,
-        columnas_extra=columnas_extra,
-    )
-    return pdf_bytes, None
+    promedio_gpa = datos_metricas.get("promedio_aprobados", 0)
+    total_estudiantes = datos_metricas.get("total_estudiantes", 0)
+    total_activos = datos_metricas.get("total_activos", 0)
+    total_abandonaron = datos_metricas.get("total_abandonaron", 0)
 
-
-# ── Resolución de datos por filtro ────────────────────────────────────────────
-
-
-def _obtener_datos_filtro(
-    classroom_id: int,
-    filtro: str | None,
-) -> tuple[list | None, str | None, list | None]:
-    if filtro is None:
-        return None, None, None
-
-    if filtro == "students":
-        filas = db_classroom.obtener_alumnos(classroom_id)
-        filas_filtradas = [f for f in filas if f.get("status_type_id") == STATUS_ACTIVO]
-        return (
-            [
-                [f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])]
-                for f in filas_filtradas
-            ],
-            "Alumnos Activos",
-            ["ID", "Usuario", "Email", "Ingresó"],
-        )
-
-    if filtro == "students_passed":
-        filas = db_metrics.obtener_alumnos_aprobados_activos(classroom_id)
-        return (
-            [
-                [f["id"], f["username"], f["email"], _fmt_fecha(f["created_at"])]
-                for f in filas
-            ],
-            "Alumnos Activos y Aprobados",
-            ["ID", "Usuario", "Email", "Ingresó"],
-        )
-
-    if filtro == "teams":
-        filas = db_metrics.obtener_equipos(classroom_id)
-        return (
-            [
-                [
-                    f["id"],
-                    f["name"],
-                    f["classroom_id"],
-                    _fmt_fecha(f["created_at"]),
-                    _fmt_fecha(f["updated_at"]),
-                ]
-                for f in filas
-            ],
-            "Equipos",
-            ["ID", "Nombre", "Classroom ID", "Creado", "Actualizado"],
-        )
-
-    if filtro == "colaborators":
-        filas = db_classroom.obtener_profesores(classroom_id)
-        return (
-            [
-                [
-                    f["id"],
-                    f["username"],
-                    f["email"],
-                    NOMBRE_ROL.get(f["role_id"], str(f["role_id"])),
-                    _fmt_fecha(f["created_at"]),
-                ]
-                for f in filas
-            ],
-            "Colaboradores",
-            ["ID", "Usuario", "Email", "Rol", "Ingresó"],
-        )
-
-    return None, None, None
-
-
-# ── Builder PDF ───────────────────────────────────────────────────────────────
-
-
-def _construir_pdf(
-    classroom_id: int,
-    datos_metricas: dict,
-    tabla_extra: list | None,
-    titulo_extra: str | None,
-    columnas_extra: list | None,
-) -> bytes:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        leftMargin=2 * cm,
-        rightMargin=2 * cm,
-        topMargin=2 * cm,
-        bottomMargin=2 * cm,
+        rightMargin=1.5 * cm,
+        leftMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
     )
 
     estilos = getSampleStyleSheet()
+    
     estilo_titulo = ParagraphStyle(
-        "Titulo",
-        parent=estilos["Title"],
-        fontSize=20,
-        textColor=COLOR_HEADER,
-        spaceAfter=4,
+        "DocTitle",
+        parent=estilos["Heading1"],
         fontName="Helvetica-Bold",
+        fontSize=24,
+        textColor=COLOR_PRIMARIO,
+        spaceAfter=6,
     )
     estilo_subtitulo = ParagraphStyle(
-        "Subtitulo",
+        "DocSubtitle",
         parent=estilos["Normal"],
-        fontSize=11,
-        textColor=colors.HexColor("#555555"),
-        spaceAfter=2,
         fontName="Helvetica",
+        fontSize=10,
+        textColor=COLOR_TEXTO,
+        spaceAfter=20,
     )
-    estilo_seccion = ParagraphStyle(
-        "Seccion",
-        parent=estilos["Normal"],
-        fontSize=13,
+    estilo_h2 = ParagraphStyle(
+        "SectionHeading",
+        parent=estilos["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=14,
         textColor=COLOR_HEADER,
-        spaceBefore=14,
-        spaceAfter=6,
+        spaceBefore=12,
+        spaceAfter=10,
+    )
+    estilo_celda = ParagraphStyle(
+        "GridCell",
+        parent=estilos["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        textColor=COLOR_TEXTO,
+    )
+    estilo_celda_bold = ParagraphStyle(
+        "GridCellBold",
+        parent=estilo_celda,
         fontName="Helvetica-Bold",
     )
 
     elementos = []
 
-    # Encabezado
     elementos.append(Paragraph("Reporte de Métricas", estilo_titulo))
-    elementos.append(Paragraph(f"Classroom ID: {classroom_id}", estilo_subtitulo))
+    fecha_actual = date.today().strftime("%d/%m/%Y")
     elementos.append(
         Paragraph(
-            f"Fecha de generación: {date.today().strftime('%d/%m/%Y')}",
+            f"Classroom ID: {classroom_id} &nbsp;|&nbsp; Fecha: {fecha_actual}",
             estilo_subtitulo,
         )
     )
-    elementos.append(Spacer(1, 0.5 * cm))
 
-    # Resumen general
-    elementos.append(Paragraph("Resumen General", estilo_seccion))
-    filas_resumen = [
-        ["Métrica", "Valor"],
-        ["Promedio de aprobados", f"{datos_metricas['promedio_aprobados']}%"],
-        ["Total de estudiantes", str(datos_metricas["total_estudiantes"])],
-        ["Estudiantes activos", str(datos_metricas["total_activos"])],
-        ["Estudiantes que abandonaron", str(datos_metricas["total_abandonaron"])],
+    resumen_datos = [
+        [
+            Paragraph("<b>Total Alumnos:</b>", estilo_celda),
+            Paragraph(str(total_estudiantes), estilo_celda),
+            Paragraph("<b>Alumnos Activos:</b>", estilo_celda),
+            Paragraph(str(total_activos), estilo_celda),
+        ],
+        [
+            Paragraph("<b>% Aprobación:</b>", estilo_celda),
+            Paragraph(f"{promedio_gpa}%", estilo_celda),
+            Paragraph("<b>Abandonos:</b>", estilo_celda),
+            Paragraph(str(total_abandonaron), estilo_celda),
+        ],
     ]
-    elementos.append(_construir_tabla(filas_resumen, col_widths=[9 * cm, 7 * cm]))
-    elementos.append(Spacer(1, 0.4 * cm))
-
-    # Ingresos por año
-    elementos.append(Paragraph("Ingresos por Año", estilo_seccion))
-    ingresos = datos_metricas.get("ingresos_por_año", [])
-    if ingresos:
-        filas_ingresos = [["Año", "Total de estudiantes"]] + [
-            [str(i["year"]), str(i["total"])] for i in ingresos
-        ]
-        elementos.append(_construir_tabla(filas_ingresos, col_widths=[8 * cm, 8 * cm]))
-    else:
-        elementos.append(
-            Paragraph("Sin datos de ingresos registrados.", estilos["Normal"])
+    tabla_resumen = Table(resumen_datos, colWidths=[3.5 * cm, 4.5 * cm, 3.5 * cm, 4.5 * cm])
+    tabla_resumen.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("LINEBELOW", (0, 0), (-1, -1), 0.5, COLOR_LINEA),
+            ]
         )
-    elementos.append(Spacer(1, 0.4 * cm))
+    )
+    elementos.append(tabla_resumen)
+    elementos.append(Spacer(1, 15))
 
-    # Tabla filtrada (opcional)
-    if tabla_extra is not None and columnas_extra is not None:
-        elementos.append(Paragraph(titulo_extra, estilo_seccion))
-        if tabla_extra:
-            ancho_col = (17 * cm) / len(columnas_extra)
-            filas_extra = [columnas_extra] + tabla_extra
-            elementos.append(
-                _construir_tabla(
-                    filas_extra, col_widths=[ancho_col] * len(columnas_extra)
-                )
-            )
+    engine = obtener_conexion()
+
+    if filtro in {"students", "students_passed"}:
+        
+        with engine.connect() as conn:
+            alumnos_db = conn.exec_driver_sql(
+                """
+                SELECT 
+                    u.username, 
+                    u.email, 
+                    COALESCE(sp.document, '-') as document,
+                    cu.status_type_id,
+                    COALESCE((
+                        SELECT SUM(att.absence)
+                        FROM attendance att
+                        JOIN attendance_events ae ON att.attendance_event_id = ae.id
+                        WHERE att.student_id = u.id AND ae.classroom_id = cu.classroom_id
+                    ), 0) as total_inasistencias,
+                    COALESCE(AVG(g.score), 0) as promedio
+                FROM classroom_users cu
+                JOIN users u ON cu.user_id = u.id
+                LEFT JOIN student_profiles sp ON u.id = sp.user_id
+                LEFT JOIN grades g ON g.user_id = cu.user_id
+                LEFT JOIN evaluations e ON e.id = g.evaluation_id AND e.classroom_id = cu.classroom_id
+                WHERE cu.classroom_id = %s AND cu.role_id = %s
+                GROUP BY u.id, u.username, u.email, sp.document, cu.status_type_id, cu.classroom_id
+                ORDER BY u.username
+                """,
+                (classroom_id, ESTUDIANTE)
+            ).fetchall()
+
+        if filtro == "students_passed":
+            tabla1_titulo = "Alumnos Aprobados (Promedio ≥ 4)"
+            tabla2_titulo = "Alumnos Desaprobados (Promedio < 4)"
+            grupo1 = [a for a in alumnos_db if float(a[5]) >= 4.0]
+            grupo2 = [a for a in alumnos_db if float(a[5]) < 4.0]
         else:
-            elementos.append(
-                Paragraph("No hay registros para mostrar.", estilos["Normal"])
-            )
+            tabla1_titulo = "Alumnos Activos"
+            tabla2_titulo = "Alumnos Inactivos / Abandonos"
+            grupo1 = [a for a in alumnos_db if a[3] == STATUS_ACTIVO]
+            grupo2 = [a for a in alumnos_db if a[3] != STATUS_ACTIVO]
+
+        # Tabla 1
+        elementos.append(Paragraph(tabla1_titulo, estilo_h2))
+        if grupo1:
+            filas = [[
+                Paragraph("Nombre", estilo_celda_bold),
+                Paragraph("Email", estilo_celda_bold),
+                Paragraph("Documento", estilo_celda_bold),
+                Paragraph("Promedio", estilo_celda_bold),
+                Paragraph("Inasistencias", estilo_celda_bold)
+            ]]
+            for a in grupo1:
+                filas.append([
+                    Paragraph(a[0], estilo_celda),
+                    Paragraph(a[1], estilo_celda),
+                    Paragraph(a[2], estilo_celda),
+                    Paragraph(str(round(float(a[5]), 2)), estilo_celda),
+                    Paragraph(str(int(a[4])), estilo_celda),
+                ])
+            elementos.append(_construir_tabla(filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]))
+        else:
+            elementos.append(Paragraph("No hay alumnos para listar en esta sección.", estilos["Normal"]))
+
+        elementos.append(Spacer(1, 15))
+
+        # Tabla 2
+        elementos.append(Paragraph(tabla2_titulo, estilo_h2))
+        if grupo2:
+            filas = [[
+                Paragraph("Nombre", estilo_celda_bold),
+                Paragraph("Email", estilo_celda_bold),
+                Paragraph("Documento", estilo_celda_bold),
+                Paragraph("Promedio", estilo_celda_bold),
+                Paragraph("Inasistencias", estilo_celda_bold)
+            ]]
+            for a in grupo2:
+                filas.append([
+                    Paragraph(a[0], estilo_celda),
+                    Paragraph(a[1], estilo_celda),
+                    Paragraph(a[2], estilo_celda),
+                    Paragraph(str(round(float(a[5]), 2)), estilo_celda),
+                    Paragraph(str(int(a[4])), estilo_celda),
+                ])
+            elementos.append(_construir_tabla(filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]))
+        else:
+            elementos.append(Paragraph("No hay alumnos para listar en esta sección.", estilos["Normal"]))
+
+    elif filtro == "teams":
+        elementos.append(Paragraph("Desglose Analítico por Equipos", estilo_h2))
+        
+        with engine.connect() as conn:
+            equipos_db = conn.exec_driver_sql(
+                "SELECT id, name FROM teams WHERE classroom_id = %s ORDER BY name",
+                (classroom_id,)
+            ).fetchall()
+
+        if equipos_db:
+            for eq in equipos_db:
+                equipo_id = eq[0]
+                nombre_equipo = eq[1]
+                
+                elementos.append(Paragraph(f"Equipo: {nombre_equipo}", estilo_h2))
+                
+                with engine.connect() as conn:
+                    miembros = conn.exec_driver_sql(
+                        """
+                        SELECT 
+                            u.username, 
+                            u.email, 
+                            COALESCE(sp.document, '-') as document,
+                            COALESCE((
+                                SELECT SUM(att.absence)
+                                FROM attendance att
+                                JOIN attendance_events ae ON att.attendance_event_id = ae.id
+                                WHERE att.student_id = u.id AND ae.classroom_id = %s
+                            ), 0) as total_inasistencias,
+                            COALESCE(AVG(g.score), 0) as promedio
+                        FROM team_members tm
+                        JOIN users u ON tm.user_id = u.id
+                        JOIN classroom_users cu ON cu.user_id = u.id AND cu.classroom_id = %s
+                        LEFT JOIN student_profiles sp ON u.id = sp.user_id
+                        LEFT JOIN grades g ON g.user_id = u.id
+                        LEFT JOIN evaluations e ON e.id = g.evaluation_id AND e.classroom_id = %s
+                        WHERE tm.team_id = %s
+                        GROUP BY u.id, u.username, u.email, sp.document, cu.classroom_id
+                        """,
+                        (classroom_id, classroom_id, classroom_id, equipo_id)
+                    ).fetchall()
+
+                if miembros:
+                    filas = [[
+                        Paragraph("Integrante", estilo_celda_bold),
+                        Paragraph("Email", estilo_celda_bold),
+                        Paragraph("Documento", estilo_celda_bold),
+                        Paragraph("Promedio", estilo_celda_bold),
+                        Paragraph("Inasistencias", estilo_celda_bold)
+                    ]]
+                    for m in miembros:
+                        filas.append([
+                            Paragraph(m[0], estilo_celda),
+                            Paragraph(m[1], estilo_celda),
+                            Paragraph(m[2], estilo_celda),
+                            Paragraph(str(round(float(m[4]), 2)), estilo_celda),
+                            Paragraph(str(int(m[3])), estilo_celda),
+                        ])
+                    elementos.append(_construir_tabla(filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]))
+                else:
+                    elementos.append(Paragraph("Este equipo no registra miembros actualmente.", estilos["Normal"]))
+                
+                elementos.append(Spacer(1, 15))
+        else:
+            elementos.append(Paragraph("No se encontraron equipos estructurados en esta aula.", estilos["Normal"]))
+
+    elif filtro == "colaborators":
+        elementos.append(Paragraph("Cuerpo de Colaboradores del Aula", estilo_h2))
+        
+        with engine.connect() as conn:
+            colaboradores = conn.exec_driver_sql(
+                """
+                SELECT u.username, u.email, cu.role_id
+                FROM classroom_users cu
+                JOIN users u ON cu.user_id = u.id
+                WHERE cu.classroom_id = %s AND cu.role_id IN (1, 2, 3)
+                ORDER BY cu.role_id, u.username
+                """,
+                (classroom_id,)
+            ).fetchall()
+
+        if colaboradores:
+            filas = [[
+                Paragraph("Nombre del Colaborador", estilo_celda_bold),
+                Paragraph("Email de Contacto", estilo_celda_bold),
+                Paragraph("Rol Asignado", estilo_celda_bold)
+            ]]
+            for c in colaboradores:
+                rol_txt = NOMBRE_ROL.get(c[2], "Asistente")
+                filas.append([
+                    Paragraph(c[0], estilo_celda),
+                    Paragraph(c[1], estilo_celda),
+                    Paragraph(rol_txt, estilo_celda)
+                ])
+            elementos.append(_construir_tabla(filas, [6.5 * cm, 7.5 * cm, 4.0 * cm]))
+        else:
+            elementos.append(Paragraph("No hay colaboradores vinculados a este espacio.", estilos["Normal"]))
 
     doc.build(elementos)
-    return buffer.getvalue()
+    return buffer.getvalue(), None
 
 
 def _construir_tabla(filas: list, col_widths: list) -> Table:
@@ -281,23 +365,16 @@ def _construir_tabla(filas: list, col_widths: list) -> Table:
             ("ALIGN", (0, 1), (-1, -1), "LEFT"),
             ("TOPPADDING", (0, 1), (-1, -1), 5),
             ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
-            ("LEFTPADDING", (0, 0), (-1, -1), 8),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-            ("GRID", (0, 0), (-1, -1), 0.5, COLOR_BORDE),
-            ("BOX", (0, 0), (-1, -1), 1, COLOR_HEADER),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]
     )
 
-    for i in range(2, n_filas, 2):
-        estilo.add("BACKGROUND", (0, i), (-1, i), COLOR_FILA_PAR)
+    for i in range(1, n_filas):
+        bg_color = colors.white if i % 2 != 0 else colors.HexColor("#F9FAFB")
+        estilo.add("BACKGROUND", (0, i), (-1, i), bg_color)
+        estilo.add("LINEBELOW", (0, i), (-1, i), 0.5, COLOR_LINEA)
 
     tabla.setStyle(estilo)
     return tabla
-
-
-def _fmt_fecha(valor) -> str:
-    if valor is None:
-        return "-"
-    if isinstance(valor, date):
-        return valor.strftime("%d/%m/%Y")
-    return str(valor)
