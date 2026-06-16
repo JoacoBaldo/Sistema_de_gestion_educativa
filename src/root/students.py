@@ -113,8 +113,8 @@ def actualizar_alumno(classroom_id):
     email = body.get("email")
     document = body.get("document")
     career = body.get("career")
-    status = body.get("status")  
-    
+    status = body.get("status")
+
     if user_id is None or not username or not email or not document or not career:
         return responder_error(DATOS_ESTUDIANTE_REQUERIDOS)
 

@@ -6,7 +6,12 @@ from src.db.classroom import (
     usuario_en_classroom,
     actualizar_estado_estudiante_classroom,
 )
-from src.db.constantes import ESTUDIANTE, STATUS_ACTIVO, STATUS_ABANDONO, STATUS_INACTIVO
+from src.db.constantes import (
+    ESTUDIANTE,
+    STATUS_ACTIVO,
+    STATUS_ABANDONO,
+    STATUS_INACTIVO,
+)
 from src.db.students import (
     actualizar_estudiante,
     crear_student_profile,
