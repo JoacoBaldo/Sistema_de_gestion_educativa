@@ -474,7 +474,6 @@ def eliminar_usuario_aula(classroom_id, user_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
-
     res, error = consumir_api(
         "DELETE", f"/api/v1/classrooms/{classroom_id}/user/{user_id}"
     )
@@ -482,10 +481,42 @@ def eliminar_usuario_aula(classroom_id, user_id):
         flash("No se pudo quitar el acceso", "error")
     else:
         flash("Acceso revocado.", "success")
-
     vista = request.form.get("vista", "dashboard")
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista=vista))
 
+@app.route("/aulas/<int:classroom_id>/evaluaciones/<int:eval_id>/notas/<int:user_id>/editar", methods=["POST"])
+def editar_nota_form(classroom_id, eval_id, user_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+        
+    nueva_nota = request.form.get("score")
+    
+    payload = {"score": float(nueva_nota)}
+    res, err = consumir_api("PUT", f"/api/v1/evaluations/{eval_id}/grades/{user_id}", json_data=payload)
+    
+    if err:
+        flash("Error al actualizar la calificación.", "error")
+    else:
+        flash("Calificación actualizada correctamente.", "success")
+        
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
+
+
+@app.route("/aulas/<int:classroom_id>/evaluaciones/<int:eval_id>/notas/<int:user_id>/eliminar", methods=["POST"])
+def eliminar_nota_form(classroom_id, eval_id, user_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+        
+    res, err = consumir_api("DELETE", f"/api/v1/evaluations/{eval_id}/grades/{user_id}")
+    
+    if err:
+        flash("Error al eliminar la calificación.", "error")
+    else:
+        flash("Calificación eliminada correctamente.", "success")
+        
+    return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista="students"))
 
 @app.route("/aulas/<int:classroom_id>/gestionar/evaluaciones/crear", methods=["POST"])
 def crear_evaluacion_aula(classroom_id):
@@ -621,7 +652,6 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
             )
 
         filas_procesadas = []
-        # Validar estructura básica del CSV (Ahora soporta 'equipo')
         tiene_identificador = any(
             col in reader.fieldnames for col in ["documento", "email", "equipo"]
         )

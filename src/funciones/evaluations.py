@@ -1,7 +1,9 @@
 from src.db.classroom import existe_classroom
 from src.db.evaluations import (
     actualizar_evaluacion_db,
+    actualizar_nota_estudiante_db,
     crear_evaluacion_db,
+    eliminar_nota_estudiante_db,
     existe_evaluacion_en_classroom,
     existe_evaluation_type,
     obtener_evaluacion_por_id,
@@ -175,3 +177,21 @@ def cargar_notas_masivas_logic(
         }
 
     return {"inserted": resultado.get("inserted", 0)}, None
+
+def actualizar_nota_estudiante(evaluation_id: int, user_id: int, score: float) -> tuple:
+    if score is None:
+        return None, {"error": "La calificación es requerida", "status": 400}
+        
+    if not obtener_evaluacion_por_id(evaluation_id):
+        return None, EVALUACION_NO_EXISTE
+
+    resultado = actualizar_nota_estudiante_db(evaluation_id, user_id, float(score))
+    return resultado, None
+
+
+def eliminar_nota_estudiante(evaluation_id: int, user_id: int) -> tuple:
+    if not obtener_evaluacion_por_id(evaluation_id):
+        return None, EVALUACION_NO_EXISTE
+        
+    resultado = eliminar_nota_estudiante_db(evaluation_id, user_id)
+    return resultado, None

@@ -185,8 +185,19 @@ def procesar_notas_masivas_db(
         transaccion = conn.begin()
         try:
             for item in lista_notas:
-                identificador = item["identifier"]
                 nota = item["score"]
+
+                if "user_id" in item:
+                    conn.exec_driver_sql(
+                        query_upsert_nota, (item["user_id"], evaluation_id, nota)
+                    )
+                    inserted_count += 1
+                    continue
+
+                identificador = item.get("identifier")
+                if not identificador:
+                    continue
+
                 tipo = item.get("type", "documento")
 
                 if tipo == "equipo":
@@ -198,14 +209,13 @@ def procesar_notas_masivas_db(
                         user_id = integrante[0]
                         conn.exec_driver_sql(
                             query_upsert_nota, (user_id, evaluation_id, nota)
-                        )
+                        ) [cite: 21]
                         inserted_count += 1
                 else:
                     alumno = conn.exec_driver_sql(
                         query_buscar_alumno,
                         (classroom_id, identificador, identificador),
                     ).fetchone()
-
                     if alumno:
                         user_id = alumno[0]
                         conn.exec_driver_sql(
@@ -219,3 +229,31 @@ def procesar_notas_masivas_db(
         except Exception as e:
             transaccion.rollback()
             return {"inserted": 0, "error": str(e)}
+
+
+def actualizar_nota_estudiante_db(evaluation_id: int, user_id: int, score: float) -> dict:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            INSERT INTO grades (user_id, evaluation_id, score, created_at, updated_at)
+            VALUES (%s, %s, %s, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE 
+                score = VALUES(score),
+                updated_at = NOW()
+            """,
+            (user_id, evaluation_id, score)
+        )
+        conn.commit()
+    return {"message": "Calificación actualizada exitosamente", "status": 200}
+
+
+def eliminar_nota_estudiante_db(evaluation_id: int, user_id: int) -> dict:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            "DELETE FROM grades WHERE evaluation_id = %s AND user_id = %s",
+            (evaluation_id, user_id)
+        )
+        conn.commit()
+    return {"message": "Calificación eliminada exitosamente", "status": 200}

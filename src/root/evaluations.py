@@ -2,7 +2,9 @@ from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
 from src.funciones.evaluations import (
+    actualizar_nota_estudiante,
     cargar_notas_masivas_logic,
+    eliminar_nota_estudiante,
     obtener_evaluaciones,
     actualizar_evaluacion,
     crear_evaluacion,
@@ -161,3 +163,32 @@ def api_bulk_grades(evaluation_id):
         return responder_error(err)
 
     return jsonify(resultado), 200
+
+@evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/grades/<int:user_id>", methods=["PUT"])
+def api_actualizar_nota(evaluation_id: int, user_id: int):
+    token = extraer_token()
+    _, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    body = request.get_json(silent=True) or {}
+    score = body.get("score")
+
+    resultado, error_logica = actualizar_nota_estudiante(evaluation_id, user_id, score)
+    if error_logica:
+        return responder_error(error_logica)
+
+    return jsonify(resultado), resultado["status"]
+
+@evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/grades/<int:user_id>", methods=["DELETE"])
+def api_eliminar_nota(evaluation_id: int, user_id: int):
+    token = extraer_token()
+    _, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    resultado, error_logica = eliminar_nota_estudiante(evaluation_id, user_id)
+    if error_logica:
+        return responder_error(error_logica)
+
+    return jsonify(resultado), resultado["status"]

@@ -115,6 +115,15 @@
   background: rgba(239, 68, 68, 0.22);
 }
 
+.st-action-btn-confirm {
+  background: rgba(97, 239, 68, 0.1);
+  color: #44ef44;
+}
+
+.st-action-btn-confirm:hover {
+  background: rgba(97, 239, 68, 0.22);
+}
+
 .st-toolbar {
   display: flex;
   align-items: center;
@@ -374,6 +383,85 @@
   border-radius: 12px;
   display: inline-block;
 }
+
+/* ─── Botón Notas en Grilla de Alumnos ─── */
+.btn-notas-promedio {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-notas-promedio:hover {
+  transform: translateY(-1px);
+}
+
+/* Variante Verde (Promedio >= 4) */
+.btn-notas-promedio.is-approved {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.btn-notas-promedio.is-approved:hover {
+  box-shadow: 0 4px 10px rgba(21, 128, 61, 0.2);
+}
+
+.btn-notas-promedio.is-reproved {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.btn-notas-promedio.is-reproved:hover {
+  box-shadow: 0 4px 10px rgba(185, 28, 28, 0.2);
+}
+
+.edit-score-input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #334155 !important;
+  text-align: center !important;
+  width: 50px !important;
+}
+
+.edit-score-input::-webkit-outer-spin-button,
+.edit-score-input::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+.edit-score-input {
+  -moz-appearance: textfield !important;
+}
+
+.action-buttons-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hidden {
+  display: none !important;
+}
+
 
 @media (max-width: 980px) {
   .st-toolbar {
