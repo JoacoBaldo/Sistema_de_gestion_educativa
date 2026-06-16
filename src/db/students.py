@@ -80,6 +80,7 @@ def actualizar_estudiante(
             SET u.username = %s, u.email = %s, u.password = %s,
                 sp.document = %s, sp.career_id = %s
             WHERE u.id = %s
+            
             """,
             (username, email, password_hasheada, document, career_id, user_id),
         )

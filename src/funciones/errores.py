@@ -160,3 +160,6 @@ ESTUDIANTE_NO_EN_CLASSROOM = {
     "error": "El usuario no es un estudiante de este classroom",
     "status": 404,
 }
+FALTAN_DATOS = {
+    "error": "Faltan datos requeridos", 
+    "status": 400}

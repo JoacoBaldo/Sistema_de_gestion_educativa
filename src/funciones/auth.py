@@ -8,7 +8,6 @@ from src.db import classroom as db_classroom
 from .constantes import TIEMPO_EXPIRACION_HORAS
 from .errores import (
     FALTAN_DATOS,
-    USUARIO_NO_EXISTE_GLOBAL,
     CREDENCIALES_INVALIDAS,
     LINK_INVALIDO,
     TOKEN_INVALIDO,

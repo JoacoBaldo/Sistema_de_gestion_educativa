@@ -97,7 +97,7 @@
                 {% set partes = (alumno.username or '').split(' ', 1) %}
                 {% set nombre = partes[0] if partes else alumno.username %}
                 {% set apellido = partes[1] if partes|length > 1 else '' %}
-                {% set activo = alumno.status_type_id != 2 %}
+                {% set activo = alumno.status_type_id == 1 %}
                 <tr data-padron="{{ alumno.id }}" data-nombre="{{ nombre }}" data-apellido="{{ apellido }}"
                     data-email="{{ alumno.email }}" data-status="{{ 'active' if activo else 'abandoned' }}" data-team=""
                     data-user-id="{{ alumno.id }}" data-username="{{ alumno.username }}"
@@ -129,6 +129,7 @@
                     <td>
                         <span class="st-absences-count">{{ alumno.inasistencias }}</span>
                     </td>
+
 
                     {% if session.get('user', {}).get('role_id') != 3 %}
                     <td class="st-col-actions">
@@ -169,5 +170,5 @@
     {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
     {% include 'classroom-manage/students/forms/editar_estudiante.html' %}
 
-    <script type="module" src="{{ url_for('static', filename='js/studentsModal.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='JS/studentsModal.js') }}"></script>
 </section>
