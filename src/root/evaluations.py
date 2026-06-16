@@ -1,13 +1,22 @@
 from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
-from src.funciones.evaluations import obtener_evaluaciones, actualizar_evaluacion, crear_evaluacion, eliminar_evaluacion
+from src.funciones.evaluations import (
+    cargar_notas_masivas_logic,
+    obtener_evaluaciones,
+    actualizar_evaluacion,
+    crear_evaluacion,
+    eliminar_evaluacion,
+)
 
 from .utils import extraer_token, responder_error
 
 evaluacion_bp = Blueprint("evaluacion", __name__)
 
-@evaluacion_bp.route("/api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["GET"])
+
+@evaluacion_bp.route(
+    "/api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["GET"]
+)
 def listar_evaluaciones_aula(classroom_id):
     token = extraer_token()
     usuario, error_token = verificar_token(token)
@@ -15,11 +24,12 @@ def listar_evaluaciones_aula(classroom_id):
         return responder_error(error_token)
 
     evaluaciones, error = obtener_evaluaciones(classroom_id)
-    
+
     if error:
         return responder_error(error)
-        
+
     return jsonify(evaluaciones), 200
+
 
 @evaluacion_bp.route(
     "/api/v1/classroom/<int:classroom_id>/evaluaciones", methods=["POST"]
@@ -42,10 +52,10 @@ def crear_evaluacion_root(classroom_id: int):
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
         evaluation_type_id = (
-            int(evaluation_type_raw) if evaluation_type_raw is not None else None
+            int(evaluation_type_raw) if evaluation_type_raw is not None else 0
         )
     except (TypeError, ValueError):
-        evaluation_type_id = None
+        evaluation_type_id = 0
 
     referenced_eval_raw = body.get("referenced_eval_id")
     try:
@@ -60,6 +70,9 @@ def crear_evaluacion_root(classroom_id: int):
         individual = int(individual_raw)
     except (TypeError, ValueError):
         individual = 1
+
+    if not isinstance(evaluation_type_id, int) or evaluation_type_id == 0:
+        return responder_error({"mensaje": "evaluation_type_id requerido"})
 
     resultado, error = crear_evaluacion(
         classroom_id, name, evaluation_type_id, referenced_eval_id, individual
@@ -98,8 +111,8 @@ def actualizar_evaluacion_root(evaluation_id: int):
 
     resultado, error = actualizar_evaluacion(
         classroom_id,
-        name, 
-        evaluation_type_id,  
+        name,
+        evaluation_type_id,
         referenced_eval_id,
         individual,
         evaluation_id,
@@ -108,6 +121,7 @@ def actualizar_evaluacion_root(evaluation_id: int):
         return responder_error(error)
 
     return jsonify(resultado), resultado["status"]
+
 
 @evaluacion_bp.route("/api/v1/evaluaciones/<int:evaluation_id>", methods=["DELETE"])
 def eliminar_evaluacion_root(evaluation_id: int):
@@ -121,3 +135,29 @@ def eliminar_evaluacion_root(evaluation_id: int):
         return responder_error(error_del)
 
     return jsonify(resultado), resultado["status"]
+
+
+@evaluacion_bp.route(
+    "/api/v1/evaluations/<int:evaluation_id>/bulk-grades", methods=["POST"]
+)
+def api_bulk_grades(evaluation_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    body = request.get_json(silent=True) or {}
+    classroom_id = body.get("classroom_id")
+    grades = body.get("grades", [])
+
+    if not classroom_id:
+        return responder_error(
+            {"error": "El classroom_id es requerido en el payload.", "status": 400}
+        )
+
+    resultado, err = cargar_notas_masivas_logic(classroom_id, evaluation_id, grades)
+
+    if err:
+        return responder_error(err)
+
+    return jsonify(resultado), 200

@@ -2,6 +2,7 @@ from src.db.conexion import obtener_conexion
 
 SIN_ACCESO = {"error": "No tienes acceso a esta aula"}
 
+
 def obtener_recursos_por_aula(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
@@ -31,7 +32,7 @@ def guardar_contenido_classroom(
     classroom_id: int, titulo: str, tipo: str, url: str, usuario_id: int
 ) -> int:
     engine = obtener_conexion()
-    
+
     tipo_normalizado = tipo.lower().strip()
     if tipo_normalizado == "link":
         tipo_normalizado = "enlace"
@@ -54,7 +55,7 @@ def guardar_contenido_classroom(
             (classroom_id, titulo, tipo_normalizado, url),
         )
         conn.commit()
-        
+
         nuevo_id = cursor.lastrowid
 
     return nuevo_id
@@ -72,11 +73,12 @@ def eliminar_contenido_classroom(contenido_id: int) -> None:
         )
         conn.commit()
 
+
 def actualizar_contenido_db(
     contenido_id: int, titulo: str, tipo: str, url: str
 ) -> None:
     engine = obtener_conexion()
-    
+
     tipo_normalizado = tipo.lower().strip()
     if tipo_normalizado == "link":
         tipo_normalizado = "enlace"
@@ -96,4 +98,4 @@ def actualizar_contenido_db(
             """,
             (titulo, url, tipo_normalizado, contenido_id),
         )
-        conn.commit()   
+        conn.commit()

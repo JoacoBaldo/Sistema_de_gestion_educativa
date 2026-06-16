@@ -6,9 +6,11 @@
             <p class="st-subtitle">Materiales de curso visibles para todos los estudiantes</p>
         </div>
         <div class="st-actions">
-            <button class="st-btn st-btn-primary" type="button" id="lb-upload-btn">
+            {% if session.get('user', {}).get('role_id') != 3 %} <button class="st-btn st-btn-primary" type="button"
+                id="lb-upload-btn">
                 + Subir recurso
             </button>
+            {% endif %}
         </div>
     </header>
 
@@ -99,11 +101,14 @@
             </a>
 
             <footer class="lb-card__footer">
-                <button type="button" class="ev-icon-btn st-btn st-btn-ghost lb-edit-btn" aria-label="Editar recurso"
+                {% if session.get('user', {}).get('role_id') != 3 %} <button type="button"
+                    class="ev-icon-btn st-btn st-btn-ghost lb-edit-btn" aria-label="Editar recurso"
                     data-id="{{ rec.id }}" data-nombre="{{ rec.name }}" data-tipo="{{ tipo_recurso }}"
                     data-url="{{ rec.link }}">
                     Editar
                 </button>
+                {% endif %}
+
             </footer>
         </article>
         {% endfor %}

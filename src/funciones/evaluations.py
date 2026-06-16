@@ -7,15 +7,19 @@ from src.db.evaluations import (
     obtener_evaluacion_por_id,
     obtener_evaluaciones_classroom,
     eliminar_evaluacion_db,
+    procesar_notas_masivas_db,
 )
 
 from .errores import (
     CLASSROOM_NO_EXISTE,
     DATOS_EVALUACION_REQUERIDOS,
+    ERROR_CONEXION,
+    EVALUACION_NO_EXISTE,
+    NOTAS_VACIAS,
+    PARAMETROS_NOTAS_REQUERIDOS,
     REFERENCED_EVAL_NO_EXISTE,
     REFERENCED_EVAL_REQUERIDO,
     TIPO_EVALUACION_INVALIDO,
-    EVALUACION_NO_EXISTE,
 )
 
 EVALUATION_TYPE_RECUPERATORIO = 3
@@ -132,21 +136,32 @@ def actualizar_evaluacion(
         evaluation_id,
     ), None
 
+
 def eliminar_evaluacion(evaluation_id: int) -> tuple:
     try:
         evaluacion = obtener_evaluacion_por_id(evaluation_id)
         if evaluacion is None:
-            return None, {
-                "error": "La evaluación especificada no existe",
-                "status": 404,
-            }
+            return None, EVALUACION_NO_EXISTE
 
         resultado = eliminar_evaluacion_db(evaluation_id)
         return resultado, None
 
-    except Exception as e:
-        error_estructurado = {
-            "error": f"ERROR_BASE_DE_DATOS: {str(e)}",
-            "status": 500,
-        }
-        return None, error_estructurado
+    except Exception:
+        return None, ERROR_CONEXION
+
+
+def cargar_notas_masivas_logic(
+    classroom_id: int, evaluation_id: int, grades: list[dict]
+) -> tuple[dict, dict | None]:
+    if not grades:
+        return {}, NOTAS_VACIAS
+
+    if not classroom_id or not evaluation_id:
+        return {}, PARAMETROS_NOTAS_REQUERIDOS
+
+    resultado = procesar_notas_masivas_db(classroom_id, evaluation_id, grades)
+
+    if resultado.get("error"):
+        return {}, ERROR_CONEXION
+
+    return {"inserted": resultado.get("inserted", 0)}, None

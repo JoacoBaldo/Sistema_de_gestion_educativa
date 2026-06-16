@@ -4,32 +4,32 @@
       <h3 id="cc-modal-title">Compartir Clase</h3>
       <button type="button" class="btn-close-custom" id="cc-share-close" aria-label="Cerrar">✕</button>
     </div>
-    <p class="subtitle">Ingresa el correo de la persona a la que quieres dar acceso.</p>
+    <p class="subtitle">Selecciona el rol y genera el enlace de invitación.</p>
 
     <form id="shareForm" method="POST" action="{{ url_for('compartir_clase') }}" novalidate>
       <input type="hidden" id="classId" name="classId">
 
       <div class="mb-3">
-        <label class="form-label" for="shareEmail">✉️ Email del colaborador <span class="text-danger">*</span></label>
-        <input type="email" id="shareEmail" name="email" placeholder="ejemplo@universidad.edu" class="glass-input" required>
-      </div>
-
-      <div class="mb-3">
         <label class="form-label" for="shareRol">🔐 Rol de acceso <span class="text-danger">*</span></label>
-        <select id="shareRol" name="rol" class="glass-input" required>
-          <option value="Lector">Lector (solo ver)</option>
-          <option value="Editor">Editor (puede modificar)</option>
+        <select id="shareRol" name="role_id" class="glass-input" required>
+          {% for role in role_types %}
+          <option value="{{ role.id }}">{{ role.name }}</option>
+          {% endfor %}
         </select>
       </div>
 
       {% if join_link %}
-      <p id="cc-share-link-result" class="glass-hint" role="status" style="word-break:break-all;margin-top:12px;">{{ join_link }}</p>
-      {% else %}
-      <p id="cc-share-link-result" class="glass-hint" hidden role="status" style="word-break:break-all;margin-top:12px;"></p>
+      <div class="mb-3">
+        <label class="form-label">🔗 Enlace generado</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="cc-share-link-input" class="glass-input" value="{{ join_link }}" readonly style="flex:1;">
+          <button type="button" id="cc-copy-btn" class="btn-cancelar">Copiar</button>
+        </div>
+      </div>
       {% endif %}
 
       <div class="action-buttons">
-        <button type="button" class="btn-cancelar" id="cc-share-cancel-btn">Cancelar</button>
+        <button type="button" class="btn-cancelar" id="cc-share-cancel-btn">Cerrar</button>
         <button type="submit" class="btn-crear" id="btnCompartir">Generar enlace</button>
       </div>
 

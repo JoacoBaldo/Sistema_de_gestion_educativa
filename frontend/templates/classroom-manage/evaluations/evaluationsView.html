@@ -1,13 +1,20 @@
 <section class="ev-page" aria-label="Gestión de evaluaciones y trabajos prácticos">
     <header class="ev-header">
         <div>
+            {% if session.get('user', {}).get('role_id') != 3 %}
             <h1 class="ev-title">Gestión de Evaluaciones y TPs</h1>
             <p class="ev-subtitle">Administra exámenes, trabajos prácticos y sus respectivas notas.</p>
+            {% else %}
+            <h1 class="ev-title">Evaluaciones y Trabajos Prácticos</h1>
+            <p class="ev-subtitle">Listado de evaluaciones cargadas para esta aula</p>
+            {% endif %}
         </div>
         <div class="ev-actions">
-            <a class="st-btn st-btn-primary ev-btn-new" href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
+            {% if session.get('user', {}).get('role_id') != 3 %} <a class="st-btn st-btn-primary ev-btn-new"
+                href="?vista=evaluations&amp;accion=nueva" id="ev-new-btn">
                 + Nueva Evaluación
             </a>
+            {% endif %}
         </div>
     </header>
 
@@ -59,11 +66,19 @@
                 <h2 class="ev-card__title">{{ ev.name }}</h2>
             </div>
             <footer class="ev-card__footer">
-                <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn" aria-label="Editar evaluación"
-                    data-id="{{ ev.id }}" data-nombre="{{ ev.name }}" data-tipo="{{ ev.tipo_slug }}"
-                    data-individual="{{ '1' if ev.individual else '0' }}">
-                    Editar
-                </button>
+                {% if session.get('user', {}).get('role_id') != 3 %}
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-edit-btn"
+                        aria-label="Editar evaluación" data-id="{{ ev.id }}" data-nombre="{{ ev.name }}"
+                        data-tipo="{{ ev.tipo_slug }}" data-individual="{{ '1' if ev.individual else '0' }}">
+                        Editar
+                    </button>
+                    <button type="button" class="ev-icon-btn st-btn st-btn-ghost ev-add-grades-btn"
+                        data-id="{{ ev.id }}" data-nombre="{{ ev.name }}">
+                        + Notas
+                    </button>
+                </div>
+                {% endif %}
                 <p class="ev-card__progress">{% if ev.individual %}Individual{% else %}Grupal{% endif %}</p>
             </footer>
         </article>
@@ -118,6 +133,42 @@
                         <button type="submit" class="btn-crear">Guardar cambios</button>
 
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="ev-grades-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+        aria-labelledby="ev-grades-modal-title">
+        <div class="glass-card">
+            <div class="glass-header">
+                <h3 id="ev-grades-modal-title">Subir Notas Masivas</h3>
+                <button type="button" class="btn-close-custom" id="ev-grades-close" aria-label="Cerrar">✕</button>
+            </div>
+
+            <p class="subtitle" style="margin-bottom: 24px;">
+                Sube un archivo CSV para la evaluación: <strong id="ev-grades-target-name"
+                    style="color: #fff;">-</strong>
+            </p>
+
+            <form id="ev-grades-form" method="POST" enctype="multipart/form-data">
+                <div
+                    style="border: 2px dashed rgba(255, 255, 255, 0.4); padding: 30px 20px; text-align: center; border-radius: 12px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.05); transition: all 0.3s ease;">
+                    <input type="file" name="file_csv" id="ev-csv-input" accept=".csv" required style="display: none;">
+                    <label for="ev-csv-input" style="cursor: pointer; display: block;">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 12px;">📊</span>
+                        <span style="color: #fff; font-weight: 600; display: block; font-size: 1.1rem;">Haz click para
+                            seleccionar archivo</span>
+                        <span id="ev-csv-filename"
+                            style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-top: 8px; display: block;">
+                            Formato requerido: columna 'documento', 'email' o 'equipo' y columna 'nota'
+                        </span>
+                    </label>
+                </div>
+
+                <div class="action-buttons" style="justify-content: flex-end;">
+                    <button type="button" id="ev-grades-cancel" class="btn-cancelar">Cancelar</button>
+                    <button type="submit" class="btn-crear">Procesar Notas</button>
                 </div>
             </form>
         </div>

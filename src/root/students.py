@@ -2,9 +2,17 @@ from flask import Blueprint, jsonify, request
 
 from src.funciones.auth import verificar_token
 from src.funciones.classroom import obtener_alumnos_classroom
-from src.funciones.errores import ARCHIVO_NO_ENVIADO, ARCHIVO_VACIO, PADRON_INVALIDO
-from src.funciones.students import cargar_estudiantes_csv, agregar_estudiante_existente_classroom
-from src.db import classroom as db_classroom
+from src.funciones.errores import (
+    ARCHIVO_NO_ENVIADO,
+    ARCHIVO_VACIO,
+    DATOS_ESTUDIANTE_REQUERIDOS,
+)
+from src.funciones.students import (
+    actualizar_estudiante_en_classroom,
+    cargar_estudiantes_csv,
+    crear_estudiante_en_classroom,
+)
+
 from .utils import extraer_token, responder_error
 
 students_bp = Blueprint("students", __name__)
@@ -66,35 +74,53 @@ def listar_alumnos_paginados(classroom_id):
         }
     ), 200
 
-@students_bp.route(
-    "/api/v1/classrooms/<int:classroom_id>/students/add", methods=["POST"]
-)
-def agregar_estudiante_existente(classroom_id):
 
+@students_bp.route("/api/v1/classrooms/<int:classroom_id>/student", methods=["POST"])
+def crear_alumno(classroom_id):
     token = extraer_token()
     usuario, error = verificar_token(token)
     if error:
         return responder_error(error)
-    
-    data = request.get_json(silent=True) or {}
-    student_id = data.get("student_id")
-    email = data.get("email")
-    
-    if isinstance(email, str):
-        email = email.strip() or None
 
-    if student_id and isinstance(student_id, str):
-        try:
-            student_id = int(student_id)
-        except ValueError:
-            return responder_error(PADRON_INVALIDO)
-    
-    resultado, error = agregar_estudiante_existente_classroom(
-        classroom_id, student_id=student_id, email=email
+    body = request.get_json(silent=True) or {}
+    username = body.get("username")
+    email = body.get("email")
+    document = body.get("document")
+    career = body.get("career")
+
+    if not username or not email or not document or not career:
+        return responder_error(DATOS_ESTUDIANTE_REQUERIDOS)
+
+    resultado, error = crear_estudiante_en_classroom(
+        classroom_id, usuario["id"], username, email, document, career
     )
-    
     if error:
         return responder_error(error)
-    
+
     return jsonify(resultado), 201
-    
+
+
+@students_bp.route("/api/v1/classrooms/<int:classroom_id>/student", methods=["PUT"])
+def actualizar_alumno(classroom_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    body = request.get_json(silent=True) or {}
+    user_id = body.get("user_id")
+    username = body.get("username")
+    email = body.get("email")
+    document = body.get("document")
+    career = body.get("career")
+
+    if not user_id or not username or not email or not document or not career:
+        return responder_error(DATOS_ESTUDIANTE_REQUERIDOS)
+
+    resultado, error = actualizar_estudiante_en_classroom(
+        classroom_id, usuario["id"], user_id, username, email, document, career
+    )
+    if error:
+        return responder_error(error)
+
+    return jsonify(resultado), 200

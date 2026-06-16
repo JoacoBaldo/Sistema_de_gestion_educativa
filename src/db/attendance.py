@@ -85,7 +85,7 @@ def inasistencia_db(student_id, attendance_event_id, fecha, delta: int = 1):
             """
             INSERT INTO attendance (student_id, attendance_event_id, absence)
             VALUES (%s, %s, GREATEST(0, %s))
-            ON DUPLICATE KEY UPDATE 
+            ON DUPLICATE KEY UPDATE
                 absence = GREATEST(0, absence + %s)
             """,
             (student_id, attendance_event_id, delta, delta),
@@ -100,19 +100,19 @@ def obtener_evento_por_codigo(classroom_id: int, code: str) -> dict | None:
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
             """
-            SELECT id, classroom_id 
-            FROM attendance_events 
+            SELECT id, classroom_id
+            FROM attendance_events
             WHERE classroom_id = %s
             ORDER BY id DESC
             LIMIT 1
             """,
             (classroom_id,),
         ).fetchone()
-        
+
         if resultado:
             return {
                 "id": resultado[0],
                 "classroom_id": resultado[1],
-                "code": code
+                "code": code,
             }
         return None

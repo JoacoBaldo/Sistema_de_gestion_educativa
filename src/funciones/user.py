@@ -1,27 +1,26 @@
-import logging
 import os
-import smtplib
 from datetime import datetime, timedelta, timezone
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+import requests
 
 import bcrypt
-from jose import jwt
+from jose import jwt, JWTError
 
 from src.db.auth import obtener_usuario_por_email
-from src.db.user import crear_usuario_db, email_existe, usuario_existe_db
+from src.db.user import actualizar_contraseña, crear_usuario_db, email_existe
 from .constantes import MIN_CARACTERES_PASSWORD, TIEMPO_EXPIRACION_TOKEN_RESET_MINUTOS
 from .errores import (
     CONTRASENA_DEBIL,
-    EMAIL_NO_EXISTE,
     EMAIL_NO_VALIDO,
     EMAIL_YA_EXISTE,
-    ERROR_ENVIO_MAIL,
-    USUARIO_NO_EXISTE,
+    TOKEN_RESET_INVALIDO,
+    TOKEN_RESET_TIPO_INVALIDO,
+    USUARIO_NO_ENCONTRADO,
+    ERROR_CONEXION,
 )
 
-TOKEN_KEY = os.environ.get("TOKEN_KEY")
-TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM")
+TOKEN_KEY = os.environ.get("TOKEN_KEY", "")
+TOKEN_ALGORITHM = os.environ.get("TOKEN_ALGORITHM", "HS256")
 
 
 def crear_token_reset_password(user_id: int, email: str) -> str:
@@ -42,35 +41,62 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 
 def send_password_mail(destinatario: str) -> tuple:
-    remitente = os.environ.get("EMAIL_SOPORTE")
-    password_env = os.environ.get("EMAIL_PASSWORD")
-
-    if remitente is None or password_env is None:
-        return None, ERROR_ENVIO_MAIL
-
     usuario = obtener_usuario_por_email(destinatario)
-    if usuario is None:
-        return None, EMAIL_NO_EXISTE
-    id_usuario = usuario["id"]
+    if not usuario:
+        return None, USUARIO_NO_ENCONTRADO
 
-    token = crear_token_reset_password(id_usuario, destinatario)
+    user_id = usuario.get("id")
+    email = usuario.get("email")
+    if not user_id or not email:
+        return None, USUARIO_NO_ENCONTRADO
 
-    mensaje = MIMEMultipart()
-    mensaje["From"] = remitente
-    mensaje["To"] = destinatario
-    mensaje["Subject"] = "Recuperación de contraseña - uniManage"
-    mensaje.attach(MIMEText(f"Token para recuperar contraseña: {token}", "plain"))
+    token = crear_token_reset_password(int(user_id), str(email))
+
+    api_key = os.environ.get("SMTP_PASSWORD", "")
+    remitente = os.environ.get("EMAIL_REMITENTE", "")
+
+    payload = {
+        "sender": {"name": "uniManage Soporte", "email": remitente},
+        "to": [{"email": destinatario}],
+        "subject": "Recuperación de contraseña - uniManage",
+        "textContent": (
+            "Hola,\n\n"
+            "Recibimos una solicitud para restablecer la contraseña de tu cuenta.\n"
+            f"Token de validación: {token}\n"
+        ),
+    }
 
     try:
-        servidor = smtplib.SMTP("smtp.gmail.com", 587)
-        servidor.starttls()
-        servidor.login(remitente, password_env)
-        servidor.sendmail(remitente, destinatario, mensaje.as_string())
-        servidor.quit()
-        return {"message": "Mail enviado"}, None
-    except Exception as e:
-        logging.error("Error al enviar el correo: %s", e)
-        return None, ERROR_ENVIO_MAIL
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload,
+            headers={"api-key": api_key, "content-type": "application/json"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        return {"message": "Correo enviado"}, None
+    except Exception:
+        return None, ERROR_CONEXION
+
+
+def restablecer_password(token: str, nueva_password: str) -> tuple:
+    if len(nueva_password) < MIN_CARACTERES_PASSWORD:
+        return None, CONTRASENA_DEBIL
+
+    try:
+        payload = jwt.decode(token, TOKEN_KEY, algorithms=[TOKEN_ALGORITHM])
+    except JWTError:
+        return None, TOKEN_RESET_INVALIDO
+
+    if payload.get("tipo") != "reset_password":
+        return None, TOKEN_RESET_TIPO_INVALIDO
+
+    user_id = int(payload["sub"])
+    password_hash = bcrypt.hashpw(
+        nueva_password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    resultado = actualizar_contraseña(user_id, password_hash)
+    return resultado, None
 
 
 def create_user(user: dict) -> tuple:
@@ -85,8 +111,3 @@ def create_user(user: dict) -> tuple:
     ).decode("utf-8")
     resultado = crear_usuario_db({**user, "password": password_hasheada})
     return resultado, None
-
-
-def usuario_existe(usuario_id: int):
-    usuario = usuario_existe_db(usuario_id)
-    return usuario, None if usuario else USUARIO_NO_EXISTE
