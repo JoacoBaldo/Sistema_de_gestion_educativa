@@ -362,7 +362,7 @@ def login():
     }
     res, error = consumir_api("POST", "/api/v1/users/login", json_data=payload)
 
-    print(f"DEBUG: Login attempt - error={error}, res={res}")
+    logging.debug(f"Login attempt - error={error}, res={res}")
 
     if error or not isinstance(res, dict) or not res.get("token"):
         flash(
