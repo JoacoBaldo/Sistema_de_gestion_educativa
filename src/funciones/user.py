@@ -52,10 +52,10 @@ def send_password_mail(destinatario: str) -> tuple:
 
     token = crear_token_reset_password(int(user_id), str(email))
 
-    host = os.environ.get("MAILTRAP_HOST", "")
-    port = int(os.environ.get("MAILTRAP_PORT", "2525"))
-    user = os.environ.get("MAILTRAP_USER", "")
-    password = os.environ.get("MAILTRAP_PASSWORD", "")
+    host = os.environ.get("SMTP_SERVER", "")
+    port = int(os.environ.get("SMTP_PORT", "587"))
+    user = os.environ.get("SMTP_USER", "")
+    password = os.environ.get("SMTP_PASSWORD", "")
     remitente = os.environ.get("EMAIL_REMITENTE", "")
 
     msg = EmailMessage()

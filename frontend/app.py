@@ -1,6 +1,7 @@
 import csv
 import io
 import os
+import logging
 import requests
 from dotenv import load_dotenv
 from flask import (
@@ -13,6 +14,8 @@ from flask import (
     session,
     url_for,
 )
+
+logging.basicConfig(level=logging.DEBUG)
 
 load_dotenv()
 
