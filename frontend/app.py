@@ -51,7 +51,7 @@ ROLE_LABELS = {1: "Profesor", 2: "Ayudante", 7: "Administrador"}
 def debug():
     return {
         "BACKEND_URL": BACKEND_URL,
-        "SECRET_KEY_EXISTS": bool(os.environ.get("SECRET_KEY"))
+        "SECRET_KEY_EXISTS": bool(os.environ.get("SECRET_KEY")),
     }
 
 
