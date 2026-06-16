@@ -41,10 +41,8 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 
 def send_password_mail(destinatario: str) -> tuple:
-    print(f"[send_password_mail] Paso 2: buscando usuario en DB -> {destinatario}")
     usuario = obtener_usuario_por_email(destinatario)
     if not usuario:
-        print("[send_password_mail] Usuario no encontrado en DB, cortando.")
         return None, USUARIO_NO_ENCONTRADO
 
     user_id = usuario.get("id")
@@ -57,7 +55,6 @@ def send_password_mail(destinatario: str) -> tuple:
     api_key = os.environ.get("SMTP_PASSWORD", "")
     remitente = os.environ.get("EMAIL_REMITENTE", "")
 
-    print(f"[send_password_mail] Paso 3: llamando a Brevo (remitente={remitente})")
     payload = {
         "sender": {"name": "uniManage Soporte", "email": remitente},
         "to": [{"email": destinatario}],
@@ -76,11 +73,9 @@ def send_password_mail(destinatario: str) -> tuple:
             headers={"api-key": api_key, "content-type": "application/json"},
             timeout=10,
         )
-        print(f"[send_password_mail] Respuesta Brevo: {response.status_code} {response.text}")
         response.raise_for_status()
         return {"message": "Correo enviado"}, None
-    except Exception as e:
-        print(f"[send_password_mail] Error al enviar email: {e}")
+    except Exception:
         return None, ERROR_CONEXION
 
 

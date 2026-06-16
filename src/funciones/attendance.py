@@ -121,8 +121,7 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
         )
         response.raise_for_status()
         return {"message": "Correo enviado"}, None
-    except Exception as e:
-        print(f"[_enviar_mail_qr] Error al enviar email: {e}")
+    except Exception:
         return None, ERROR_ENVIO_MAIL
 
 

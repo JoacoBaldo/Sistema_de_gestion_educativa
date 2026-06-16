@@ -1,5 +1,5 @@
 from .conexion import obtener_conexion
-from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR
+from .constantes import ADMINISTRADOR, AYUDANTE, ESTUDIANTE, PROFESOR, STATUS_ACTIVO, STATUS_INACTIVO
 
 
 def obtener_profesores(classroom_id: int) -> list:
@@ -227,18 +227,17 @@ def obtener_classroom_ids_de_periodos_finalizados() -> list[int]:
 def desactivar_alumnos_de_classrooms(classroom_ids: list[int]) -> int:
     if not classroom_ids:
         return 0
-    placeholders = ", ".join(["%s"] * len(classroom_ids))
     engine = obtener_conexion()
     with engine.connect() as conn:
         cursor = conn.exec_driver_sql(
-            f"""
+            """
             UPDATE classroom_users
-            SET status_type_id = 2
-            WHERE classroom_id IN ({placeholders})
+            SET status_type_id = %s
+            WHERE classroom_id IN %s
                 AND role_id = %s
-                AND status_type_id = 1
+                AND status_type_id = %s
             """,
-            (*classroom_ids, ESTUDIANTE),
+            (STATUS_INACTIVO, tuple(classroom_ids), ESTUDIANTE, STATUS_ACTIVO),
         )
         conn.commit()
         return cursor.rowcount
