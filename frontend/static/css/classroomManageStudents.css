@@ -448,10 +448,6 @@
   margin: 0 !important;
 }
 
-.edit-score-input {
-  -moz-appearance: textfield !important;
-}
-
 .action-buttons-inline {
   display: inline-flex;
   align-items: center;

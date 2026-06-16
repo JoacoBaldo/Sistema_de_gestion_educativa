@@ -1,4 +1,5 @@
-<div id="ev-evaluation-modal" class="glass-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ev-modal-title">
+<div id="ev-evaluation-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+  aria-labelledby="ev-modal-title">
   <div class="glass-card">
     <div class="glass-header">
       <h3 id="ev-modal-title">Nueva Evaluación</h3>
@@ -6,10 +7,12 @@
     </div>
     <p class="subtitle">Completa la información para registrar una evaluación o TP.</p>
 
-    <form id="ev-evaluation-form" method="POST" action="{{ url_for('crear_evaluacion_aula', classroom_id=classroom_id) }}" novalidate>
+    <form id="ev-evaluation-form" method="POST"
+      action="{{ url_for('crear_evaluacion_aula', classroom_id=classroom_id) }}" novalidate>
       <div class="mb-3">
         <label class="form-label" for="ev-evaluation-name">📝 Nombre <span class="text-danger">*</span></label>
-        <input type="text" id="ev-evaluation-name" name="name" class="glass-input" placeholder="Ejemplo: Primer Parcial" required>
+        <input type="text" id="ev-evaluation-name" name="name" class="glass-input" placeholder="Ejemplo: Primer Parcial"
+          required>
       </div>
 
       <div class="mb-3">
@@ -23,21 +26,15 @@
         </select>
       </div>
 
-      <div class="row mb-3">
-        <div class="col-6">
-          <label class="form-label" for="ev-evaluation-date">📅 Fecha de entrega</label>
-          <input type="date" id="ev-evaluation-date" name="fecha" class="glass-input">
-        </div>
-        <div class="col-6">
-          <label class="form-label" for="ev-evaluation-classroom">🏛️ Aula / Materia</label>
-          <input type="text" id="ev-evaluation-classroom" name="classroom" class="glass-input" placeholder="Aula 101, Aula 102 o Aula 103" value="Aula 101">
-        </div>
+      <div class="mb-3">
+        <label class="form-label" for="ev-evaluation-date">📅 Fecha de entrega (Opcional)</label>
+        <input type="date" id="ev-evaluation-date" name="due_date" class="glass-input">
       </div>
-
       <div class="glass-form-row--toggle mb-3">
         <label class="form-label mb-0" for="ev-evaluation-individual">👤 Individual</label>
         <input type="checkbox" id="ev-evaluation-individual" name="individual" value="1">
       </div>
+
 
       <div class="action-buttons">
         <button type="button" class="btn-cancelar" id="ev-evaluation-cancel-btn">Cancelar</button>

@@ -201,15 +201,12 @@ def datos_vista_gestion(classroom_id, usuario, vista):
 
     elif vista == "dashboard":
         res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
-        datos["metricas"] = res_m if not err_m and isinstance(res_m, dict) else None
 
-        res_p, err_p = consumir_api(
-            "GET", f"/api/v1/classrooms/{classroom_id}/professors"
-        )
-        datos["profesores"] = extraer_lista(res_p, err_p)
-
-        res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
-        datos["alumnos"] = extraer_lista(res_a, err_a)
+        if err_m or not res_m:
+            flash("No se pudieron cargar las métricas en el tablero.", "error")
+            datos["metricas"] = {}
+        else:
+            datos["metricas"] = res_m
 
     elif vista == "asistance":
         res, error = consumir_api("GET", f"/api/v1/attendance/{classroom_id}")
@@ -253,6 +250,20 @@ def datos_vista_gestion(classroom_id, usuario, vista):
     elif vista == "evaluations":
         res, err = consumir_api("GET", f"/api/v1/classroom/{classroom_id}/evaluaciones")
         datos["evaluaciones"] = extraer_lista(res, err)
+
+        res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+        datos["alumnos"] = extraer_lista(res_a, err_a)
+        datos["estudiantes"] = datos["alumnos"] 
+
+        res_t, err_t = consumir_api("GET", f"/api/v1/teams?classroom_id={classroom_id}")
+        if err_t or not res_t:
+            res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
+            lista_equipos = res_m.get("equipos", []) if not err_m and isinstance(res_m, dict) else []
+        else:
+            lista_equipos = extraer_lista(res_t, err_t)
+
+        datos["equipos"] = lista_equipos
+        datos["teams"] = lista_equipos
 
     elif vista == "library":
         res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/resources")
@@ -523,6 +534,9 @@ def crear_evaluacion_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
+    
+    fecha_form = request.form.get("due_date")
+    due_date_val = fecha_form.strip() if fecha_form and fecha_form.strip() != "" else None
 
     payload = {
         "name": (request.form.get("name") or "").strip(),
@@ -530,7 +544,9 @@ def crear_evaluacion_aula(classroom_id):
             request.form.get("evaluation_type_id")
         ),
         "individual": 1 if request.form.get("individual") else 0,
+        "due_date": due_date_val # <--- AHORA SÍ VIAJA A LA API
     }
+    
 
     res, error = consumir_api(
         "POST", f"/api/v1/classroom/{classroom_id}/evaluaciones", json_data=payload
@@ -555,10 +571,15 @@ def actualizar_evaluacion_aula(classroom_id, evaluation_id):
         return redireccion
 
     tipo = request.form.get("tipo")
+
+    fecha_form = request.form.get("due_date")
+    due_date_val = fecha_form.strip() if fecha_form and fecha_form.strip() != "" else None
+
     payload = {
         "name": (request.form.get("nombre") or "").strip() or None,
         "evaluation_type_id": EVALUATION_TYPE_IDS.get(tipo) if tipo else None,
         "individual": 1 if request.form.get("individual") else 0,
+        "due_date": due_date_val 
     }
 
     res, error = consumir_api(
@@ -637,21 +658,7 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
             [f.strip().lower() for f in reader.fieldnames] if reader.fieldnames else []
         )
 
-        tiene_identificador = (
-            "documento" in reader.fieldnames or "email" in reader.fieldnames
-        )
-        if not tiene_identificador or "nota" not in reader.fieldnames:
-            flash(
-                "Estructura CSV inválida. Debe contener la columna 'nota' y al menos 'documento' o 'email'.",
-                "error",
-            )
-            return redirect(
-                url_for(
-                    "classroom_manage", classroom_id=classroom_id, vista="evaluations"
-                )
-            )
-
-        filas_procesadas = []
+        # ✨ VALIDACIÓN ÚNICA Y CORRECTA (Soporta documento, email y equipo)
         tiene_identificador = any(
             col in reader.fieldnames for col in ["documento", "email", "equipo"]
         )
@@ -693,6 +700,7 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
             "grades": filas_procesadas,
         }
 
+        # Envía el JSON estructurado hacia el endpoint de tu Backend masivo
         res, error = consumir_api(
             "POST",
             f"/api/v1/evaluations/{evaluation_id}/bulk-grades",
@@ -717,6 +725,49 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
         url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
     )
 
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/cargar-nota-manual",
+    methods=["POST"],
+)
+def cargar_nota_manual_aula(classroom_id, evaluation_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    score_raw = request.form.get("score")
+    user_id_raw = request.form.get("user_id")
+    team_id_raw = request.form.get("team_id")
+
+    payload = {}
+    try:
+        if score_raw:
+            payload["score"] = float(score_raw.replace(",", "."))
+        if user_id_raw and user_id_raw.strip():
+            payload["user_id"] = int(user_id_raw)
+        if team_id_raw and team_id_raw.strip():
+            payload["team_id"] = int(team_id_raw)
+    except ValueError:
+        flash("Los datos enviados tienen un formato incorrecto.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+        )
+
+    res, error = consumir_api(
+        "POST",
+        f"/api/v1/evaluations/{evaluation_id}/grades",
+        json_data=payload,
+    )
+
+    if error:
+        error_msg = error.get("error", "No se pudo registrar la calificación.")
+        flash(f"Error: {error_msg}", "error")
+    else:
+        success_msg = res.get("message", "¡Calificación registrada con éxito!") if isinstance(res, dict) else "¡Calificación registrada con éxito!"
+        flash(success_msg, "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+    )
 
 @app.route("/aulas/<int:classroom_id>/gestionar/asistencia/registrar", methods=["POST"])
 def registrar_asistencia_aula(classroom_id):

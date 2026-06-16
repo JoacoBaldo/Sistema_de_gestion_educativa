@@ -326,6 +326,79 @@
   display: none;
 }
 
+.form-group-custom {
+  margin-bottom: 16px;
+}
+
+.form-group-custom.row-spacing-large {
+  margin-bottom: 24px;
+}
+
+.form-group-custom label {
+  color: #ffffff;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-control-solid {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #1e1e24 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control-score {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.form-control-solid:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+}
+
+.form-control-solid option {
+  background-color: #1e1e24;
+  color: #ffffff;
+}
+
+.form-control-solid option:disabled {
+  color: #888888;
+}
+
+.ev-manual-select option {
+  background-color: #ffffff !important;
+  /* Fondo del desplegable claro nativo */
+  color: #333333 !important;
+  /* Texto gris oscuro/negro para máxima legibilidad */
+}
+
+.ev-manual-select option:disabled {
+  color: #999999 !important;
+}
+
+.mb-3 {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  color: #ffffff;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.hidden {
+  display: none !important;
+}
+
 @media (max-width: 980px) {
   .ev-toolbar {
     flex-direction: column;
