@@ -47,6 +47,14 @@ EVALUATION_TYPE_IDS = {"parcial": 1, "tp": 2, "recuperatorio": 3, "parcialito": 
 ROLE_LABELS = {1: "Profesor", 2: "Ayudante", 7: "Administrador"}
 
 
+@app.route("/debug")
+def debug():
+    return {
+        "BACKEND_URL": BACKEND_URL,
+        "SECRET_KEY_EXISTS": bool(os.environ.get("SECRET_KEY")),
+    }
+
+
 # -------------------------------------------------------------------
 # COMUNICACIÓN CON LA API
 # -------------------------------------------------------------------
@@ -350,6 +358,8 @@ def login():
         "password": request.form.get("password") or "",
     }
     res, error = consumir_api("POST", "/api/v1/users/login", json_data=payload)
+
+    print(f"DEBUG: Login attempt - error={error}, res={res}")
 
     if error or not isinstance(res, dict) or not res.get("token"):
         flash(
