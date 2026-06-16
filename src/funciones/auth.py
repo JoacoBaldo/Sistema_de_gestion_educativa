@@ -88,4 +88,4 @@ def datos_completos():
 
 def usuario_existe(usuario_id: int):
     usuario = db_auth.usuario_existe(usuario_id)
-    return usuario, None if usuario else USUARIO_NO_EXISTE_GLOBAL
+    return usuario, None if usuario else USUARIO_NO_EXISTE
