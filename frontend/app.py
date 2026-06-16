@@ -47,6 +47,14 @@ EVALUATION_TYPE_IDS = {"parcial": 1, "tp": 2, "recuperatorio": 3, "parcialito": 
 ROLE_LABELS = {1: "Profesor", 2: "Ayudante", 7: "Administrador"}
 
 
+@app.route("/debug")
+def debug():
+    return {
+        "BACKEND_URL": BACKEND_URL,
+        "SECRET_KEY_EXISTS": bool(os.environ.get("SECRET_KEY"))
+    }
+
+
 # -------------------------------------------------------------------
 # COMUNICACIÓN CON LA API
 # -------------------------------------------------------------------
