@@ -1,7 +1,8 @@
+import base64
 import io
 import os
-import smtplib
-from email.message import EmailMessage
+
+import requests
 
 import qrcode
 
@@ -91,35 +92,37 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
 
-    host = os.environ.get("SMTP_SERVER", "")
-    port = int(os.environ.get("SMTP_PORT", "587"))
-    user = os.environ.get("SMTP_USER", "")
-    password = os.environ.get("SMTP_PASSWORD", "")
+    api_key = os.environ.get("SMTP_PASSWORD", "")
     remitente = os.environ.get("EMAIL_REMITENTE", "")
 
-    msg = EmailMessage()
-    msg["Subject"] = "Código de asistencia - uniManage"
-    msg["From"] = f"uniManage Soporte <{remitente}>"
-    msg["To"] = destinatario
-    msg.set_content(
-        f"Hola,\n\nAdjuntamos el código QR de asistencia de hoy.\n"
-        f"También podés acceder directamente desde este enlace:\n{link}\n\n"
-        f"Código: {code}"
-    )
-    msg.add_attachment(
-        buffer.getvalue(),
-        maintype="image",
-        subtype="png",
-        filename="qr_asistencia.png",
-    )
+    payload = {
+        "sender": {"name": "uniManage Soporte", "email": remitente},
+        "to": [{"email": destinatario}],
+        "subject": "Código de asistencia - uniManage",
+        "textContent": (
+            f"Hola,\n\nAdjuntamos el código QR de asistencia de hoy.\n"
+            f"También podés acceder directamente desde este enlace:\n{link}\n\n"
+            f"Código: {code}"
+        ),
+        "attachment": [
+            {
+                "name": "qr_asistencia.png",
+                "content": base64.b64encode(buffer.getvalue()).decode(),
+            }
+        ],
+    }
 
     try:
-        with smtplib.SMTP(host, port) as server:
-            server.starttls()
-            server.login(user, password)
-            server.send_message(msg)
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload,
+            headers={"api-key": api_key, "content-type": "application/json"},
+            timeout=10,
+        )
+        response.raise_for_status()
         return {"message": "Correo enviado"}, None
-    except Exception:
+    except Exception as e:
+        print(f"[_enviar_mail_qr] Error al enviar email: {e}")
         return None, ERROR_ENVIO_MAIL
 
 

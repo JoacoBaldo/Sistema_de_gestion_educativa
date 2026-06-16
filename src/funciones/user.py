@@ -1,7 +1,7 @@
 import os
-import smtplib
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
+
+import requests
 
 import bcrypt
 from jose import jwt, JWTError
@@ -41,8 +41,10 @@ def crear_token_reset_password(user_id: int, email: str) -> str:
 
 
 def send_password_mail(destinatario: str) -> tuple:
+    print(f"[send_password_mail] Paso 2: buscando usuario en DB -> {destinatario}")
     usuario = obtener_usuario_por_email(destinatario)
     if not usuario:
+        print("[send_password_mail] Usuario no encontrado en DB, cortando.")
         return None, USUARIO_NO_ENCONTRADO
 
     user_id = usuario.get("id")
@@ -52,29 +54,33 @@ def send_password_mail(destinatario: str) -> tuple:
 
     token = crear_token_reset_password(int(user_id), str(email))
 
-    host = os.environ.get("SMTP_SERVER", "")
-    port = int(os.environ.get("SMTP_PORT", "587"))
-    user = os.environ.get("SMTP_USER", "")
-    password = os.environ.get("SMTP_PASSWORD", "")
+    api_key = os.environ.get("SMTP_PASSWORD", "")
     remitente = os.environ.get("EMAIL_REMITENTE", "")
 
-    msg = EmailMessage()
-    msg["Subject"] = "Recuperación de contraseña - uniManage"
-    msg["From"] = f"uniManage Soporte <{remitente}>"
-    msg["To"] = destinatario
-    msg.set_content(
-        "Hola,\n\n"
-        "Recibimos una solicitud para restablecer la contraseña de tu cuenta.\n"
-        f"Token de validación: {token}\n"
-    )
+    print(f"[send_password_mail] Paso 3: llamando a Brevo (remitente={remitente})")
+    payload = {
+        "sender": {"name": "uniManage Soporte", "email": remitente},
+        "to": [{"email": destinatario}],
+        "subject": "Recuperación de contraseña - uniManage",
+        "textContent": (
+            "Hola,\n\n"
+            "Recibimos una solicitud para restablecer la contraseña de tu cuenta.\n"
+            f"Token de validación: {token}\n"
+        ),
+    }
 
     try:
-        with smtplib.SMTP(host, port) as server:
-            server.starttls()
-            server.login(user, password)
-            server.send_message(msg)
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload,
+            headers={"api-key": api_key, "content-type": "application/json"},
+            timeout=10,
+        )
+        print(f"[send_password_mail] Respuesta Brevo: {response.status_code} {response.text}")
+        response.raise_for_status()
         return {"message": "Correo enviado"}, None
-    except Exception:
+    except Exception as e:
+        print(f"[send_password_mail] Error al enviar email: {e}")
         return None, ERROR_CONEXION
 
 

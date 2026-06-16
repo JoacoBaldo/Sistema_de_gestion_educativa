@@ -51,6 +51,7 @@ def solicitar_recuperacion():
     if not email_usuario:
         return responder_error(EMAIL_REQUERIDO)
 
+    print(f"[forgot-password] Paso 1: email recibido -> {email_usuario}")
     resultado, error = send_password_mail(email_usuario)
     if error:
         return responder_error(error)
