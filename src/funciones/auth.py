@@ -12,6 +12,7 @@ from .errores import (
     LINK_INVALIDO,
     TOKEN_INVALIDO,
     USUARIO_YA_EN_CLASSROOM,
+    USUARIO_NO_EXISTE,
 )
 
 
