@@ -101,56 +101,12 @@
     </div>
 
     <div class="cmr-grid-2">
-        <section class="cm-panel" aria-label="Tendencia de matrícula">
-            <div class="cmr-card-head">
-                <div>
-                    <h2>Matrícula por año</h2>
-                    <p>Evolución de estudiantes inscriptos</p>
-                </div>
-            </div>
-            <div class="cmr-card-body">
-                <div class="cmr-chart-wrap" id="db-enrollment-chart" role="img"
-                    aria-label="Gráfico de barras de matrícula">
-                    {% if m.get('ingresos_por_año') %}
-                    {# Encontramos el valor máximo para escalar proporcionalmente el ancho de las barras #}
-                    {% set max_total = 1 %}
-                    {% for item in m.ingresos_por_año %}
-                    {% if item.total > max_total %}
-                    {% set max_total = item.total %}
-                    {% endif %}
-                    {% endfor %}
-
-                    <div class="cmr-bar-chart-container">
-                        {% for item in m.ingresos_por_año %}
-                        {# Porcentaje relativo del ancho de la barra #}
-                        {% set item_pct = (item.total / max_total * 100) if max_total else 0 %}
-                        <div class="cmr-bar-row">
-                            <span class="cmr-bar-year">{{ item.year }}</span>
-                            <div class="cmr-bar-track">
-                                <div class="cmr-bar-fill" style="--bar-width: {{ item_pct }}%;"> <span
-                                        class="cmr-bar-qty">{{ item.total }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="cmr-empty-inline">Sin datos de matrícula.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </section>
-
         <section class="cm-panel" aria-label="Estadísticas de aprobación">
             <div class="cmr-card-head">
                 <div>
                     <h2>Estadísticas de aprobación</h2>
                     <p>Distribución por estado académico</p>
                 </div>
-                <a class="st-btn st-btn-ghost" id="db-pdf-stats-inline"
-                    href="{{ url_for('descargar_pdf_dashboard', classroom_id=classroom_id, filter='students_passed') }}">
-                    Exportar
-                </a>
             </div>
             <div class="cmr-card-body">
                 <div class="cmr-donut">

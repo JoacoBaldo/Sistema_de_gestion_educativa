@@ -65,10 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
 
-
     document.getElementById("ev-edit-name").value = btn.dataset.nombre || "";
     document.getElementById("ev-edit-type").value = btn.dataset.tipo || "parcial";
     document.getElementById("ev-edit-individual").checked = btn.dataset.individual === "1";
+
+    // Mapeamos la fecha guardada en la tarjeta hacia el input del modal
+    const editDateInput = document.getElementById("ev-edit-due-date");
+    if (editDateInput) {
+      editDateInput.value = btn.dataset.date || "";
+    }
 
     editModal.classList.remove("hidden");
   }
@@ -96,11 +101,28 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   const gradesModal = document.getElementById("ev-grades-modal");
   const targetNameSpan = document.getElementById("ev-grades-target-name");
+  const closeBtn = document.getElementById("ev-grades-close");
+  const closeModalBtns = [
+    closeBtn,
+    document.getElementById("ev-grades-cancel-csv"),
+    document.getElementById("ev-grades-cancel-manual")
+  ];
+
+  const tabBtnCsv = document.getElementById("tab-btn-csv");
+  const tabBtnManual = document.getElementById("tab-btn-manual");
+  const tabContentCsv = document.getElementById("tab-content-csv");
+  const tabContentManual = document.getElementById("tab-content-manual");
+
   const gradesForm = document.getElementById("ev-grades-form");
+  const manualForm = document.getElementById("ev-manual-grades-form");
+
   const csvInput = document.getElementById("ev-csv-input");
   const csvFilename = document.getElementById("ev-csv-filename");
-  const closeBtn = document.getElementById("ev-grades-close");
-  const cancelBtn = document.getElementById("ev-grades-cancel");
+  const containerStudent = document.getElementById("ev-container-student");
+  const containerTeam = document.getElementById("ev-container-team");
+  const selectStudent = document.getElementById("ev-select-student");
+  const selectTeam = document.getElementById("ev-select-team");
+  const manualScoreInput = document.getElementById("ev-manual-score");
 
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".ev-add-grades-btn");
@@ -109,17 +131,65 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const evaluationId = btn.dataset.id;
     const evaluationName = btn.dataset.nombre;
+    const isIndividual = btn.dataset.individual === "1" || btn.dataset.individual === "true";
 
     const urlParts = window.location.pathname.split('/');
     const classroomId = urlParts[urlParts.indexOf('aulas') + 1];
 
     targetNameSpan.textContent = evaluationName;
+
     gradesForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/subir-notas`;
+    manualForm.action = `/aulas/${classroomId}/gestionar/evaluaciones/${evaluationId}/cargar-nota-manual`;
 
     csvInput.value = "";
-    csvFilename.textContent = "Formato requerido: columna 'documento' o 'email' y columna 'nota'";
+    csvFilename.textContent = "Formato requerido: columna 'documento' o 'email' o 'equipo' y columna 'nota'";
+    csvFilename.style.color = "rgba(255, 255, 255, 0.7)";
+    manualScoreInput.value = "";
+    selectStudent.value = "";
+    selectTeam.value = "";
+
+    if (isIndividual) {
+      containerStudent.classList.remove("hidden");
+      selectStudent.required = true;
+      selectStudent.disabled = false;
+
+      containerTeam.classList.add("hidden");
+      selectTeam.required = false;
+      selectTeam.disabled = true;
+    } else {
+      containerTeam.classList.remove("hidden");
+      selectTeam.required = true;
+      selectTeam.disabled = false;
+
+      containerStudent.classList.add("hidden");
+      selectStudent.required = false;
+      selectStudent.disabled = true;
+    }
+
+    switchTab("csv");
     gradesModal.classList.remove("hidden");
   });
+
+  function switchTab(tab) {
+    if (tab === "csv") {
+      tabContentCsv.classList.remove("hidden");
+      tabContentManual.classList.add("hidden");
+      tabBtnCsv.style.background = "rgba(255,255,255,0.2)";
+      tabBtnCsv.style.color = "white";
+      tabBtnManual.style.background = "transparent";
+      tabBtnManual.style.color = "rgba(255,255,255,0.7)";
+    } else {
+      tabContentManual.classList.remove("hidden");
+      tabContentCsv.classList.add("hidden");
+      tabBtnManual.style.background = "rgba(255,255,255,0.2)";
+      tabBtnManual.style.color = "white";
+      tabBtnCsv.style.background = "transparent";
+      tabBtnCsv.style.color = "rgba(255,255,255,0.7)";
+    }
+  }
+
+  tabBtnCsv?.addEventListener("click", () => switchTab("csv"));
+  tabBtnManual?.addEventListener("click", () => switchTab("manual"));
 
   csvInput?.addEventListener("change", () => {
     if (csvInput.files.length > 0) {
@@ -129,6 +199,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const closeModal = () => gradesModal.classList.add("hidden");
-  closeBtn?.addEventListener("click", closeModal);
-  cancelBtn?.addEventListener("click", closeModal);
+  closeModalBtns.forEach(btn => btn?.addEventListener("click", closeModal));
 });
