@@ -101,19 +101,34 @@ def actualizar_evaluacion_root(evaluation_id: int):
     if error:
         return responder_error(error)
 
-    body = request.get_json(silent=True) if request.is_json else request.form or {}
+    body: dict = (request.get_json(silent=True) or {}) if request.is_json else dict(request.form)
 
-    classroom_id = body.get("classroom_id")
+    classroom_id_raw = body.get("classroom_id")
+    try:
+        classroom_id: int | None = int(classroom_id_raw) if classroom_id_raw is not None else None
+    except (TypeError, ValueError):
+        classroom_id = None
+
     name = body.get("name") or body.get("nombre")
-    
+
     evaluation_type_raw = body.get("evaluation_type_id") or body.get("tipo")
     try:
         evaluation_type_id = int(evaluation_type_raw) if evaluation_type_raw is not None else None
     except (TypeError, ValueError):
         evaluation_type_id = None
 
-    referenced_eval_id = body.get("referenced_eval_id")
-    individual = body.get("individual")
+    referenced_eval_id_raw = body.get("referenced_eval_id")
+    try:
+        referenced_eval_id: int | None = int(referenced_eval_id_raw) if referenced_eval_id_raw is not None else None
+    except (TypeError, ValueError):
+        referenced_eval_id = None
+
+    individual_raw = body.get("individual")
+    try:
+        individual: int | None = int(individual_raw) if individual_raw is not None else None
+    except (TypeError, ValueError):
+        individual = None
+
     due_date = body.get("due_date")
 
     resultado, error = actualizar_evaluacion(
@@ -192,7 +207,13 @@ def api_actualizar_nota(evaluation_id: int, user_id: int):
         return responder_error(error)
 
     body = request.get_json(silent=True) or {}
-    score = body.get("score")
+    score_raw = body.get("score")
+    if score_raw is None:
+        return responder_error({"error": "score es requerido", "status": 400})
+    try:
+        score: float = float(score_raw)
+    except (TypeError, ValueError):
+        return responder_error({"error": "score debe ser un número", "status": 400})
 
     resultado, error_logica = actualizar_nota_estudiante(evaluation_id, user_id, score)
     if error_logica:
