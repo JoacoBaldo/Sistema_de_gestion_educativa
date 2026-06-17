@@ -67,7 +67,12 @@ def consumir_api(metodo, endpoint, json_data=None, data=None, files=None, params
             response = requests.get(url, headers=headers, params=params)
         elif metodo.upper() == "POST":
             response = requests.post(
-                url, headers=headers, json=json_data, data=data, files=files
+                url,
+                headers=headers,
+                json=json_data,
+                data=data,
+                files=files,
+                params=params,
             )
         elif metodo.upper() == "PUT":
             response = requests.put(url, headers=headers, json=json_data, data=data)
@@ -321,6 +326,9 @@ def login():
     if request.method == "GET":
         if obtener_usuario_sesion():
             return redirect(url_for("classrooms"))
+        join_token = request.args.get("token")
+        if join_token:
+            session["join_token"] = join_token
         return render_template("auth/login.html")
 
     accion = request.form.get("accion", "login")
@@ -336,7 +344,10 @@ def login():
         if error or (res and type(res) is dict and res.get("error")):
             flash(error.get("error") if error else res.get("error"), "error")
         else:
-            flash("Cuenta creada. Inicia sesión.", "success")
+            if session.get("join_token"):
+                flash("Cuenta creada. Inicia sesión para unirte a la clase.", "success")
+            else:
+                flash("Cuenta creada. Inicia sesión.", "success")
         return redirect(url_for("login"))
 
     if accion == "recover":
@@ -368,6 +379,30 @@ def login():
         "email": (request.form.get("email") or "").strip(),
         "password": request.form.get("password") or "",
     }
+
+    join_token = session.get("join_token")
+    if join_token:
+        res, error = consumir_api(
+            "POST",
+            "/api/v1/login/join",
+            params={"token": join_token},
+            json_data=payload,
+        )
+        if error or not isinstance(res, dict) or not res.get("token"):
+            msg = (
+                res.get("error", "Error al unirse a la clase")
+                if isinstance(res, dict)
+                else "Error de servidor"
+            )
+            flash(msg, "error")
+            if msg != "Credenciales inválidas":
+                session.pop("join_token", None)
+            return redirect(url_for("login"))
+        session.pop("join_token", None)
+        guardar_sesion(res, res.get("token"))
+        flash("Te uniste a la clase correctamente.", "success")
+        return redirect(url_for("classrooms"))
+
     res, error = consumir_api("POST", "/api/v1/users/login", json_data=payload)
 
     if error or not isinstance(res, dict) or not res.get("token"):
