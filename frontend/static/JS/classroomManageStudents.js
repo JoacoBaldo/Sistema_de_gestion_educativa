@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const teamFilter = document.getElementById("st-team-filter");
   const tbody = document.getElementById("st-tbody");
 
-  // 1. CAPTURAMOS EL BOTÓN DE AÑADIR (Asegurate de que el ID coincida con tu HTML)
   const addBtn = document.getElementById("st-add-btn") || document.getElementById("add-btn");
 
   function applyFilters() {
@@ -55,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ─── 1. LÓGICA DE FILTROS Y CSV ───
   const dropzone = document.getElementById("st-dropzone");
   const fileInput = document.getElementById("st-file-input");
   const csvForm = document.getElementById("st-csv-form");

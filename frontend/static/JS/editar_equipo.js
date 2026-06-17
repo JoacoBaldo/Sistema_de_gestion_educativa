@@ -8,17 +8,23 @@ const memberTemplate = document.getElementById("tm-member-select-template");
 
 function crearFilaMiembro(selectedId = "") {
   if (!memberTemplate || !editMiembrosList) return null;
+
   const fragment = memberTemplate.content.cloneNode(true);
   const row = fragment.querySelector(".glass-list-row--member");
   const select = row?.querySelector("select");
+
   if (select && selectedId) {
     select.value = String(selectedId);
   }
+
+  editMiembrosList.appendChild(fragment);
+
   row?.querySelector(".glass-btn-remove")?.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     row.remove();
   });
-  editMiembrosList.appendChild(fragment);
+
   return row;
 }
 
@@ -66,6 +72,7 @@ document.getElementById("tm-grid")?.addEventListener("click", (event) => {
 formEditarEquipo?.addEventListener("submit", (event) => {
   const teamName = document.getElementById("edit_nombre_equipo")?.value.trim();
   const selects = editMiembrosList?.querySelectorAll("select[name='miembros']") || [];
+
   const miembros = Array.from(selects)
     .map((select) => select.value.trim())
     .filter(Boolean);
@@ -77,9 +84,18 @@ formEditarEquipo?.addEventListener("submit", (event) => {
   }
 
   if (!miembros.length) {
-    alert("Al menos un miembro es requerido");
+    alert("Al menos un miembro es requerido. Si dejas el equipo vacío, se desvincularán todos los alumnos.");
     event.preventDefault();
+    return;
   }
+
+  selects.forEach(select => {
+    if (!select.value) {
+      select.removeAttribute('name');
+    } else {
+      select.setAttribute('name', 'miembros');
+    }
+  });
 });
 
 editTeamModal?.addEventListener("click", (event) => {

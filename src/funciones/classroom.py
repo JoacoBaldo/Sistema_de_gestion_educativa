@@ -86,3 +86,6 @@ def obtener_lista_classrooms(usuario_id: int) -> tuple:
 def obtener_alumnos_classroom(classroom_id: int) -> tuple:
     alumnos = db_classroom.obtener_alumnos(classroom_id)
     return alumnos, None
+
+def puede_gestionar_estudiantes(classroom_id: int, user_id: int) -> bool:
+   return db_classroom.puede_administrar_classroom(classroom_id, user_id)

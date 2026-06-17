@@ -1,3 +1,5 @@
+import re
+
 from .conexion import obtener_conexion
 
 EVALUATION_TYPE_LABELS = {
@@ -253,11 +255,13 @@ def procesar_notas_masivas_db(
                 if not identificador:
                     continue
 
+                identificador_limpio = re.sub(r'\s+', ' ', str(identificador)).strip()
+
                 tipo = item.get("type", "documento")
 
                 if tipo == "equipo":
                     integrantes = conn.exec_driver_sql(
-                        query_buscar_equipo, (classroom_id, identificador)
+                        query_buscar_equipo, (classroom_id, identificador_limpio)
                     ).fetchall()
 
                     for integrante in integrantes:
@@ -269,7 +273,7 @@ def procesar_notas_masivas_db(
                 else:
                     alumno = conn.exec_driver_sql(
                         query_buscar_alumno,
-                        (classroom_id, identificador, identificador),
+                        (classroom_id, identificador_limpio, identificador_limpio),
                     ).fetchone()
                     if alumno:
                         user_id = alumno[0]
@@ -284,7 +288,6 @@ def procesar_notas_masivas_db(
         except Exception as e:
             transaccion.rollback()
             return {"inserted": 0, "error": str(e)}
-
 
 def actualizar_nota_estudiante_db(
     evaluation_id: int, user_id: int, score: float

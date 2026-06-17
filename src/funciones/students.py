@@ -1,3 +1,5 @@
+import re
+
 import bcrypt
 
 from src.db.classroom import (
@@ -35,15 +37,23 @@ from src.funciones.user import create_user
 
 def parsear_csv(contenido_texto: str) -> list[dict]:
     lineas = contenido_texto.split("\n")
-    titulos = lineas[0].strip().split(",")
+    
+    titulos = [t.strip() for t in lineas[0].strip().split(",")]
 
     filas = []
     for linea in lineas[1:]:
         linea_limpia = linea.strip()
         if not linea_limpia:
             continue
-        valores = linea_limpia.split(",")
-        filas.append(dict(zip(titulos, valores)))
+
+        valores = [v.strip() for v in linea_limpia.split(",")]
+        fila_dict = dict(zip(titulos, valores))
+        
+        if "username" in fila_dict and fila_dict["username"]:
+            username_con_espacio_limpio = re.sub(r'\s+', ' ', fila_dict["username"]).strip()
+            fila_dict["username"] = username_con_espacio_limpio
+
+        filas.append(fila_dict)
 
     return filas
 
@@ -165,10 +175,8 @@ def actualizar_estudiante_en_classroom(
         elif s in ("abandoned", "abandono", "abandonado", "4"):
             status_type_id = STATUS_ABANDONO
 
-    # Update user and student profile (status is handled on classroom_users)
     actualizar_estudiante(user_id, username, email, hashed, document, career_id)
 
-    # If a status was provided, update the classroom-specific student status
     if status_type_id is not None:
         actualizar_estado_estudiante_classroom(classroom_id, user_id, status_type_id)
 
