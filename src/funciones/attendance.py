@@ -1,9 +1,7 @@
-import base64
 import io
 import os
-
+import base64
 import requests
-
 import qrcode
 
 from src.db import attendance as db_attendance

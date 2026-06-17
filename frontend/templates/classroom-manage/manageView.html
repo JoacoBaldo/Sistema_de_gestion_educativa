@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% set vista = request.args.get('vista', 'dashboard' if session.get('user', {}).get('role_id') != 3 else 'students') %}
-
+{% set vista = request.args.get('vista', 'students') %}
 {% block title %}Gestión del aula - UniManage{% endblock %}
 
 {% block styles %}
@@ -14,9 +13,9 @@
 
 {% block content %}
 {% set vistas = {
-'dashboard': 'classroom-manage/dashboard/dashboardView.html',
 'students': 'classroom-manage/students/studentsView.html',
 'teams': 'classroom-manage/teams/teamsView.html',
+'dashboard': 'classroom-manage/dashboard/dashboardView.html',
 'asistance': 'classroom-manage/asistance/asistanceView.html',
 'library': 'classroom-manage/library/libraryView.html',
 'evaluations': 'classroom-manage/evaluations/evaluationsView.html'
@@ -48,19 +47,6 @@
 
         <nav class="cm-nav">
 
-            {% if session.get('user', {}).get('role_id') != 3 %} <a
-                class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard"
-                data-vista="dashboard">
-                <span class="cm-nav-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"
-                            d="M5 9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5zm0 13a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5zm10 0a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-4zm0-8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4z" />
-                    </svg>
-                </span>
-                <span class="cm-nav-label">Tablero</span>
-            </a>
-            {% endif %}
-
             <a class="cm-nav-item{% if vista == 'students' %} is-active{% endif %}" href="?vista=students"
                 data-vista="students">
                 <span class="cm-nav-icon" aria-hidden="true">
@@ -81,6 +67,19 @@
                 </span>
                 <span class="cm-nav-label">Equipos</span>
             </a>
+
+            {% if session.get('user', {}).get('role_id') != 3 %} <a
+                class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard"
+                data-vista="dashboard">
+                <span class="cm-nav-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"
+                            d="M5 9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5zm0 13a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5zm10 0a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-4zm0-8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4z" />
+                    </svg>
+                </span>
+                <span class="cm-nav-label">Tablero</span>
+            </a>
+            {% endif %}
 
             {% if session.get('user', {}).get('role_id') != 3 %} <a
                 class="cm-nav-item{% if vista == 'asistance' %} is-active{% endif %}" href="?vista=asistance"

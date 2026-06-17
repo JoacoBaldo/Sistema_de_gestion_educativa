@@ -4,6 +4,7 @@ import os
 import logging
 import requests
 from dotenv import load_dotenv
+
 from flask import (
     Flask,
     flash,
@@ -48,14 +49,6 @@ DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", 
 
 EVALUATION_TYPE_IDS = {"parcial": 1, "tp": 2, "recuperatorio": 3, "parcialito": 4}
 ROLE_LABELS = {1: "Profesor", 2: "Ayudante", 7: "Administrador"}
-
-
-@app.route("/debug")
-def debug():
-    return {
-        "BACKEND_URL": BACKEND_URL,
-        "SECRET_KEY_EXISTS": bool(os.environ.get("SECRET_KEY")),
-    }
 
 
 # -------------------------------------------------------------------
@@ -209,15 +202,12 @@ def datos_vista_gestion(classroom_id, usuario, vista):
 
     elif vista == "dashboard":
         res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
-        datos["metricas"] = res_m if not err_m and isinstance(res_m, dict) else None
 
-        res_p, err_p = consumir_api(
-            "GET", f"/api/v1/classrooms/{classroom_id}/professors"
-        )
-        datos["profesores"] = extraer_lista(res_p, err_p)
-
-        res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
-        datos["alumnos"] = extraer_lista(res_a, err_a)
+        if err_m or not res_m:
+            flash("No se pudieron cargar las métricas en el tablero.", "error")
+            datos["metricas"] = {}
+        else:
+            datos["metricas"] = res_m
 
     elif vista == "asistance":
         res, error = consumir_api("GET", f"/api/v1/attendance/{classroom_id}")
@@ -261,6 +251,24 @@ def datos_vista_gestion(classroom_id, usuario, vista):
     elif vista == "evaluations":
         res, err = consumir_api("GET", f"/api/v1/classroom/{classroom_id}/evaluaciones")
         datos["evaluaciones"] = extraer_lista(res, err)
+
+        res_a, err_a = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/alumnos")
+        datos["alumnos"] = extraer_lista(res_a, err_a)
+        datos["estudiantes"] = datos["alumnos"]
+
+        res_t, err_t = consumir_api("GET", f"/api/v1/teams?classroom_id={classroom_id}")
+        if err_t or not res_t:
+            res_m, err_m = consumir_api("GET", f"/api/v1/metrics/{classroom_id}")
+            lista_equipos = (
+                res_m.get("equipos", [])
+                if not err_m and isinstance(res_m, dict)
+                else []
+            )
+        else:
+            lista_equipos = extraer_lista(res_t, err_t)
+
+        datos["equipos"] = lista_equipos
+        datos["teams"] = lista_equipos
 
     elif vista == "library":
         res, err = consumir_api("GET", f"/api/v1/classrooms/{classroom_id}/resources")
@@ -496,7 +504,6 @@ def eliminar_usuario_aula(classroom_id, user_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
-
     res, error = consumir_api(
         "DELETE", f"/api/v1/classrooms/{classroom_id}/user/{user_id}"
     )
@@ -504,9 +511,55 @@ def eliminar_usuario_aula(classroom_id, user_id):
         flash("No se pudo quitar el acceso", "error")
     else:
         flash("Acceso revocado.", "success")
-
     vista = request.form.get("vista", "dashboard")
     return redirect(url_for("classroom_manage", classroom_id=classroom_id, vista=vista))
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/evaluaciones/<int:eval_id>/notas/<int:user_id>/editar",
+    methods=["POST"],
+)
+def editar_nota_form(classroom_id, eval_id, user_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    nueva_nota = request.form.get("score")
+
+    payload = {"score": float(nueva_nota)}
+    res, err = consumir_api(
+        "PUT", f"/api/v1/evaluations/{eval_id}/grades/{user_id}", json_data=payload
+    )
+
+    if err:
+        flash("Error al actualizar la calificación.", "error")
+    else:
+        flash("Calificación actualizada correctamente.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+    )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/evaluaciones/<int:eval_id>/notas/<int:user_id>/eliminar",
+    methods=["POST"],
+)
+def eliminar_nota_form(classroom_id, eval_id, user_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    res, err = consumir_api("DELETE", f"/api/v1/evaluations/{eval_id}/grades/{user_id}")
+
+    if err:
+        flash("Error al eliminar la calificación.", "error")
+    else:
+        flash("Calificación eliminada correctamente.", "success")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="students")
+    )
 
 
 @app.route("/aulas/<int:classroom_id>/gestionar/evaluaciones/crear", methods=["POST"])
@@ -515,12 +568,18 @@ def crear_evaluacion_aula(classroom_id):
     if redireccion:
         return redireccion
 
+    fecha_form = request.form.get("due_date")
+    due_date_val = (
+        fecha_form.strip() if fecha_form and fecha_form.strip() != "" else None
+    )
+
     payload = {
         "name": (request.form.get("name") or "").strip(),
         "evaluation_type_id": EVALUATION_TYPE_IDS.get(
             request.form.get("evaluation_type_id")
         ),
         "individual": 1 if request.form.get("individual") else 0,
+        "due_date": due_date_val,  # <--- AHORA SÍ VIAJA A LA API
     }
 
     res, error = consumir_api(
@@ -546,10 +605,17 @@ def actualizar_evaluacion_aula(classroom_id, evaluation_id):
         return redireccion
 
     tipo = request.form.get("tipo")
+
+    fecha_form = request.form.get("due_date")
+    due_date_val = (
+        fecha_form.strip() if fecha_form and fecha_form.strip() != "" else None
+    )
+
     payload = {
         "name": (request.form.get("nombre") or "").strip() or None,
         "evaluation_type_id": EVALUATION_TYPE_IDS.get(tipo) if tipo else None,
         "individual": 1 if request.form.get("individual") else 0,
+        "due_date": due_date_val,
     }
 
     res, error = consumir_api(
@@ -628,22 +694,7 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
             [f.strip().lower() for f in reader.fieldnames] if reader.fieldnames else []
         )
 
-        tiene_identificador = (
-            "documento" in reader.fieldnames or "email" in reader.fieldnames
-        )
-        if not tiene_identificador or "nota" not in reader.fieldnames:
-            flash(
-                "Estructura CSV inválida. Debe contener la columna 'nota' y al menos 'documento' o 'email'.",
-                "error",
-            )
-            return redirect(
-                url_for(
-                    "classroom_manage", classroom_id=classroom_id, vista="evaluations"
-                )
-            )
-
-        filas_procesadas = []
-        # Validar estructura básica del CSV (Ahora soporta 'equipo')
+        # ✨ VALIDACIÓN ÚNICA Y CORRECTA (Soporta documento, email y equipo)
         tiene_identificador = any(
             col in reader.fieldnames for col in ["documento", "email", "equipo"]
         )
@@ -685,6 +736,7 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
             "grades": filas_procesadas,
         }
 
+        # Envía el JSON estructurado hacia el endpoint de tu Backend masivo
         res, error = consumir_api(
             "POST",
             f"/api/v1/evaluations/{evaluation_id}/bulk-grades",
@@ -704,6 +756,55 @@ def subir_notas_csv_aula(classroom_id, evaluation_id):
 
     except Exception as e:
         flash(f"Ocurrió un error al leer el archivo CSV: {str(e)}", "error")
+
+    return redirect(
+        url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+    )
+
+
+@app.route(
+    "/aulas/<int:classroom_id>/gestionar/evaluaciones/<int:evaluation_id>/cargar-nota-manual",
+    methods=["POST"],
+)
+def cargar_nota_manual_aula(classroom_id, evaluation_id):
+    usuario, redireccion = requiere_login()
+    if redireccion:
+        return redireccion
+
+    score_raw = request.form.get("score")
+    user_id_raw = request.form.get("user_id")
+    team_id_raw = request.form.get("team_id")
+
+    payload = {}
+    try:
+        if score_raw:
+            payload["score"] = float(score_raw.replace(",", "."))
+        if user_id_raw and user_id_raw.strip():
+            payload["user_id"] = int(user_id_raw)
+        if team_id_raw and team_id_raw.strip():
+            payload["team_id"] = int(team_id_raw)
+    except ValueError:
+        flash("Los datos enviados tienen un formato incorrecto.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
+        )
+
+    res, error = consumir_api(
+        "POST",
+        f"/api/v1/evaluations/{evaluation_id}/grades",
+        json_data=payload,
+    )
+
+    if error:
+        error_msg = error.get("error", "No se pudo registrar la calificación.")
+        flash(f"Error: {error_msg}", "error")
+    else:
+        success_msg = (
+            res.get("message", "¡Calificación registrada con éxito!")
+            if isinstance(res, dict)
+            else "¡Calificación registrada con éxito!"
+        )
+        flash(success_msg, "success")
 
     return redirect(
         url_for("classroom_manage", classroom_id=classroom_id, vista="evaluations")
@@ -1051,20 +1152,16 @@ def eliminar_recurso_biblioteca(classroom_id, resource_id):
 # ===================================================================
 
 
-@app.route("/aulas/<int:classroom_id>/gestionar/equipos/crear", methods=["POST"])
+@app.route("/aulas/<int:classroom_id>/gestionar/equipos", methods=["POST"])
 def crear_equipo_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
 
-    evaluation_id_str = request.form.get("evaluation_id", "")
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
         "classroom_id": classroom_id,
         "member_ids": request.form.getlist("miembros"),
-        "evaluation_id": int(evaluation_id_str)
-        if evaluation_id_str.isdigit()
-        else None,
     }
 
     res, error = consumir_api("POST", "/api/v1/teams", json_data=payload)
@@ -1083,21 +1180,18 @@ def crear_equipo_aula(classroom_id):
 
 
 @app.route(
-    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/actualizar",
-    methods=["POST"],
+    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>",
+    methods=["PUT"],
 )
 def actualizar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
 
-    evaluation_id_str = request.form.get("evaluation_id", "")
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
         "member_ids": request.form.getlist("miembros"),
     }
-    if evaluation_id_str.isdigit():
-        payload["evaluation_id"] = int(evaluation_id_str)
 
     res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)
 
@@ -1115,8 +1209,8 @@ def actualizar_equipo_aula(classroom_id, team_id):
 
 
 @app.route(
-    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/eliminar",
-    methods=["POST", "DELETE"],
+    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>",
+    methods=["POST"],
 )
 def eliminar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()

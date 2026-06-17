@@ -303,55 +303,70 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     ]
 
 
-def obtener_alumnos(classroom_id: int) -> list:
+def obtener_alumnos(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
+    alumnos = []
+
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
-            SELECT 
-                u.id, 
-                u.username, 
-                u.email, 
-                cu.status_type_id, 
-                cu.created_at,
-                sp.document, 
-                c.name AS career_name,
-                
-                (SELECT AVG(g.score) 
-                 FROM grades g 
-                 JOIN evaluations e ON g.evaluation_id = e.id
-                 WHERE g.user_id = u.id AND e.classroom_id = %s) AS promedio,
-                
-                -- 👇 ACÁ CORREGIMOS LA ASISTENCIA BASADO EN TU IMAGEN
-                (SELECT COUNT(*) 
-                 FROM attendance a 
-                 -- Unimos con la tabla del evento para saber el aula 
-                 JOIN attendance_events ae ON a.attendance_event_id = ae.id
-                 WHERE a.student_id = u.id 
-                 AND ae.classroom_id = %s 
-                 AND a.absence = 1) AS inasistencias
-                 
+            SELECT u.id, u.username, u.email, sp.document AS padron, sp.career_id, c.name AS career_name, cu.status_type_id AS status,
+            (SELECT COUNT(*) FROM attendance a JOIN attendance_events ae ON a.attendance_event_id = ae.id WHERE a.student_id = u.id AND ae.classroom_id = %s AND a.absence = 1) AS inasistencias
             FROM classroom_users cu
             JOIN users u ON cu.user_id = u.id
-            LEFT JOIN student_profiles sp ON sp.user_id = u.id
-            LEFT JOIN careers c ON c.id = sp.career_id
-            WHERE cu.classroom_id = %s AND cu.role_id = %s
-            ORDER BY u.username
+            LEFT JOIN student_profiles sp ON u.id = sp.user_id
+            LEFT JOIN careers c ON sp.career_id = c.id
+            WHERE cu.classroom_id = %s AND cu.role_id = 3
+            ORDER BY u.username ASC
             """,
-            (classroom_id, classroom_id, classroom_id, ESTUDIANTE),
+            (classroom_id, classroom_id),
         ).fetchall()
 
-    return [
-        {
-            "id": fila[0],
-            "username": fila[1],
-            "email": fila[2],
-            "status_type_id": fila[3],
-            "created_at": fila[4],
-            "document": fila[5],
-            "career": fila[6],
-            "promedio": fila[7] if fila[7] is not None else "-",
-            "inasistencias": fila[8] if fila[8] is not None else 0,
-        }
-        for fila in resultados
-    ]
+        for fila in resultados:
+            user_id = fila[0]
+
+            query_notas = """
+                SELECT g.score, e.name AS evaluation_name, e.id AS evaluation_id
+                FROM grades g
+                JOIN evaluations e ON g.evaluation_id = e.id
+                WHERE g.user_id = %s AND e.classroom_id = %s
+            """
+            filas_notas = conn.exec_driver_sql(
+                query_notas, (user_id, classroom_id)
+            ).fetchall()
+
+            notas_lista = []
+            suma_notas = 0.0
+            cant_notas = 0
+
+            for f_nota in filas_notas:
+                score = float(f_nota[0]) if f_nota[0] is not None else 0.0
+                notas_lista.append(
+                    {
+                        "evaluation_name": f_nota[1] or "Evaluación",
+                        "score": score,
+                        "evaluation_id": f_nota[2],
+                    }
+                )
+                suma_notas += score
+                cant_notas += 1
+
+            promedio_alumno = (suma_notas / cant_notas) if cant_notas > 0 else 0.0
+
+            alumnos.append(
+                {
+                    "id": user_id,
+                    "username": fila[1],
+                    "email": fila[2],
+                    "document": fila[3],
+                    "career_id": fila[4],
+                    "career_name": fila[5],
+                    "status": fila[6] or 1,
+                    "inasistencias": fila[7] or 0,
+                    "average": promedio_alumno,
+                    "promedio": promedio_alumno,
+                    "grades": notas_lista,
+                }
+            )
+
+    return alumnos
