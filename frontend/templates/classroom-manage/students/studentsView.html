@@ -78,7 +78,10 @@
                     <th>Padrón/ID</th>
                     <th class="st-col-email">Email</th>
                     <th>Estado</th>
+                    {# Condicional para mostrar la columna Promedio #}
+                    {% if puede_gestionar %}
                     <th>Promedio</th>
+                    {% endif %}
                     <th>Inasistencias</th>
                     {% if puede_gestionar %}
                     <th class="st-col-actions">Acciones</th>
@@ -107,6 +110,8 @@
                         {% endif %}
                     </td>
 
+                    {# Condicional para mostrar la celda del botón de Notas #}
+                    {% if puede_gestionar %}
                     <td>
                         {% set promedio = alumno.get('promedio', 0.0) | float %}
                         {% set notas_json = alumno.get('grades', []) | tojson | forceescape %}
@@ -119,11 +124,11 @@
                             Notas
                         </button>
                     </td>
+                    {% endif %}
 
                     <td>
                         <span class="st-absences-count">{{ alumno.inasistencias }}</span>
                     </td>
-
 
                     {% if puede_gestionar %}
                     <td class="st-col-actions">
@@ -155,16 +160,18 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="8">No hay estudiantes inscriptos en esta aula.</td>
+                    {# El colspan cambia dinámicamente: 8 si gestiona, 6 si es alumno básico #}
+                    <td colspan="{{ 8 if puede_gestionar else 6 }}">No hay estudiantes inscriptos en esta aula.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </section>
+
     {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
     {% include 'classroom-manage/students/forms/editar_estudiante.html' %}
 
-
+    {# Mantenemos la estructura limpia del modal de calificaciones abajo #}
     <div id="grades-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
         aria-labelledby="grades-modal-title">
         <div class="glass-card" style="width: min(100%, 500px);">
