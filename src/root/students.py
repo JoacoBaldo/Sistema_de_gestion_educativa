@@ -62,7 +62,7 @@ def listar_alumnos_paginados(classroom_id):
             return jsonify(
                 {"error": "Los parámetros de paginación deben ser mayores a 0"}
             ), 400
-            
+
         inicio = (pagina - 1) * cantidad
         fin = inicio + cantidad
         alumnos_resultados = todos_los_alumnos[inicio:fin]

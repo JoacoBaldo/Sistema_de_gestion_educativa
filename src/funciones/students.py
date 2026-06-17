@@ -37,7 +37,7 @@ from src.funciones.user import create_user
 
 def parsear_csv(contenido_texto: str) -> list[dict]:
     lineas = contenido_texto.split("\n")
-    
+
     titulos = [t.strip() for t in lineas[0].strip().split(",")]
 
     filas = []
@@ -48,9 +48,11 @@ def parsear_csv(contenido_texto: str) -> list[dict]:
 
         valores = [v.strip() for v in linea_limpia.split(",")]
         fila_dict = dict(zip(titulos, valores))
-        
+
         if "username" in fila_dict and fila_dict["username"]:
-            username_con_espacio_limpio = re.sub(r'\s+', ' ', fila_dict["username"]).strip()
+            username_con_espacio_limpio = re.sub(
+                r"\s+", " ", fila_dict["username"]
+            ).strip()
             fila_dict["username"] = username_con_espacio_limpio
 
         filas.append(fila_dict)
