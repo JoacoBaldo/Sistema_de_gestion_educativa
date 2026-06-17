@@ -370,7 +370,6 @@ def login():
     }
     res, error = consumir_api("POST", "/api/v1/users/login", json_data=payload)
 
-
     if error or not isinstance(res, dict) or not res.get("token"):
         flash(
             res.get("error", "Credenciales inválidas")
