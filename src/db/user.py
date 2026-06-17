@@ -31,3 +31,15 @@ def email_existe(email: str) -> bool:
             (email,),
         ).fetchone()
     return resultado is not None
+
+
+def usuario_existe_db(usuario_id: int):
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        usuario = conn.exec_driver_sql(
+            """
+            SELECT id FROM users WHERE id = %s LIMIT 1;
+            """,
+            (usuario_id,),
+        )
+        return usuario.fetchone()

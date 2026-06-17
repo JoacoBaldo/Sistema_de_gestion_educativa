@@ -5,8 +5,8 @@
             <p class="tm-subtitle">Administra equipos y proyectos colaborativos</p>
         </div>
         <div class="tm-actions">
-            {% if session.get('user', {}).get('role_id') != 3 %} <a class="st-btn st-btn-primary tm-btn-new"
-                href="?vista=teams&amp;accion=nueva" id="tm-new-btn">
+            {% if puede_gestionar %} <a class="st-btn st-btn-primary tm-btn-new" href="?vista=teams&amp;accion=nueva"
+                id="tm-new-btn">
                 + Nuevo Equipo
             </a>
             {% endif %}
@@ -45,14 +45,14 @@
                 </ul>
             </div>
             <footer class="tm-card__footer">
-                {% if session.get('user', {}).get('role_id') != 3 %} <button type="button"
-                    class="st-btn st-btn-ghost tm-edit-btn" data-id="{{ equipo.id }}" data-nombre="{{ equipo.name }}"
+                {% if puede_gestionar %} <button type="button" class="st-btn st-btn-ghost tm-edit-btn"
+                    data-id="{{ equipo.id }}" data-nombre="{{ equipo.name }}"
                     data-miembros="{{ equipo.miembros | map(attribute='id') | join(',') }}">
                     Editar
                 </button>
                 {% endif %}
 
-                {% if session.get('user', {}).get('role_id') != 3 %} <form method="POST"
+                {% if puede_gestionar %} <form method="POST"
                     action="{{ url_for('eliminar_equipo_aula', classroom_id=classroom_id, team_id=equipo.id) }}"
                     style="display:inline;">
                     <input type="hidden" name="token" value="{{ token }}">

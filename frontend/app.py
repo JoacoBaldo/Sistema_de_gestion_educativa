@@ -184,6 +184,9 @@ def datos_vista_gestion(classroom_id, usuario, vista):
         "user": session.get(USER_SESSION_KEY),
         "vista": vista,
         "flash_messages": [],
+        "puede_gestionar": consumir_api(
+            "GET", f"/api/v1/permisos/{classroom_id}/gestion"
+        )[0],
     }
 
     def extraer_lista(res, err):
@@ -441,9 +444,14 @@ def classrooms():
     role_types = roles_res if isinstance(roles_res, list) else []
     join_link = session.pop("join_link", None)
 
+    aulas_enriquecidas = enriquecer_aulas(aulas)
+    for aula in aulas_enriquecidas:
+        permiso, _ = consumir_api("GET", f"/api/v1/permisos/{aula['id']}/gestion")
+        aula["usuario_puede_gestionar"] = permiso if permiso is not None else False
+
     return render_template(
         "main/classroomsGrid.html",
-        classrooms=enriquecer_aulas(aulas),
+        classrooms=aulas_enriquecidas,
         periodos=periodos,
         role_types=role_types,
         join_link=join_link,
@@ -612,7 +620,7 @@ def crear_evaluacion_aula(classroom_id):
             request.form.get("evaluation_type_id")
         ),
         "individual": 1 if request.form.get("individual") else 0,
-        "due_date": due_date_val,  # <--- AHORA SÍ VIAJA A LA API
+        "due_date": due_date_val,
     }
 
     res, error = consumir_api(
@@ -1027,6 +1035,7 @@ def procesar_editar_estudiante(classroom_id):
         "email": email,
         "document": padron,
         "career": career,
+        "status": request.form.get("status") or None,
     }
 
     res, error = consumir_api(
@@ -1061,7 +1070,7 @@ def cargar_csv_estudiantes(classroom_id):
             url_for("classroom_manage", classroom_id=classroom_id, vista="students")
         )
 
-    files = {"csv_file": (archivo.filename, archivo.stream, archivo.mimetype)}
+    files = {"archivo": (archivo.filename, archivo.stream, archivo.mimetype)}
     res, error = consumir_api(
         "POST", f"/api/v1/classrooms/{classroom_id}/students/import", files=files
     )
@@ -1214,16 +1223,28 @@ def crear_equipo_aula(classroom_id):
 
 @app.route(
     "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>",
-    methods=["PUT"],
+    methods=["POST"],
 )
 def actualizar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
 
+    member_ids_raw = request.form.getlist("miembros")
+    member_ids = []
+    for m_id in member_ids_raw:
+        if m_id.strip():
+            member_ids.append(int(m_id))
+
+    if not member_ids:
+        flash("Error: El equipo debe tener al menos un miembro asignado.", "error")
+        return redirect(
+            url_for("classroom_manage", classroom_id=classroom_id, vista="teams")
+        )
+
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
-        "member_ids": request.form.getlist("miembros"),
+        "member_ids": member_ids,
     }
 
     res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)

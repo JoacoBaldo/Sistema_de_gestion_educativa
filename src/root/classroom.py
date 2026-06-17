@@ -6,6 +6,7 @@ from src.funciones.classroom import (
     obtener_link_classroom,
     obtener_lista_classrooms,
     obtener_periodos_academicos,
+    puede_gestionar_estudiantes,
 )
 from src.funciones.errores import (
     DATOS_INVALIDOS,
@@ -109,3 +110,15 @@ def crear_aula():
         return responder_error(error)
 
     return jsonify(resultado), 201
+
+
+@classroom_bp.route("/api/v1/permisos/<int:classroom_id>/gestion", methods=["GET"])
+def obtener_permiso_gestion(classroom_id):
+    token = extraer_token()
+    usuario, error = verificar_token(token)
+    if error:
+        return responder_error(error)
+
+    es_gestor = puede_gestionar_estudiantes(classroom_id, usuario["id"])
+
+    return jsonify(es_gestor), 200

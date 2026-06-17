@@ -1,7 +1,7 @@
 <section class="st-page" aria-label="Centro de gestión de estudiantes">
     <header class="st-header">
         <div>
-            {% if session.get('user', {}).get('role_id') != 3 %}
+            {% if puede_gestionar %}
             <h1 class="st-title">Centro de gestión de estudiantes</h1>
             <p class="st-subtitle">Administra registros, estado y matrícula de estudiantes</p>
             {% else %}
@@ -10,7 +10,7 @@
             {% endif %}
         </div>
         <div class="st-actions">
-            {% if session.get('user', {}).get('role_id') != 3 %}
+            {% if puede_gestionar %}
             <button class="st-btn st-btn-primary" type="button" id="st-add-btn">
                 + Añadir estudiante
             </button>
@@ -40,17 +40,10 @@
                     <option value="abandoned">Alumnos que abandonaron la materia</option>
                 </select>
             </label>
-
-            <label class="st-select">
-                <span class="sr-only">Filtro por equipo</span>
-                <select id="st-team-filter" aria-label="Filtrar por equipo">
-                    <option value="all">Todos los equipos</option>
-                </select>
-            </label>
         </div>
     </div>
 
-    {% if session.get('user', {}).get('role_id') != 3 %}
+    {% if puede_gestionar %}
     <section class="st-import" aria-label="Importar estudiantes desde CSV">
         <form method="POST" action="{{ url_for('cargar_csv_estudiantes', classroom_id=classroom_id) }}"
             enctype="multipart/form-data" id="st-csv-form">
@@ -85,11 +78,12 @@
                     <th>Padrón/ID</th>
                     <th class="st-col-email">Email</th>
                     <th>Estado</th>
-                    {% if session.get('user', {}).get('role_id') != 3 %}
+                    {# Condicional para mostrar la columna Promedio #}
+                    {% if puede_gestionar %}
                     <th>Promedio</th>
                     {% endif %}
                     <th>Inasistencias</th>
-                    {% if session.get('user', {}).get('role_id') != 3 %}
+                    {% if puede_gestionar %}
                     <th class="st-col-actions">Acciones</th>
                     {% endif %}
                 </tr>
@@ -99,7 +93,7 @@
                 {% set partes = (alumno.username or '').split(' ', 1) %}
                 {% set nombre = partes[0] if partes else alumno.username %}
                 {% set apellido = partes[1] if partes|length > 1 else '' %}
-                {% set activo = alumno.status_type_id != 2 %}
+                {% set activo = alumno.status == 1 %}
                 <tr data-padron="{{ alumno.id }}" data-nombre="{{ nombre }}" data-apellido="{{ apellido }}"
                     data-email="{{ alumno.email }}" data-status="{{ 'active' if activo else 'abandoned' }}" data-team=""
                     data-user-id="{{ alumno.id }}" data-username="{{ alumno.username }}"
@@ -116,7 +110,8 @@
                         {% endif %}
                     </td>
 
-                    {% if session.get('user', {}).get('role_id') != 3 %}
+                    {# Condicional para mostrar la celda del botón de Notas #}
+                    {% if puede_gestionar %}
                     <td>
                         {% set promedio = alumno.get('promedio', 0.0) | float %}
                         {% set notas_json = alumno.get('grades', []) | tojson | forceescape %}
@@ -135,7 +130,7 @@
                         <span class="st-absences-count">{{ alumno.inasistencias }}</span>
                     </td>
 
-                    {% if session.get('user', {}).get('role_id') != 3 %}
+                    {% if puede_gestionar %}
                     <td class="st-col-actions">
                         <button type="button" class="st-action-btn st-action-btn-edit js-edit-student"
                             aria-label="Editar estudiante">
@@ -165,16 +160,18 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="8">No hay estudiantes inscriptos en esta aula.</td>
+                    {# El colspan cambia dinámicamente: 8 si gestiona, 6 si es alumno básico #}
+                    <td colspan="{{ 8 if puede_gestionar else 6 }}">No hay estudiantes inscriptos en esta aula.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </section>
+
     {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
     {% include 'classroom-manage/students/forms/editar_estudiante.html' %}
 
-
+    {# Mantenemos la estructura limpia del modal de calificaciones abajo #}
     <div id="grades-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
         aria-labelledby="grades-modal-title">
         <div class="glass-card" style="width: min(100%, 500px);">
@@ -191,7 +188,9 @@
                         <tr style="border-bottom: 2px solid rgba(0,0,0,0.08); color: #334155; font-size: 0.9rem;">
                             <th style="padding: 10px 8px;">Evaluación</th>
                             <th style="padding: 10px 8px; text-align: center; width: 80px;">Nota</th>
+                            {% if puede_gestionar %}
                             <th style="padding: 10px 8px; text-align: center; width: 90px;">Acciones</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody id="grades-modal-table-body">

@@ -54,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ─── 1. LÓGICA DE FILTROS Y CSV ───
   const dropzone = document.getElementById("st-dropzone");
   const fileInput = document.getElementById("st-file-input");
   const csvForm = document.getElementById("st-csv-form");

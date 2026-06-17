@@ -68,8 +68,8 @@
                 <span class="cm-nav-label">Equipos</span>
             </a>
 
-            {% if session.get('user', {}).get('role_id') != 3 %} <a
-                class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard"
+            {% if puede_gestionar %}
+            <a class="cm-nav-item{% if vista == 'dashboard' %} is-active{% endif %}" href="?vista=dashboard"
                 data-vista="dashboard">
                 <span class="cm-nav-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -81,9 +81,8 @@
             </a>
             {% endif %}
 
-            {% if session.get('user', {}).get('role_id') != 3 %} <a
-                class="cm-nav-item{% if vista == 'asistance' %} is-active{% endif %}" href="?vista=asistance"
-                data-vista="asistance">
+            {% if puede_gestionar %} <a class="cm-nav-item{% if vista == 'asistance' %} is-active{% endif %}"
+                href="?vista=asistance" data-vista="asistance">
                 <span class="cm-nav-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" aria-hidden="true">
                         <path fill="currentColor"

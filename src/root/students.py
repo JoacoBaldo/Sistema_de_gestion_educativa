@@ -49,30 +49,25 @@ def listar_alumnos_paginados(classroom_id):
         return responder_error(error)
 
     pagina = request.args.get("pagina", default=1, type=int)
-    cantidad = request.args.get("cantidad", default=10, type=int)
-
-    if pagina < 1 or cantidad < 1:
-        return jsonify(
-            {"error": "Los parámetros de paginación deben ser mayores a 0"}
-        ), 400
+    cantidad = request.args.get("cantidad", default=-1, type=int)
 
     todos_los_alumnos, error = obtener_alumnos_classroom(classroom_id)
     if error:
         return responder_error(error)
 
-    inicio = (pagina - 1) * cantidad
-    fin = inicio + cantidad
+    if cantidad == -1:
+        alumnos_resultados = todos_los_alumnos
+    else:
+        if pagina < 1 or cantidad < 1:
+            return jsonify(
+                {"error": "Los parámetros de paginación deben ser mayores a 0"}
+            ), 400
 
-    alumnos_paginados = todos_los_alumnos[inicio:fin]
+        inicio = (pagina - 1) * cantidad
+        fin = inicio + cantidad
+        alumnos_resultados = todos_los_alumnos[inicio:fin]
 
-    return jsonify(
-        {
-            "pagina_actual": pagina,
-            "cantidad_por_pagina": cantidad,
-            "total_alumnos_curso": len(todos_los_alumnos),
-            "datos": alumnos_paginados,
-        }
-    ), 200
+    return jsonify(alumnos_resultados), 200
 
 
 @students_bp.route("/api/v1/classrooms/<int:classroom_id>/student", methods=["POST"])
@@ -113,12 +108,13 @@ def actualizar_alumno(classroom_id):
     email = body.get("email")
     document = body.get("document")
     career = body.get("career")
+    status = body.get("status")
 
-    if not user_id or not username or not email or not document or not career:
+    if user_id is None or not username or not email or not document or not career:
         return responder_error(DATOS_ESTUDIANTE_REQUERIDOS)
 
     resultado, error = actualizar_estudiante_en_classroom(
-        classroom_id, usuario["id"], user_id, username, email, document, career
+        classroom_id, usuario["id"], user_id, username, email, document, career, status
     )
     if error:
         return responder_error(error)
