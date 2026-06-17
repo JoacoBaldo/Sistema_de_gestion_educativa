@@ -67,7 +67,12 @@ def consumir_api(metodo, endpoint, json_data=None, data=None, files=None, params
             response = requests.get(url, headers=headers, params=params)
         elif metodo.upper() == "POST":
             response = requests.post(
-                url, headers=headers, json=json_data, data=data, files=files, params=params
+                url,
+                headers=headers,
+                json=json_data,
+                data=data,
+                files=files,
+                params=params,
             )
         elif metodo.upper() == "PUT":
             response = requests.put(url, headers=headers, json=json_data, data=data)
@@ -378,10 +383,17 @@ def login():
     join_token = session.get("join_token")
     if join_token:
         res, error = consumir_api(
-            "POST", f"/api/v1/login/join", params={"token": join_token}, json_data=payload
+            "POST",
+            "/api/v1/login/join",
+            params={"token": join_token},
+            json_data=payload,
         )
         if error or not isinstance(res, dict) or not res.get("token"):
-            msg = res.get("error", "Error al unirse a la clase") if isinstance(res, dict) else "Error de servidor"
+            msg = (
+                res.get("error", "Error al unirse a la clase")
+                if isinstance(res, dict)
+                else "Error de servidor"
+            )
             flash(msg, "error")
             if msg != "Credenciales inválidas":
                 session.pop("join_token", None)
