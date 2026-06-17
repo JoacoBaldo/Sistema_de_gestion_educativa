@@ -98,7 +98,8 @@ def crear_evaluacion_root(classroom_id: int):
 def actualizar_evaluacion_root(evaluation_id: int):
     token = extraer_token()
     _, error = verificar_token(token)
-    if error: return responder_error(error)
+    if error:
+        return responder_error(error)
 
     body = request.get_json(silent=True) if request.is_json else request.form or {}
 
@@ -124,7 +125,8 @@ def actualizar_evaluacion_root(evaluation_id: int):
         due_date,
         evaluation_id,
     )
-    if error: return responder_error(error)
+    if error:
+        return responder_error(error)
     return jsonify(resultado), 200
 
 
@@ -148,7 +150,8 @@ def eliminar_evaluacion_root(evaluation_id: int):
 def api_bulk_grades(evaluation_id):
     token = extraer_token()
     usuario, error = verificar_token(token)
-    if error: return responder_error(error)
+    if error:
+        return responder_error(error)
 
     if 'file_csv' in request.files:
         file = request.files['file_csv']
@@ -177,7 +180,8 @@ def api_bulk_grades(evaluation_id):
 
     resultado, err = cargar_notas_masivas_logic(int(classroom_id), evaluation_id, grades)
 
-    if err: return responder_error(err)
+    if err:
+        return responder_error(err)
     return jsonify(resultado), 200
 
 @evaluacion_bp.route("/api/v1/evaluations/<int:evaluation_id>/grades/<int:user_id>", methods=["PUT"])
