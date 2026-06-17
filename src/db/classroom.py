@@ -306,7 +306,7 @@ def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
 def obtener_alumnos(classroom_id: int) -> list[dict]:
     engine = obtener_conexion()
     alumnos = []
-    
+
     with engine.connect() as conn:
         resultados = conn.exec_driver_sql(
             """
@@ -319,48 +319,54 @@ def obtener_alumnos(classroom_id: int) -> list[dict]:
             WHERE cu.classroom_id = %s AND cu.role_id = 3
             ORDER BY u.username ASC
             """,
-            (classroom_id, classroom_id), 
+            (classroom_id, classroom_id),
         ).fetchall()
 
         for fila in resultados:
             user_id = fila[0]
-            
+
             query_notas = """
                 SELECT g.score, e.name AS evaluation_name, e.id AS evaluation_id
                 FROM grades g
                 JOIN evaluations e ON g.evaluation_id = e.id
                 WHERE g.user_id = %s AND e.classroom_id = %s
             """
-            filas_notas = conn.exec_driver_sql(query_notas, (user_id, classroom_id)).fetchall()
-            
+            filas_notas = conn.exec_driver_sql(
+                query_notas, (user_id, classroom_id)
+            ).fetchall()
+
             notas_lista = []
             suma_notas = 0.0
             cant_notas = 0
-            
+
             for f_nota in filas_notas:
                 score = float(f_nota[0]) if f_nota[0] is not None else 0.0
-                notas_lista.append({
-                    "evaluation_name": f_nota[1] or "Evaluación",
-                    "score": score,
-                    "evaluation_id": f_nota[2]
-                })
+                notas_lista.append(
+                    {
+                        "evaluation_name": f_nota[1] or "Evaluación",
+                        "score": score,
+                        "evaluation_id": f_nota[2],
+                    }
+                )
                 suma_notas += score
                 cant_notas += 1
-            
+
             promedio_alumno = (suma_notas / cant_notas) if cant_notas > 0 else 0.0
 
-            alumnos.append({
-                "id": user_id,
-                "username": fila[1],
-                "email": fila[2],
-                "document": fila[3],       
-                "career_id": fila[4],
-                "career_name": fila[5],
-                "status": fila[6] or 1,
-                "inasistencias": fila[7] or 0,
-                "average": promedio_alumno,
-                "promedio": promedio_alumno,
-                "grades": notas_lista          
-            })
-            
+            alumnos.append(
+                {
+                    "id": user_id,
+                    "username": fila[1],
+                    "email": fila[2],
+                    "document": fila[3],
+                    "career_id": fila[4],
+                    "career_name": fila[5],
+                    "status": fila[6] or 1,
+                    "inasistencias": fila[7] or 0,
+                    "average": promedio_alumno,
+                    "promedio": promedio_alumno,
+                    "grades": notas_lista,
+                }
+            )
+
     return alumnos

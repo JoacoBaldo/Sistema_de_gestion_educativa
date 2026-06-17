@@ -27,7 +27,7 @@ def obtener_evaluaciones_classroom(classroom_id: int) -> list[dict]:
         tipo_slug, tipo_nombre = EVALUATION_TYPE_LABELS.get(
             tipo_id, ("otro", f"Tipo {tipo_id}")
         )
-        
+
         due_date_raw = fila[6]
         fecha_entrega = str(due_date_raw)[:10] if due_date_raw else ""
 
@@ -40,22 +40,27 @@ def obtener_evaluaciones_classroom(classroom_id: int) -> list[dict]:
                 "tipo_nombre": tipo_nombre,
                 "individual": bool(fila[4]),
                 "fecha": fecha_entrega,
-                "created_at": str(fila[5])[:10] if fila[5] else "" 
+                "created_at": str(fila[5])[:10] if fila[5] else "",
             }
         )
     return evaluaciones
+
 
 def evaluacion_tiene_notas_db(evaluation_id: int) -> bool:
     engine = obtener_conexion()
     with engine.connect() as conn:
         resultado = conn.exec_driver_sql(
-            "SELECT 1 FROM grades WHERE evaluation_id = %s LIMIT 1",
-            (evaluation_id,)
+            "SELECT 1 FROM grades WHERE evaluation_id = %s LIMIT 1", (evaluation_id,)
         ).fetchone()
     return resultado is not None
 
 
-def guardar_nota_individual_o_equipo_db(evaluation_id: int, score: float, user_id: int | None = None, team_id: int | None = None) -> dict:
+def guardar_nota_individual_o_equipo_db(
+    evaluation_id: int,
+    score: float,
+    user_id: int | None = None,
+    team_id: int | None = None,
+) -> dict:
     engine = obtener_conexion()
     query_upsert = """
         INSERT INTO grades (user_id, evaluation_id, score, created_at, updated_at)
@@ -71,17 +76,17 @@ def guardar_nota_individual_o_equipo_db(evaluation_id: int, score: float, user_i
                 conn.exec_driver_sql(query_upsert, (user_id, evaluation_id, score))
             elif team_id is not None:
                 miembros = conn.exec_driver_sql(
-                    "SELECT user_id FROM team_members WHERE team_id = %s",
-                    (team_id,)
+                    "SELECT user_id FROM team_members WHERE team_id = %s", (team_id,)
                 ).fetchall()
                 for m in miembros:
                     conn.exec_driver_sql(query_upsert, (m[0], evaluation_id, score))
-            
+
             transaccion.commit()
             return {"message": "Calificación registrada correctamente", "status": 201}
         except Exception as e:
             transaccion.rollback()
             raise e
+
 
 def crear_evaluacion_db(
     classroom_id: int,
@@ -99,7 +104,14 @@ def crear_evaluacion_db(
                 classroom_id, name, evaluation_type_id, referenced_eval_id, individual, due_date
             ) VALUES (%s, %s, %s, %s, %s, %s)
             """,
-            (classroom_id, name, evaluation_type_id, referenced_eval_id, individual, due_date if due_date and due_date.strip() != "" else None,),
+            (
+                classroom_id,
+                name,
+                evaluation_type_id,
+                referenced_eval_id,
+                individual,
+                due_date if due_date and due_date.strip() != "" else None,
+            ),
         )
         conn.commit()
         evaluation_id = cursor.lastrowid
@@ -144,7 +156,7 @@ def actualizar_evaluacion_db(
     evaluation_type_id: int | None,
     referenced_eval_id: int | None,
     individual: int | None,
-    due_date: str | None, # Agregado al endpoint de actualización
+    due_date: str | None,  # Agregado al endpoint de actualización
     evaluation_id: int,
 ) -> dict:
     engine = obtener_conexion()
@@ -274,7 +286,9 @@ def procesar_notas_masivas_db(
             return {"inserted": 0, "error": str(e)}
 
 
-def actualizar_nota_estudiante_db(evaluation_id: int, user_id: int, score: float) -> dict:
+def actualizar_nota_estudiante_db(
+    evaluation_id: int, user_id: int, score: float
+) -> dict:
     engine = obtener_conexion()
     with engine.connect() as conn:
         conn.exec_driver_sql(
@@ -285,7 +299,7 @@ def actualizar_nota_estudiante_db(evaluation_id: int, user_id: int, score: float
                 score = VALUES(score),
                 updated_at = NOW()
             """,
-            (user_id, evaluation_id, score)
+            (user_id, evaluation_id, score),
         )
         conn.commit()
     return {"message": "Calificación actualizada exitosamente", "status": 200}
@@ -296,7 +310,7 @@ def eliminar_nota_estudiante_db(evaluation_id: int, user_id: int) -> dict:
     with engine.connect() as conn:
         conn.exec_driver_sql(
             "DELETE FROM grades WHERE evaluation_id = %s AND user_id = %s",
-            (evaluation_id, user_id)
+            (evaluation_id, user_id),
         )
         conn.commit()
     return {"message": "Calificación eliminada exitosamente", "status": 200}
