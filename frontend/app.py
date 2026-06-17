@@ -1127,20 +1127,16 @@ def eliminar_recurso_biblioteca(classroom_id, resource_id):
 # ===================================================================
 
 
-@app.route("/aulas/<int:classroom_id>/gestionar/equipos/crear", methods=["POST"])
+@app.route("/aulas/<int:classroom_id>/gestionar/equipos", methods=["POST"])
 def crear_equipo_aula(classroom_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
 
-    evaluation_id_str = request.form.get("evaluation_id", "")
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
         "classroom_id": classroom_id,
         "member_ids": request.form.getlist("miembros"),
-        "evaluation_id": int(evaluation_id_str)
-        if evaluation_id_str.isdigit()
-        else None,
     }
 
     res, error = consumir_api("POST", "/api/v1/teams", json_data=payload)
@@ -1159,21 +1155,18 @@ def crear_equipo_aula(classroom_id):
 
 
 @app.route(
-    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/actualizar",
-    methods=["POST"],
+    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>",
+    methods=["PUT"],
 )
 def actualizar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()
     if redireccion:
         return redireccion
 
-    evaluation_id_str = request.form.get("evaluation_id", "")
     payload = {
         "name": request.form.get("nombre_equipo", "").strip(),
         "member_ids": request.form.getlist("miembros"),
     }
-    if evaluation_id_str.isdigit():
-        payload["evaluation_id"] = int(evaluation_id_str)
 
     res, error = consumir_api("PUT", f"/api/v1/teams/{team_id}", json_data=payload)
 
@@ -1191,8 +1184,8 @@ def actualizar_equipo_aula(classroom_id, team_id):
 
 
 @app.route(
-    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>/eliminar",
-    methods=["POST", "DELETE"],
+    "/aulas/<int:classroom_id>/gestionar/equipos/<int:team_id>",
+    methods=["POST"],
 )
 def eliminar_equipo_aula(classroom_id, team_id):
     usuario, redireccion = requiere_login()
