@@ -101,11 +101,15 @@ def actualizar_evaluacion_root(evaluation_id: int):
     if error:
         return responder_error(error)
 
-    body: dict = (request.get_json(silent=True) or {}) if request.is_json else dict(request.form)
+    body: dict = (
+        (request.get_json(silent=True) or {}) if request.is_json else dict(request.form)
+    )
 
     classroom_id_raw = body.get("classroom_id")
     try:
-        classroom_id: int | None = int(classroom_id_raw) if classroom_id_raw is not None else None
+        classroom_id: int | None = (
+            int(classroom_id_raw) if classroom_id_raw is not None else None
+        )
     except (TypeError, ValueError):
         classroom_id = None
 
@@ -121,13 +125,17 @@ def actualizar_evaluacion_root(evaluation_id: int):
 
     referenced_eval_id_raw = body.get("referenced_eval_id")
     try:
-        referenced_eval_id: int | None = int(referenced_eval_id_raw) if referenced_eval_id_raw is not None else None
+        referenced_eval_id: int | None = (
+            int(referenced_eval_id_raw) if referenced_eval_id_raw is not None else None
+        )
     except (TypeError, ValueError):
         referenced_eval_id = None
 
     individual_raw = body.get("individual")
     try:
-        individual: int | None = int(individual_raw) if individual_raw is not None else None
+        individual: int | None = (
+            int(individual_raw) if individual_raw is not None else None
+        )
     except (TypeError, ValueError):
         individual = None
 
