@@ -1,5 +1,4 @@
 import bcrypt
-import logging
 
 from src.db.classroom import (
     agregar_usuario_classroom,
@@ -16,7 +15,10 @@ from src.db.students import (
     obtener_user_id_por_email,
 )
 from src.funciones.errores import (
+    CSV_ID_USUARIO_NO_ENCONTRADO,
+    EMAIL_REQUERIDO,
     EMAIL_YA_EXISTE,
+    ERROR_CONEXION,
     ESTUDIANTE_NO_EN_CLASSROOM,
     SIN_PERMISO_CREAR_ALUMNO,
     SIN_PERMISO_EDITAR_ALUMNO,
@@ -43,23 +45,18 @@ def parsear_csv(contenido_texto: str) -> list[dict]:
 def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
     try:
         contenido_texto = archivo.read().decode("utf-8")
-    except Exception as e:
-        logging.error("Error al leer el archivo CSV: %s", e)
-        from src.funciones.errores import ERROR_PROCESAMIENTO_CSV
-
-        return None, ERROR_PROCESAMIENTO_CSV
+    except Exception:
+        return None, ERROR_CONEXION
 
     usuarios = parsear_csv(contenido_texto)
 
     guardados = 0
     asociados = 0
-    errores = []
 
     for u in usuarios:
         email = u.get("email")
         if not email:
-            errores.append({"usuario": "desconocido", "error": "email es requerido"})
-            continue
+            return None, EMAIL_REQUERIDO
 
         document = u.get("document", "").strip()
         career_name = u.get("career", "").strip()
@@ -73,14 +70,12 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
         )
         usuario_nuevo = error is None
         if error and error != EMAIL_YA_EXISTE:
-            errores.append({"usuario": email, "error": error})
-            continue
+            return None, error
 
         try:
             user_id = obtener_user_id_por_email(str(email))
             if not user_id:
-                errores.append({"usuario": email, "error": "No se pudo obtener el ID del usuario"})
-                continue
+                return None, CSV_ID_USUARIO_NO_ENCONTRADO
 
             if usuario_nuevo:
                 career_id = obtener_o_crear_carrera(career_name)
@@ -90,11 +85,8 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
             if not usuario_en_classroom(classroom_id, user_id):
                 agregar_usuario_classroom(classroom_id, user_id, ESTUDIANTE)
                 asociados += 1
-        except Exception as e:
-            logging.error("Error al procesar el estudiante %s: %s", email, e)
-            errores.append(
-                {"usuario": email, "error": "Error al procesar el estudiante"}
-            )
+        except Exception:
+            return None, ERROR_CONEXION
 
     return {
         "status": "ok",
@@ -102,7 +94,6 @@ def cargar_estudiantes_csv(archivo, classroom_id: int) -> tuple:
         "cantidad_procesados": len(usuarios),
         "cantidad_creados": guardados,
         "cantidad_asociados": classroom_id and asociados,
-        "errores": errores,
     }, None
 
 
@@ -124,7 +115,7 @@ def crear_estudiante_en_classroom(
 
     user_id = obtener_user_id_por_email(email)
     if not user_id:
-        return None, "No se pudo obtener el ID del usuario"
+        return None, CSV_ID_USUARIO_NO_ENCONTRADO
 
     if usuario_nuevo:
         career_id = obtener_o_crear_carrera(career)

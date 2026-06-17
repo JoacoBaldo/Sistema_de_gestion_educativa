@@ -7,7 +7,7 @@ from src.funciones.errores import (
     LINK_INVALIDO,
     PASSWORD_REQUERIDO,
 )
-from src.funciones.user import create_user, send_password_mail
+from src.funciones.user import create_user
 
 from .utils import responder_error
 
@@ -86,18 +86,3 @@ def create_user_route():
         return responder_error(error)
 
     return jsonify(resultado), resultado["status"]
-
-
-@auth_bp.route("/recuperar-password", methods=["POST"])
-def solicitar_recuperacion():
-    data = request.get_json(silent=True) or {}
-    email_usuario = data.get("email")
-
-    if not email_usuario:
-        return responder_error(EMAIL_REQUERIDO)
-
-    resultado, error = send_password_mail(email_usuario)
-    if error:
-        return responder_error(error)
-
-    return jsonify(resultado), 200

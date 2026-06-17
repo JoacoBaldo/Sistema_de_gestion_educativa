@@ -69,6 +69,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   backToLoginFromRecover?.addEventListener("click", (e) => {
     e.preventDefault();
+    sessionStorage.removeItem("token_enviado");
     showMainView("login");
+  });
+
+  const recoverForm = document.getElementById("recover-form");
+  const resetForm = document.getElementById("reset-form");
+
+  function mostrarResetForm() {
+    recoverForm?.classList.add("hidden");
+    resetForm?.classList.remove("hidden");
+  }
+
+  if (sessionStorage.getItem("token_enviado") === "1") {
+    showMainView("recover");
+    mostrarResetForm();
+  }
+
+  recoverForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = recoverForm.querySelector('[name="email"]').value.trim();
+    if (!email) return;
+
+    const body = new URLSearchParams({ accion: "recover", email });
+    const res = await fetch(recoverForm.action, { method: "POST", body });
+
+    if (res.ok || res.redirected) {
+      sessionStorage.setItem("token_enviado", "1");
+      mostrarResetForm();
+    }
   });
 });

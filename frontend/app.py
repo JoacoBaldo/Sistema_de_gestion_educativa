@@ -2,6 +2,8 @@ import csv
 import io
 import os
 from pathlib import Path
+import logging
+import requests
 from dotenv import load_dotenv
 import requests
 
@@ -16,8 +18,9 @@ from flask import (
     url_for,
 )
 
-ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(ROOT / ".env")
+logging.basicConfig(level=logging.DEBUG)
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sge-dev-secret")
@@ -329,11 +332,23 @@ def login():
             flash("El correo es obligatorio", "error")
             return redirect(url_for("login"))
 
-        res, error = consumir_api("POST", "/recuperar-password", json_data=payload)
+        res, error = consumir_api("POST", "/api/v1/forgot-password", json_data=payload)
         if error or (res and type(res) is dict and res.get("error")):
             flash("No se pudo enviar el correo", "error")
         else:
             flash("Revisa tu correo para el token.", "success")
+        return redirect(url_for("login"))
+
+    if accion == "reset":
+        payload = {
+            "token": (request.form.get("token") or "").strip(),
+            "password": request.form.get("password") or "",
+        }
+        res, error = consumir_api("PATCH", "/api/v1/users/password", json_data=payload)
+        if error:
+            flash(error.get("error", "No se pudo restablecer la contraseña"), "error")
+        else:
+            flash("Contraseña actualizada. Inicia sesión.", "success")
         return redirect(url_for("login"))
 
     payload = {
@@ -341,6 +356,8 @@ def login():
         "password": request.form.get("password") or "",
     }
     res, error = consumir_api("POST", "/api/v1/users/login", json_data=payload)
+
+    logging.debug(f"Login attempt - error={error}, res={res}")
 
     if error or not isinstance(res, dict) or not res.get("token"):
         flash(

@@ -2,8 +2,8 @@ import base64
 import io
 import os
 
-import qrcode
 import requests
+import qrcode
 
 from src.db import attendance as db_attendance
 from src.db import classroom as db_classroom
@@ -66,10 +66,14 @@ def sumar_inasistencia(
     if not existe_classroom(classroom_id):
         return None, CLASSROOM_NO_EXISTE
 
-    if usuario_id and not db_classroom.puede_administrar_classroom(classroom_id, usuario_id):
+    if usuario_id and not db_classroom.puede_administrar_classroom(
+        classroom_id, usuario_id
+    ):
         return None, SIN_ACCESO
 
-    nuevo_evento_id = crear_evento_asistencia(classroom_id, "QR_CODE_PLACEHOLDER", fecha)
+    nuevo_evento_id = crear_evento_asistencia(
+        classroom_id, "QR_CODE_PLACEHOLDER", fecha
+    )
     for student_id in obtener_estudiantes_classroom(classroom_id):
         inasistencia_db(student_id, nuevo_evento_id, fecha, delta=delta)
 
@@ -86,10 +90,9 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
     img = qr.make_image(fill_color="black", back_color="white")
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
-    qr_b64 = base64.b64encode(buffer.getvalue()).decode()
 
-    api_key = os.environ.get("SMTP_PASSWORD")
-    remitente = os.environ.get("EMAIL_REMITENTE")
+    api_key = os.environ.get("SMTP_PASSWORD", "")
+    remitente = os.environ.get("EMAIL_REMITENTE", "")
 
     payload = {
         "sender": {"name": "uniManage Soporte", "email": remitente},
@@ -100,22 +103,23 @@ def _enviar_mail_qr(destinatario: str, classroom_id: int, code: str) -> tuple:
             f"También podés acceder directamente desde este enlace:\n{link}\n\n"
             f"Código: {code}"
         ),
-        "attachment": [{"name": "qr_asistencia.png", "content": qr_b64}],
-    }
-
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "api-key": api_key,
+        "attachment": [
+            {
+                "name": "qr_asistencia.png",
+                "content": base64.b64encode(buffer.getvalue()).decode(),
+            }
+        ],
     }
 
     try:
         response = requests.post(
-            "https://api.brevo.com/v3/smtp/email", json=payload, headers=headers
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload,
+            headers={"api-key": api_key, "content-type": "application/json"},
+            timeout=10,
         )
-        if response.status_code == 201:
-            return {"message": "Correo enviado"}, None
-        return None, ERROR_ENVIO_MAIL
+        response.raise_for_status()
+        return {"message": "Correo enviado"}, None
     except Exception:
         return None, ERROR_ENVIO_MAIL
 
