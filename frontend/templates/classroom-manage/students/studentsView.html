@@ -85,7 +85,9 @@
                     <th>Padrón/ID</th>
                     <th class="st-col-email">Email</th>
                     <th>Estado</th>
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <th>Promedio</th>
+                    {% endif %}
                     <th>Inasistencias</th>
                     {% if session.get('user', {}).get('role_id') != 3 %}
                     <th class="st-col-actions">Acciones</th>
@@ -114,6 +116,7 @@
                         {% endif %}
                     </td>
 
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <td>
                         {% set promedio = alumno.get('promedio', 0.0) | float %}
                         {% set notas_json = alumno.get('grades', []) | tojson | forceescape %}
@@ -126,6 +129,7 @@
                             Notas
                         </button>
                     </td>
+                    {% endif %}
 
                     <td>
                         <span class="st-absences-count">{{ alumno.inasistencias }}</span>
