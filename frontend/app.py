@@ -184,7 +184,9 @@ def datos_vista_gestion(classroom_id, usuario, vista):
         "user": session.get(USER_SESSION_KEY),
         "vista": vista,
         "flash_messages": [],
-        "puede_gestionar": consumir_api("GET", f"/api/v1/permisos/{classroom_id}/gestion")[0]
+        "puede_gestionar": consumir_api(
+            "GET", f"/api/v1/permisos/{classroom_id}/gestion"
+        )[0],
     }
 
     def extraer_lista(res, err):
@@ -618,7 +620,7 @@ def crear_evaluacion_aula(classroom_id):
             request.form.get("evaluation_type_id")
         ),
         "individual": 1 if request.form.get("individual") else 0,
-        "due_date": due_date_val, 
+        "due_date": due_date_val,
     }
 
     res, error = consumir_api(

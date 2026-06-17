@@ -255,7 +255,7 @@ def procesar_notas_masivas_db(
                 if not identificador:
                     continue
 
-                identificador_limpio = re.sub(r'\s+', ' ', str(identificador)).strip()
+                identificador_limpio = re.sub(r"\s+", " ", str(identificador)).strip()
 
                 tipo = item.get("type", "documento")
 
@@ -288,6 +288,7 @@ def procesar_notas_masivas_db(
         except Exception as e:
             transaccion.rollback()
             return {"inserted": 0, "error": str(e)}
+
 
 def actualizar_nota_estudiante_db(
     evaluation_id: int, user_id: int, score: float
