@@ -18,7 +18,13 @@ from reportlab.platypus import (  # type: ignore[import-untyped]
 
 from src.db import classroom as db_classroom
 from src.db.conexion import obtener_conexion
-from src.db.constantes import ADMINISTRADOR, AYUDANTE, PROFESOR, STATUS_ACTIVO, ESTUDIANTE
+from src.db.constantes import (
+    ADMINISTRADOR,
+    AYUDANTE,
+    PROFESOR,
+    STATUS_ACTIVO,
+    ESTUDIANTE,
+)
 from src.funciones.errores import (
     BODY_INVALIDO,
     CLASSROOM_NO_EXISTE,
@@ -37,16 +43,15 @@ NOMBRE_ROL = {
 }
 
 COLOR_PRIMARIO = colors.HexColor("#4F46E5")  # Indigo
-COLOR_HEADER = colors.HexColor("#1F2937")    # Dark Charcoal
-COLOR_TEXTO = colors.HexColor("#374151")     # Gray
-COLOR_LINEA = colors.HexColor("#E5E7EB")     # Light Gray
-
+COLOR_HEADER = colors.HexColor("#1F2937")  # Dark Charcoal
+COLOR_TEXTO = colors.HexColor("#374151")  # Gray
+COLOR_LINEA = colors.HexColor("#E5E7EB")  # Light Gray
 
 
 def generar_pdf_metricas(
     classroom_id: int, usuario_id: int, datos_metricas: dict, filtro: str | None
 ) -> tuple[bytes | None, dict | None]:
-    
+
     if not filtro or filtro not in FILTROS_VALIDOS:
         return None, FILTRO_INVALIDO
 
@@ -78,7 +83,7 @@ def generar_pdf_metricas(
     )
 
     estilos = getSampleStyleSheet()
-    
+
     estilo_titulo = ParagraphStyle(
         "DocTitle",
         parent=estilos["Heading1"],
@@ -142,7 +147,9 @@ def generar_pdf_metricas(
             Paragraph(str(total_abandonaron), estilo_celda),
         ],
     ]
-    tabla_resumen = Table(resumen_datos, colWidths=[3.5 * cm, 4.5 * cm, 3.5 * cm, 4.5 * cm])
+    tabla_resumen = Table(
+        resumen_datos, colWidths=[3.5 * cm, 4.5 * cm, 3.5 * cm, 4.5 * cm]
+    )
     tabla_resumen.setStyle(
         TableStyle(
             [
@@ -160,7 +167,6 @@ def generar_pdf_metricas(
     engine = obtener_conexion()
 
     if filtro in {"students", "students_passed"}:
-        
         with engine.connect() as conn:
             alumnos_db = conn.exec_driver_sql(
                 """
@@ -185,7 +191,7 @@ def generar_pdf_metricas(
                 GROUP BY u.id, u.username, u.email, sp.document, cu.status_type_id, cu.classroom_id
                 ORDER BY u.username
                 """,
-                (classroom_id, ESTUDIANTE)
+                (classroom_id, ESTUDIANTE),
             ).fetchall()
 
         if filtro == "students_passed":
@@ -202,65 +208,89 @@ def generar_pdf_metricas(
         # Tabla 1
         elementos.append(Paragraph(tabla1_titulo, estilo_h2))
         if grupo1:
-            filas = [[
-                Paragraph("Nombre", estilo_celda_bold),
-                Paragraph("Email", estilo_celda_bold),
-                Paragraph("Documento", estilo_celda_bold),
-                Paragraph("Promedio", estilo_celda_bold),
-                Paragraph("Inasistencias", estilo_celda_bold)
-            ]]
+            filas = [
+                [
+                    Paragraph("Nombre", estilo_celda_bold),
+                    Paragraph("Email", estilo_celda_bold),
+                    Paragraph("Documento", estilo_celda_bold),
+                    Paragraph("Promedio", estilo_celda_bold),
+                    Paragraph("Inasistencias", estilo_celda_bold),
+                ]
+            ]
             for a in grupo1:
-                filas.append([
-                    Paragraph(a[0], estilo_celda),
-                    Paragraph(a[1], estilo_celda),
-                    Paragraph(a[2], estilo_celda),
-                    Paragraph(str(round(float(a[5]), 2)), estilo_celda),
-                    Paragraph(str(int(a[4])), estilo_celda),
-                ])
-            elementos.append(_construir_tabla(filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]))
+                filas.append(
+                    [
+                        Paragraph(a[0], estilo_celda),
+                        Paragraph(a[1], estilo_celda),
+                        Paragraph(a[2], estilo_celda),
+                        Paragraph(str(round(float(a[5]), 2)), estilo_celda),
+                        Paragraph(str(int(a[4])), estilo_celda),
+                    ]
+                )
+            elementos.append(
+                _construir_tabla(
+                    filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]
+                )
+            )
         else:
-            elementos.append(Paragraph("No hay alumnos para listar en esta sección.", estilos["Normal"]))
+            elementos.append(
+                Paragraph(
+                    "No hay alumnos para listar en esta sección.", estilos["Normal"]
+                )
+            )
 
         elementos.append(Spacer(1, 15))
 
         # Tabla 2
         elementos.append(Paragraph(tabla2_titulo, estilo_h2))
         if grupo2:
-            filas = [[
-                Paragraph("Nombre", estilo_celda_bold),
-                Paragraph("Email", estilo_celda_bold),
-                Paragraph("Documento", estilo_celda_bold),
-                Paragraph("Promedio", estilo_celda_bold),
-                Paragraph("Inasistencias", estilo_celda_bold)
-            ]]
+            filas = [
+                [
+                    Paragraph("Nombre", estilo_celda_bold),
+                    Paragraph("Email", estilo_celda_bold),
+                    Paragraph("Documento", estilo_celda_bold),
+                    Paragraph("Promedio", estilo_celda_bold),
+                    Paragraph("Inasistencias", estilo_celda_bold),
+                ]
+            ]
             for a in grupo2:
-                filas.append([
-                    Paragraph(a[0], estilo_celda),
-                    Paragraph(a[1], estilo_celda),
-                    Paragraph(a[2], estilo_celda),
-                    Paragraph(str(round(float(a[5]), 2)), estilo_celda),
-                    Paragraph(str(int(a[4])), estilo_celda),
-                ])
-            elementos.append(_construir_tabla(filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]))
+                filas.append(
+                    [
+                        Paragraph(a[0], estilo_celda),
+                        Paragraph(a[1], estilo_celda),
+                        Paragraph(a[2], estilo_celda),
+                        Paragraph(str(round(float(a[5]), 2)), estilo_celda),
+                        Paragraph(str(int(a[4])), estilo_celda),
+                    ]
+                )
+            elementos.append(
+                _construir_tabla(
+                    filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]
+                )
+            )
         else:
-            elementos.append(Paragraph("No hay alumnos para listar en esta sección.", estilos["Normal"]))
+            elementos.append(
+                Paragraph(
+                    "No hay alumnos para listar en esta sección.", estilos["Normal"]
+                )
+            )
 
     elif filtro == "teams":
         elementos.append(Paragraph("Desglose Analítico por Equipos", estilo_h2))
-        
+
         with engine.connect() as conn:
             equipos_db = conn.exec_driver_sql(
                 "SELECT id, name FROM teams WHERE classroom_id = %s ORDER BY name",
-                (classroom_id,)
+                (classroom_id,),
             ).fetchall()
 
         if equipos_db:
             for eq in equipos_db:
                 equipo_id = eq[0]
                 nombre_equipo = eq[1]
-                
+
                 elementos.append(Paragraph(f"Equipo: {nombre_equipo}", estilo_h2))
-                
+
                 with engine.connect() as conn:
                     miembros = conn.exec_driver_sql(
                         """
@@ -284,36 +314,54 @@ def generar_pdf_metricas(
                         WHERE tm.team_id = %s
                         GROUP BY u.id, u.username, u.email, sp.document, cu.classroom_id
                         """,
-                        (classroom_id, classroom_id, classroom_id, equipo_id)
+                        (classroom_id, classroom_id, classroom_id, equipo_id),
                     ).fetchall()
 
                 if miembros:
-                    filas = [[
-                        Paragraph("Integrante", estilo_celda_bold),
-                        Paragraph("Email", estilo_celda_bold),
-                        Paragraph("Documento", estilo_celda_bold),
-                        Paragraph("Promedio", estilo_celda_bold),
-                        Paragraph("Inasistencias", estilo_celda_bold)
-                    ]]
+                    filas = [
+                        [
+                            Paragraph("Integrante", estilo_celda_bold),
+                            Paragraph("Email", estilo_celda_bold),
+                            Paragraph("Documento", estilo_celda_bold),
+                            Paragraph("Promedio", estilo_celda_bold),
+                            Paragraph("Inasistencias", estilo_celda_bold),
+                        ]
+                    ]
                     for m in miembros:
-                        filas.append([
-                            Paragraph(m[0], estilo_celda),
-                            Paragraph(m[1], estilo_celda),
-                            Paragraph(m[2], estilo_celda),
-                            Paragraph(str(round(float(m[4]), 2)), estilo_celda),
-                            Paragraph(str(int(m[3])), estilo_celda),
-                        ])
-                    elementos.append(_construir_tabla(filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]))
+                        filas.append(
+                            [
+                                Paragraph(m[0], estilo_celda),
+                                Paragraph(m[1], estilo_celda),
+                                Paragraph(m[2], estilo_celda),
+                                Paragraph(str(round(float(m[4]), 2)), estilo_celda),
+                                Paragraph(str(int(m[3])), estilo_celda),
+                            ]
+                        )
+                    elementos.append(
+                        _construir_tabla(
+                            filas, [4.5 * cm, 5.0 * cm, 3.5 * cm, 2.0 * cm, 3.0 * cm]
+                        )
+                    )
                 else:
-                    elementos.append(Paragraph("Este equipo no registra miembros actualmente.", estilos["Normal"]))
-                
+                    elementos.append(
+                        Paragraph(
+                            "Este equipo no registra miembros actualmente.",
+                            estilos["Normal"],
+                        )
+                    )
+
                 elementos.append(Spacer(1, 15))
         else:
-            elementos.append(Paragraph("No se encontraron equipos estructurados en esta aula.", estilos["Normal"]))
+            elementos.append(
+                Paragraph(
+                    "No se encontraron equipos estructurados en esta aula.",
+                    estilos["Normal"],
+                )
+            )
 
     elif filtro == "colaborators":
         elementos.append(Paragraph("Cuerpo de Colaboradores del Aula", estilo_h2))
-        
+
         with engine.connect() as conn:
             colaboradores = conn.exec_driver_sql(
                 """
@@ -323,25 +371,33 @@ def generar_pdf_metricas(
                 WHERE cu.classroom_id = %s AND cu.role_id IN (1, 2, 3)
                 ORDER BY cu.role_id, u.username
                 """,
-                (classroom_id,)
+                (classroom_id,),
             ).fetchall()
 
         if colaboradores:
-            filas = [[
-                Paragraph("Nombre del Colaborador", estilo_celda_bold),
-                Paragraph("Email de Contacto", estilo_celda_bold),
-                Paragraph("Rol Asignado", estilo_celda_bold)
-            ]]
+            filas = [
+                [
+                    Paragraph("Nombre del Colaborador", estilo_celda_bold),
+                    Paragraph("Email de Contacto", estilo_celda_bold),
+                    Paragraph("Rol Asignado", estilo_celda_bold),
+                ]
+            ]
             for c in colaboradores:
                 rol_txt = NOMBRE_ROL.get(c[2], "Asistente")
-                filas.append([
-                    Paragraph(c[0], estilo_celda),
-                    Paragraph(c[1], estilo_celda),
-                    Paragraph(rol_txt, estilo_celda)
-                ])
+                filas.append(
+                    [
+                        Paragraph(c[0], estilo_celda),
+                        Paragraph(c[1], estilo_celda),
+                        Paragraph(rol_txt, estilo_celda),
+                    ]
+                )
             elementos.append(_construir_tabla(filas, [6.5 * cm, 7.5 * cm, 4.0 * cm]))
         else:
-            elementos.append(Paragraph("No hay colaboradores vinculados a este espacio.", estilos["Normal"]))
+            elementos.append(
+                Paragraph(
+                    "No hay colaboradores vinculados a este espacio.", estilos["Normal"]
+                )
+            )
 
     doc.build(elementos)
     return buffer.getvalue(), None

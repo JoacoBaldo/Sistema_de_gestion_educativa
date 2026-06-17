@@ -89,11 +89,17 @@ def actualizar_evaluacion(
     evaluation_type_id: int | None,
     referenced_eval_id: int | None,
     individual: int | None,
-    due_date: str | None, # Agregado aquí
+    due_date: str | None,  # Agregado aquí
     evaluation_id: int,
 ):
-    if (classroom_id is None and name is None and evaluation_type_id is None 
-            and referenced_eval_id is None and individual is None and due_date is None):
+    if (
+        classroom_id is None
+        and name is None
+        and evaluation_type_id is None
+        and referenced_eval_id is None
+        and individual is None
+        and due_date is None
+    ):
         return None, DATOS_EVALUACION_REQUERIDOS
 
     evaluacion_actual = obtener_evaluacion_por_id(evaluation_id)
@@ -101,7 +107,10 @@ def actualizar_evaluacion(
         return None, EVALUACION_NO_EXISTE
 
     if evaluacion_tiene_notas_db(evaluation_id):
-        return None, {"error": "No se puede modificar la evaluación porque ya tiene calificaciones asignadas", "status": 400}
+        return None, {
+            "error": "No se puede modificar la evaluación porque ya tiene calificaciones asignadas",
+            "status": 400,
+        }
 
     return actualizar_evaluacion_db(
         classroom_id,
@@ -109,7 +118,7 @@ def actualizar_evaluacion(
         evaluation_type_id,
         referenced_eval_id,
         individual,
-        due_date, # Pasado a la DB
+        due_date,  # Pasado a la DB
         evaluation_id,
     ), None
 
@@ -143,10 +152,11 @@ def cargar_notas_masivas_logic(
 
     return {"inserted": resultado.get("inserted", 0)}, None
 
+
 def actualizar_nota_estudiante(evaluation_id: int, user_id: int, score: float) -> tuple:
     if score is None:
         return None, {"error": "La calificación es requerida", "status": 400}
-        
+
     if not obtener_evaluacion_por_id(evaluation_id):
         return None, EVALUACION_NO_EXISTE
 
@@ -157,28 +167,42 @@ def actualizar_nota_estudiante(evaluation_id: int, user_id: int, score: float) -
 def eliminar_nota_estudiante(evaluation_id: int, user_id: int) -> tuple:
     if not obtener_evaluacion_por_id(evaluation_id):
         return None, EVALUACION_NO_EXISTE
-        
+
     resultado = eliminar_nota_estudiante_db(evaluation_id, user_id)
     return resultado, None
 
-def crear_nota_individual_o_grupal(evaluation_id: int, score: float, user_id: int | None = None, team_id: int | None = None) -> tuple:
+
+def crear_nota_individual_o_grupal(
+    evaluation_id: int,
+    score: float,
+    user_id: int | None = None,
+    team_id: int | None = None,
+) -> tuple:
     if score is None:
         return None, {"error": "La calificación es requerida", "status": 400}
-        
+
     evaluacion = obtener_evaluacion_por_id(evaluation_id)
     if not evaluacion:
         return None, EVALUACION_NO_EXISTE
-        
+
     es_individual = bool(evaluacion.get("individual"))
-    
+
     if es_individual:
         if not user_id:
-            return None, {"error": "Esta evaluación es de tipo individual. Debe especificar un alumno (user_id).", "status": 400}
+            return None, {
+                "error": "Esta evaluación es de tipo individual. Debe especificar un alumno (user_id).",
+                "status": 400,
+            }
         team_id = None
     else:
         if not team_id:
-            return None, {"error": "Esta evaluación es de tipo grupal. Debe especificar un equipo (team_id).", "status": 400}
+            return None, {
+                "error": "Esta evaluación es de tipo grupal. Debe especificar un equipo (team_id).",
+                "status": 400,
+            }
         user_id = None
 
-    resultado = guardar_nota_individual_o_equipo_db(evaluation_id, float(score), user_id, team_id)
+    resultado = guardar_nota_individual_o_equipo_db(
+        evaluation_id, float(score), user_id, team_id
+    )
     return resultado, None

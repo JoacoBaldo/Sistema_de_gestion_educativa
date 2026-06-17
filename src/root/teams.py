@@ -81,9 +81,7 @@ def actualizar_equipo(team_id):
         except (TypeError, ValueError):
             return responder_error(MIEMBROS_NO_INT)
 
-    resultado, error = editar_equipo(
-        int(team_id), nombre, member_ids, usuario["id"]
-    )
+    resultado, error = editar_equipo(int(team_id), nombre, member_ids, usuario["id"])
     if error:
         return responder_error(error)
 
@@ -130,9 +128,7 @@ def crear_equipo_formulario():
     if not classroom_id:
         return responder_error(CLASSROOM_NO_ESPECIFICADO)
 
-    resultado, error = crear_equipo(
-        nombre, miembros, int(classroom_id), usuario["id"]
-    )
+    resultado, error = crear_equipo(nombre, miembros, int(classroom_id), usuario["id"])
     if error:
         return responder_error(error)
 
