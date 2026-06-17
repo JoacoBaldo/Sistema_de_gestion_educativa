@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("st_edit_email").value = row.dataset.email || "";
     document.getElementById("st_edit_padron").value = row.dataset.document || "";
     document.getElementById("st_edit_career").value = row.dataset.career || "";
+    document.getElementById("st_edit_status").value   = row.dataset.status || "";
     document.getElementById("st_edit_user_id").value = row.dataset.userId || "";
 
     const classroomId = window.location.pathname.split("/")[2];
@@ -77,7 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const padron = document.getElementById("st_edit_padron")?.value.trim();
     const email = document.getElementById("st_edit_email")?.value.trim();
     const career = document.getElementById("st_edit_career")?.value.trim();
-    if (!nombre || !apellido || !padron || !email || !career) {
+      const status   = document.getElementById("st_edit_status")?.value.trim();
+    if (!nombre || !apellido || !padron || !email || !career || !status) {
       showEditToast("Todos los campos con asterisco (*) son obligatorios.");
       e.preventDefault();
     }

@@ -1027,6 +1027,7 @@ def procesar_editar_estudiante(classroom_id):
         "email": email,
         "document": padron,
         "career": career,
+        "status": request.form.get("status") or None,
     }
 
     res, error = consumir_api(
@@ -1061,7 +1062,7 @@ def cargar_csv_estudiantes(classroom_id):
             url_for("classroom_manage", classroom_id=classroom_id, vista="students")
         )
 
-    files = {"csv_file": (archivo.filename, archivo.stream, archivo.mimetype)}
+    files = {"archivo": (archivo.filename, archivo.stream, archivo.mimetype)}
     res, error = consumir_api(
         "POST", f"/api/v1/classrooms/{classroom_id}/students/import", files=files
     )

@@ -250,6 +250,22 @@ def desactivar_alumnos_de_classrooms(classroom_ids: list[int]) -> int:
         return cursor.rowcount
 
 
+def actualizar_estado_estudiante_classroom(
+    classroom_id: int, user_id: int, status_type_id: int
+) -> None:
+    engine = obtener_conexion()
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            """
+            UPDATE classroom_users
+            SET status_type_id = %s
+            WHERE classroom_id = %s AND user_id = %s AND role_id = %s
+            """,
+            (status_type_id, classroom_id, user_id, ESTUDIANTE),
+        )
+        conn.commit()
+
+
 def obtener_classrooms_usuario(usuario_id: int) -> list[dict]:
     engine = obtener_conexion()
     with engine.connect() as conn:
