@@ -85,7 +85,9 @@
                     <th>Padrón/ID</th>
                     <th class="st-col-email">Email</th>
                     <th>Estado</th>
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <th>Promedio</th>
+                    {% endif %}
                     <th>Inasistencias</th>
                     {% if session.get('user', {}).get('role_id') != 3 %}
                     <th class="st-col-actions">Acciones</th>
@@ -101,7 +103,7 @@
                 <tr data-padron="{{ alumno.id }}" data-nombre="{{ nombre }}" data-apellido="{{ apellido }}"
                     data-email="{{ alumno.email }}" data-status="{{ 'active' if activo else 'abandoned' }}" data-team=""
                     data-user-id="{{ alumno.id }}" data-username="{{ alumno.username }}"
-                    data-document="{{ alumno.document or '' }}" data-career="{{ alumno.career or '' }}">
+                    data-document="{{ alumno.document or '' }}" data-career="{{ alumno.career_name or '' }}">
                     <td>{{ nombre }}</td>
                     <td>{{ apellido }}</td>
                     <td>{{ alumno.id }}</td>
@@ -114,17 +116,20 @@
                         {% endif %}
                     </td>
 
+                    {% if session.get('user', {}).get('role_id') != 3 %}
                     <td>
-                        {% if alumno.promedio is not none and alumno.promedio != '-' %}
-                        {% if alumno.promedio >= 4 %}
-                        <span class="st-badge st-badge-active">{{ "%.2f"|format(alumno.promedio) }}</span>
-                        {% else %}
-                        <span class="st-badge st-badge-dropped">{{ "%.2f"|format(alumno.promedio) }}</span>
-                        {% endif %}
-                        {% else %}
-                        <span class="st-badge">-</span>
-                        {% endif %}
+                        {% set promedio = alumno.get('promedio', 0.0) | float %}
+                        {% set notas_json = alumno.get('grades', []) | tojson | forceescape %}
+
+                        <button type="button"
+                            class="btn-notas-promedio {% if promedio >= 4.0 %}is-approved{% else %}is-reproved{% endif %}"
+                            data-action="open-grades-modal" data-user-id="{{ alumno.get('id') }}"
+                            data-alumno-nombre="{{ alumno.get('username', 'Estudiante') }}"
+                            data-alumno-promedio="{{ '%.2f' | format(promedio) }}" data-notas="{{ notas_json }}">
+                            Notas
+                        </button>
                     </td>
+                    {% endif %}
 
                     <td>
                         <span class="st-absences-count">{{ alumno.inasistencias }}</span>
@@ -168,6 +173,37 @@
     </section>
     {% include 'classroom-manage/students/forms/crear_estudiante.html' %}
     {% include 'classroom-manage/students/forms/editar_estudiante.html' %}
+
+
+    <div id="grades-modal" class="glass-modal hidden" role="dialog" aria-modal="true"
+        aria-labelledby="grades-modal-title">
+        <div class="glass-card" style="width: min(100%, 500px);">
+
+            <div class="glass-header">
+                <h3 id="grades-modal-title">📋 Calificaciones</h3>
+                <button type="button" class="btn-close-custom" id="grades-modal-close" aria-label="Cerrar">✕</button>
+            </div>
+            <p class="subtitle" id="grades-modal-subtitle"></p>
+
+            <div style="margin-top: 1rem; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid rgba(0,0,0,0.08); color: #334155; font-size: 0.9rem;">
+                            <th style="padding: 10px 8px;">Evaluación</th>
+                            <th style="padding: 10px 8px; text-align: center; width: 80px;">Nota</th>
+                            <th style="padding: 10px 8px; text-align: center; width: 90px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grades-modal-table-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="action-buttons" style="margin-top: 1.5rem; justify-content: flex-end;">
+                <button type="button" class="btn-cancelar" id="grades-modal-cancel-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="{{ url_for('static', filename='js/studentsModal.js') }}"></script>
 </section>
